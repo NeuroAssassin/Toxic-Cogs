@@ -5,10 +5,14 @@ import asyncio
 BaseCog = getattr(commands, "Cog", object)
 
 class Simon(BaseCog):
-    """Play Simon, and guess the write number sequence!"""
+    """Play Simon, and guess the write number sequence!
+    
+    WARNING:
+    This cog sends a lot of messages, edits emojis and edits messages.  It may use up rate limits heavily, so only one game can be played at a time."""
 
     def __init__(self, bot):
         self.bot = bot
+        self.playing = False
 
     @commands.group()
     async def simon(self, ctx):
@@ -17,6 +21,11 @@ class Simon(BaseCog):
 
     @simon.command()
     async def start(self, ctx):
+        if self.playing == True:
+            await ctx.send("A game is already in progress.  Please wait for that person to finish!")
+            return
+        else:
+            self.playing = True
         await ctx.send("Starting game...\n**RULES:**\n```1. When you are ready for the sequence, click the green checkmark.\n2. Watch the sequence carefully, then repeat it back into chat.  For example, if the 1 then the 2 changed, I would type 12.\n3. You are given 10 seconds to repeat the sequence.\n4. When waiting for confirmation for next sequence, click the green check within 5 minutes of the bot being ready.\n5. Answer as soon as you can once the bot adds the stop watch emoji.```")
         board = [
             [1, 2],
@@ -37,10 +46,12 @@ class Simon(BaseCog):
             except asyncio.TimeoutError:
                 await message.delete()
                 await ctx.send("Game has ended due to no response for starting the next sequence.")
+                self.playing = False
                 return
             else:
                 if str(reaction.emoji) == "\u274C":
                     await message.delete()
+                    self.playing = False
                     return
                 await message.remove_reaction('\u2705', self.bot.user)
                 await message.remove_reaction('\u2705', ctx.author)
@@ -88,6 +99,7 @@ class Simon(BaseCog):
                 except asyncio.TimeoutError:
                     await ctx.send(f"Sorry {ctx.author.mention}!  You took too long to answer.")
                     await message.remove_reaction("\u23F1", self.bot.user)
+                    self.playing = False
                     return
                 else:
                     await user_answer.delete()
@@ -97,6 +109,7 @@ class Simon(BaseCog):
                     else:
                         await message.add_reaction('\U0001F6AB')
                         await ctx.send(f"Sorry, but that was the incorrect pattern.  The pattern was {answer}")
+                        self.playing = False
                         return
                     another_message = await ctx.send("Sequence was correct.")
                     await asyncio.sleep(3)

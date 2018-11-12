@@ -84,13 +84,13 @@ class Simon(BaseCog):
                 await message.remove_reaction("\u23F1", self.bot.user)
             else:
                 if user_answer == answer:
-                    await message.add_reaction('\U1F44D000')
+                    await message.add_reaction('\U0001F44D')
                 else:
-                    await message.add_reaction('\U1F6AB000')
+                    await message.add_reaction('\U0001F6AB')
                     await ctx.send(f"Sorry, but that was the incorrect pattern.  The pattern was {answer}")
                     return
                 await ctx.send("Sequence was correct.  Waiting for confirmation for another...")
-                await message.remove_reaction("\U1F44D000", self.bot.user)
+                await message.remove_reaction("\U0001F44D", self.bot.user)
                 await message.add_reaction("\u2705")
 
     def print_board(self, board):

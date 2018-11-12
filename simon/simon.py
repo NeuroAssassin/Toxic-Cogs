@@ -25,10 +25,11 @@ class Simon(BaseCog):
         level = [1, 4]
         message = await ctx.send("```" + self.print_board(board) + "```")
         await message.add_reaction("\u2705")
+        await message.add_reaction("\u274C")
         await ctx.send("Click the Green Check Reaction when you are ready for the sequence.")
 
         def check(reaction, user):
-            return (user == ctx.author) and str(reaction.emoji) == "\u2705"
+            return (user == ctx.author) and str(reaction.emoji) in ["\u2705", "\u274C"]
 
         while True:
             try:
@@ -38,6 +39,8 @@ class Simon(BaseCog):
                 await ctx.send("Game has ended due to no response for starting the next sequence.")
                 return
             else:
+                if str(reaction.emoji) == "\u274C":
+                    await message.delete()
                 await message.remove_reaction('\u2705', self.bot.user)
                 await message.remove_reaction('\u2705', ctx.author)
                 await message.add_reaction('\u26A0')
@@ -96,6 +99,7 @@ class Simon(BaseCog):
                     await ctx.send("Sequence was correct.  Waiting for confirmation for another...")
                     await message.remove_reaction("\U0001F44D", self.bot.user)
                     await message.add_reaction("\u2705")
+                    await message.add_reaction("\u274C")
                 level[0] *= 0.90
                 level[1] += 1
 

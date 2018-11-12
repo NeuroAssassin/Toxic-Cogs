@@ -45,28 +45,28 @@ class Simon(BaseCog):
             for x in randoms:
                 if x == 1:
                     old = board[0][0]
-                    board[0][1] = "*"
+                    board[0][1] = "-"
                     await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[0][0] = old
                     await message.edit(content="```" + self.print_board(board) + "```")
                 elif x == 2:
                     old = board[0][1]
-                    board[0][1] = "*"
+                    board[0][1] = "-"
                     await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[0][1] = old
                     await message.edit(content="```" + self.print_board(board) + "```")
                 elif x == 3:
                     old = board[1][0]
-                    board[1][0] = "*"
+                    board[1][0] = "-"
                     await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[1][0] = old
                     await message.edit(content="```" + self.print_board(board) + "```")
                 elif x == 4:
                     old = board[1][1]
-                    board[1][1] = "*"
+                    board[1][1] = "-"
                     await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[1][1] = old
@@ -84,13 +84,13 @@ class Simon(BaseCog):
                 await message.remove_reaction("\u23F1", self.bot.user)
             else:
                 if user_answer == answer:
-                    await message.add_reaction('\u1F44D')
+                    await message.add_reaction('\U1F44D000')
                 else:
-                    await message.add_reaction('\u1F6AB')
+                    await message.add_reaction('\U1F6AB000')
                     await ctx.send(f"Sorry, but that was the incorrect pattern.  The pattern was {answer}")
                     return
                 await ctx.send("Sequence was correct.  Waiting for confirmation for another...")
-                await message.remove_reaction("\u1F44D", self.bot.user)
+                await message.remove_reaction("\U1F44D000", self.bot.user)
                 await message.add_reaction("\u2705")
 
     def print_board(self, board):

@@ -32,13 +32,13 @@ class Simon(BaseCog):
         try:
             reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=300.0)
         except asyncio.TimeoutError:
-            message.delete()
+            await message.delete()
             await ctx.send("Game has ended due to no response for starting the next sequence.")
             return
         else:
-            message.remove_reaction('\u2705', self.bot.user)
-            message.remove_reaction('\u2705', ctx.author)
-            message.add_reaction('\u26A0')
+            await message.remove_reaction('\u2705', self.bot.user)
+            await message.remove_reaction('\u2705', ctx.author)
+            await message.add_reaction('\u26A0')
             randoms = []
             for x in range(level[1]):
                 randoms.append(random.randint(1, 4))
@@ -46,33 +46,33 @@ class Simon(BaseCog):
                 if x == 1:
                     old = board[0][0]
                     board[0][1] = "*"
-                    message.edit(content="```" + self.print_board(board) + "```")
+                    await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[0][0] = old
-                    message.edit(content="```" + self.print_board(board) + "```")
+                    await message.edit(content="```" + self.print_board(board) + "```")
                 elif x == 2:
                     old = board[0][1]
                     board[0][1] = "*"
-                    message.edit(content="```" + self.print_board(board) + "```")
+                    await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[0][1] = old
-                    message.edit(content="```" + self.print_board(board) + "```")
+                    await message.edit(content="```" + self.print_board(board) + "```")
                 elif x == 3:
                     old = board[1][0]
                     board[1][0] = "*"
-                    message.edit(content="```" + self.print_board(board) + "```")
+                    await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[1][0] = old
-                    message.edit(content="```" + self.print_board(board) + "```")
+                    await message.edit(content="```" + self.print_board(board) + "```")
                 elif x == 4:
                     old = board[1][1]
                     board[1][1] = "*"
-                    message.edit(content="```" + self.print_board(board) + "```")
+                    await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[1][1] = old
-                    message.edit(content="```" + self.print_board(board) + "```")
-            message.remove_reaction('\u26A0', self.bot.user)
-            answer = "".join(randoms)
+                    await message.edit(content="```" + self.print_board(board) + "```")
+            await message.remove_reaction('\u26A0', self.bot.user)
+            answer = "".join(list(map(str, randoms)))
             await message.add_reaction("\u23F1")
 
             def check_t(m):

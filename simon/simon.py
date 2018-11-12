@@ -98,10 +98,12 @@ class Simon(BaseCog):
                         await message.add_reaction('\U0001F6AB')
                         await ctx.send(f"Sorry, but that was the incorrect pattern.  The pattern was {answer}")
                         return
-                    await ctx.send("Sequence was correct.  Waiting for confirmation for another...")
+                    another_message = await ctx.send("Sequence was correct.")
+                    await asyncio.sleep(3)
                     await message.remove_reaction("\U0001F44D", self.bot.user)
                     await message.add_reaction("\u2705")
                     await message.add_reaction("\u274C")
+                    await another_message.delete()
                 level[0] *= 0.90
                 level[1] += 1
 

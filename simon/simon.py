@@ -41,6 +41,7 @@ class Simon(BaseCog):
             else:
                 if str(reaction.emoji) == "\u274C":
                     await message.delete()
+                    return
                 await message.remove_reaction('\u2705', self.bot.user)
                 await message.remove_reaction('\u2705', ctx.author)
                 await message.add_reaction('\u26A0')
@@ -89,6 +90,7 @@ class Simon(BaseCog):
                     await message.remove_reaction("\u23F1", self.bot.user)
                     return
                 else:
+                    await user_answer.delete()
                     await message.remove_reaction("\u23F1", self.bot.user)
                     if str(user_answer.content) == str(answer):
                         await message.add_reaction('\U0001F44D')

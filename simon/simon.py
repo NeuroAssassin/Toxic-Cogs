@@ -83,7 +83,8 @@ class Simon(BaseCog):
                 await ctx.send(f"Sorry {ctx.author.mention}!  You took too long to answer.")
                 await message.remove_reaction("\u23F1", self.bot.user)
             else:
-                if user_answer == answer:
+                await message.remove_reaction("\u23F1", self.bot.user)
+                if int(user_answer) == int(answer):
                     await message.add_reaction('\U0001F44D')
                 else:
                     await message.add_reaction('\U0001F6AB')

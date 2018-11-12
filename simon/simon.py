@@ -45,7 +45,7 @@ class Simon(BaseCog):
             for x in randoms:
                 if x == 1:
                     old = board[0][0]
-                    board[0][1] = "-"
+                    board[0][0] = "-"
                     await message.edit(content="```" + self.print_board(board) + "```")
                     await asyncio.sleep(level[0])
                     board[0][0] = old

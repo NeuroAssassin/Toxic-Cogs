@@ -84,7 +84,7 @@ class Simon(BaseCog):
                 await message.remove_reaction("\u23F1", self.bot.user)
             else:
                 await message.remove_reaction("\u23F1", self.bot.user)
-                if int(user_answer) == int(answer):
+                if int(user_answer.content) == int(answer):
                     await message.add_reaction('\U0001F44D')
                 else:
                     await message.add_reaction('\U0001F6AB')

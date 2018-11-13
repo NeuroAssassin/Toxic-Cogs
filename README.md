@@ -8,3 +8,6 @@ These cogs are made for Red V3 by TwentySix, where you can find here (https://gi
 Credit to https://outage.report/ which allows me to figure out whether websites/companies are down.
 
 Contact me in Discord for bugs/issues/etc. at Neuro Assassin#4838 <@473541068378341376>
+
+# Required Libraries
+Beautiful Soup is required for the webstatus cog.

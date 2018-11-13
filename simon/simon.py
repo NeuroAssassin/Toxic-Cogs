@@ -21,6 +21,7 @@ class Simon(BaseCog):
 
     @simon.command()
     async def start(self, ctx):
+        """Start Simon game"""
         if self.playing == True:
             await ctx.send("A game is already in progress.  Please wait for that person to finish!")
             return

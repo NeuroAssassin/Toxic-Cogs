@@ -16,6 +16,7 @@ class Webstatus(BaseCog):
 
     @commands.command()
     async def webstatus(self, ctx, *, company):
+        """Uses https://outage.report/ to see if the company/website is down"""
         async with aiohttp.ClientSession() as session:
             try:
                 url = "https://outage.report/" + company.replace(' ', '').lower()

@@ -2,8 +2,8 @@
     "AUTHOR" : "Neuro Assassin",
     "INSTALL_MSG" : "Thank you for downloading this cog.",
     "NAME" : "simon",
-    "SHORT" : "Allows you to play Simon inside of Discord!",
-    "DESCRIPTION" : "This cog allows a Discord User to play the game Simon inside of a text channel.",
+    "SHORT" : "Allows you to play Simon inside of Discord!\nWarning!  This cog uses a major portion of the bot's rate limits.",
+    "DESCRIPTION" : "This cog allows a Discord User to play the game Simon inside of a text channel.\nWarning!  This cog uses a major portion of the bot's rate limits.  This may prevent the bot from sending messages, adding emojis or deleting messages in specific peroids of time.",
     "TAGS" : ["fun"],
     "REQUIREMENTS" : [],
     "HIDDEN" : false

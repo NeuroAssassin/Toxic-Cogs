@@ -31,5 +31,5 @@ class Webstatus(BaseCog):
                 else:
                     await ctx.send(results[0].string)
                     reports = soup.find_all('text', attrs={'class': 'Gauge__Count-cx9u1z-5'})
-                    await ctx.send(f"{reports[0]} people have reported problems in the last 20 minutes.")
+                    await ctx.send(f"{reports[0].string} people have reported problems in the last 20 minutes.")
                     return

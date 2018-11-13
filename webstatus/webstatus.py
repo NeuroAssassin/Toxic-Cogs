@@ -19,14 +19,13 @@ class Webstatus(BaseCog):
         async with aiohttp.ClientSession() as session:
             try:
                 url = "https://outage.report/" + company.replace(' ', '').lower()
-                webpage = self.fetch(session, url)
+                webpage = await self.fetch(session, url)
             except:
                 await ctx.send(f"An error occured while fetching the status.  Server responded with status code {webpage.status_code}")
                 return
             else:
-                tree = BeautifulSoup(webpage)
-                webpage = tree.prettify()
                 soup = BeautifulSoup(webpage, 'html.parser')
+                soup = soup.prettify()
                 results = soup.find_all('div', attrs={'class': 'Alert__Div-s1eb33n4-0 cvbpXY'})
                 if len(results) == 0:
                     await ctx.send("https://outage.report has not reported any problems.")

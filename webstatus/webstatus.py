@@ -29,5 +29,5 @@ class Webstatus(BaseCog):
                 if len(results) == 0:
                     await ctx.send("https://outage.report has not reported any problems.")
                 else:
-                    await ctx.send(results[1].string)
+                    await ctx.send(results[0].string)
                     return

@@ -25,11 +25,11 @@ class Webstatus(BaseCog):
                 return
             else:
                 soup = BeautifulSoup(webpage, 'html.parser')
-                results = soup.find_all('div', attrs={'class': 'Alert__Div-s1eb33n4-0 cvbpXY'})
+                results = soup.find_all('div', attrs={'class': 'Alert__Div-s1eb33n4-0'})
                 if len(results) == 0:
                     await ctx.send("https://outage.report has not reported any problems.")
                 else:
-                    await ctx.send(results[0].string)
+                    await ctx.send(f"https://outage.report/ has reported: {results[0].string}")
                     reports = soup.find_all('text', attrs={'class': 'Gauge__Count-cx9u1z-5'})
                     await ctx.send(f"{reports[0].string} people have reported problems in the last 20 minutes.")
                     return

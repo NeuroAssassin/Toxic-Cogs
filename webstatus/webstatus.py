@@ -12,6 +12,8 @@ class Webstatus(BaseCog):
 
     async def fetch(self, session, url):
         async with session.get(url) as response:
+            if response.status_code != 200:
+                return int(await response.status_code)
             return await response.text()
 
     @commands.command()
@@ -45,12 +47,13 @@ class Webstatus(BaseCog):
                 url = "https://outage.report/" + company.replace(' ', '').lower()
                 webpage = await self.fetch(session, url)
             except:
-                await ctx.send(f"An error occurred while fetching the status.  Server responded with status code {webpage.status_code}")
+                await ctx.send(f"An error occurred while fetching the status.")
                 return
             else:
-                if webpage.status_code != 200:
-                    await ctx.send(f"An error occurred within outage.report.  The site responded with status code {webpage.status_code}")
-                    return
+                if type(webpage) == int:
+                    if webpage.status_code != 200:
+                        await ctx.send(f"An error occurred within outage.report.  The site responded with status code {webpage.status_code}")
+                        return
                 soup = BeautifulSoup(webpage, 'html.parser')
                 results = soup.find_all('div', attrs={'class': 'Alert__Div-s1eb33n4-0'})
                 if len(results) == 0:

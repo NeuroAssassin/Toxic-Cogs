@@ -1,10 +1,10 @@
 {
-    "AUTHOR" : "Neuro Assassin",
-    "INSTALL_MSG" : "Thank you for downloading this cog.",
-    "NAME" : "webstatus",
-    "SHORT" : "Tells you whether something is down!",
-    "DESCRIPTION" : "This cog tells a Discord User whether a company/website is down, using https://outage.report/ .",
-    "TAGS" : ["tools"],
-    "REQUIREMENTS" : [],
-    "HIDDEN" : false
+    "author" : "Neuro Assassin",
+    "install_msg" : "Thank you for downloading this cog.",
+    "name" : "webstatus",
+    "short" : "Tells you whether something is down!",
+    "description" : "This cog tells a Discord User whether a company/website is down, using https://outage.report/ .",
+    "tags" : ["tools"],
+    "requirements" : [],
+    "hidden" : false
 }

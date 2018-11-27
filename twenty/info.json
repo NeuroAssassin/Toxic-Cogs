@@ -1,10 +1,10 @@
 {
-    "AUTHOR" : "Neuro Assassin",
-    "INSTALL_MSG" : "Thank you for downloading this cog.",
-    "NAME" : "twenty",
-    "SHORT" : "Allows you to play 2048 inside of Discord!",
-    "DESCRIPTION" : "This cog allows a Discord User to play 2048 inside of a text channel.",
-    "TAGS" : ["fun"],
-    "REQUIREMENTS" : [],
-    "HIDDEN" : false
+    "author" : "Neuro Assassin",
+    "install_msg" : "Thank you for downloading this cog.",
+    "name" : "twenty",
+    "short" : "Allows you to play 2048 inside of Discord!",
+    "description" : "This cog allows a Discord User to play 2048 inside of a text channel.",
+    "tags" : ["fun"],
+    "requirements" : [],
+    "hidden" : false
 }

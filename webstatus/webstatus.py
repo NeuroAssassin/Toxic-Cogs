@@ -46,8 +46,9 @@ class Webstatus(BaseCog):
             try:
                 url = "https://outage.report/" + company.replace(' ', '').lower()
                 webpage = await self.fetch(session, url)
-            except:
+            except Exception as e:
                 await ctx.send(f"An error occurred while fetching the status.")
+                print(e)
                 return
             else:
                 if type(webpage) == int:

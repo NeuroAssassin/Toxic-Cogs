@@ -12,8 +12,8 @@ class Webstatus(BaseCog):
 
     async def fetch(self, session, url):
         async with session.get(url) as response:
-            if response.status_code != 200:
-                return int(await response.status_code)
+            if response.status != 200:
+                return int(await response.status)
             return await response.text()
 
     @commands.command()
@@ -52,8 +52,8 @@ class Webstatus(BaseCog):
                 return
             else:
                 if type(webpage) == int:
-                    if webpage.status_code != 200:
-                        await ctx.send(f"An error occurred within outage.report.  The site responded with status code {webpage.status_code}")
+                    if webpage != 200:
+                        await ctx.send(f"An error occurred within outage.report.  The site responded with status code {webpage}")
                         return
                 soup = BeautifulSoup(webpage, 'html.parser')
                 results = soup.find_all('div', attrs={'class': 'Alert__Div-s1eb33n4-0'})

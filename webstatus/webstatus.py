@@ -13,7 +13,7 @@ class Webstatus(BaseCog):
     async def fetch(self, session, url):
         async with session.get(url) as response:
             if response.status != 200:
-                return int(await response.status)
+                return int(response.status)
             return await response.text()
 
     @commands.command()

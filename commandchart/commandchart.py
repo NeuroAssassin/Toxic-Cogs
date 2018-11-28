@@ -89,9 +89,9 @@ class CommandChart(BaseCog):
         message_list = []
         try:
             async for msg in channel.history(limit=number):
-                if msg.content.startswith(self.bot.prefix):
-                    if msg.content[(len(self.bot.prefix)):] in self.bot.commands:
-                        message_list.append(msg.content[(len(self.bot.prefix)):])
+                if msg.content.startswith(ctx.clean_prefix):
+                    if msg.content[(len(ctx.clean_prefix)):] in self.bot.commands:
+                        message_list.append(msg.content[(len(ctx.clean_prefix)):])
         except discord.errors.Forbidden:
             await em.delete()
             return await ctx.send("I do not have permission to look at that channel.")

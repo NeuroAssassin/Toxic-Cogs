@@ -87,6 +87,7 @@ class CommandChart(BaseCog):
             return await ctx.send("You do not have the proper permissions to access that channel.")
 
         message_list = []
+        print(self.bot.commands)
         try:
             async for msg in channel.history(limit=number):
                 if msg.content.startswith(ctx.clean_prefix):

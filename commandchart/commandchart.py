@@ -84,7 +84,7 @@ class CommandChart(BaseCog):
         Examples:
         Aug 1 2008 1:33PM
         Jun 13 2017 12:45AM"""
-        datetime_object = datetime.striptime(time, '%b %d %Y %I:%M%p')
+        datetime_object = datetime.strptime(time, '%b %d %Y %I:%M%p')
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk/gif")
         em = await ctx.send(embed=e)

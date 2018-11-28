@@ -90,7 +90,6 @@ class CommandChart(BaseCog):
         command_list = []
         for x in self.bot.commands:
             command_list.append(x.name)
-        print(command_list)
         try:
             async for msg in channel.history(limit=number):
                 if msg.content.startswith(ctx.clean_prefix):

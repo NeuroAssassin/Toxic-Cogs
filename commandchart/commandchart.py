@@ -88,10 +88,13 @@ class CommandChart(BaseCog):
 
         message_list = []
         print(self.bot.commands)
+        command_list = []
+        for x in self.bot.commands:
+            command_list.append(x.name)
         try:
             async for msg in channel.history(limit=number):
                 if msg.content.startswith(ctx.clean_prefix):
-                    if msg.content[(len(ctx.clean_prefix)):] in self.bot.commands:
+                    if msg.content[(len(ctx.clean_prefix)):] in command_list:
                         message_list.append(msg.content[(len(ctx.clean_prefix)):])
         except discord.errors.Forbidden:
             await em.delete()

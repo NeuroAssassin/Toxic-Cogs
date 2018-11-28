@@ -124,7 +124,7 @@ class CommandChart(BaseCog):
         top_ten = heapq.nlargest(
             20,
             [
-                (x, msg_data['commands'][x][x])
+                (x, msg_data['commands'][x][y])
                 for x in msg_data['commands']
                 for y in msg_data['commands'][x]
                 if y == 'percent'

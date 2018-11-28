@@ -5,6 +5,7 @@ import discord
 import heapq
 import os
 from io import BytesIO
+from datetime import datetime
 
 import matplotlib
 matplotlib.use('agg')
@@ -75,7 +76,15 @@ class CommandChart(BaseCog):
         return image_object
 
     @commands.command()
-    async def commandchart(self, ctx, channel: discord.TextChannel = None, number=5000):
+    async def commandchart(self, ctx, time, channel: discord.TextChannel = None, number=5000):
+        """See the used commands after a certain time.  When entering the time, please include quotes around them ("") and follow this:
+        
+        Mon int_date year h:minuteAMPM
+        
+        Examples:
+        Aug 1 2008 1:33PM
+        Jun 13 2017 12:45AM"""
+        datetime_object = datetime.striptime(time, '%b %d %Y %I:%M%p')
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk/gif")
         em = await ctx.send(embed=e)
@@ -91,7 +100,7 @@ class CommandChart(BaseCog):
         for x in self.bot.commands:
             command_list.append(x.name)
         try:
-            async for msg in channel.history(limit=number):
+            async for msg in channel.history(limit=number, after=datetime_object):
                 if msg.content.startswith(ctx.clean_prefix):
                     for command in command_list:
                         if msg.content[(len(ctx.clean_prefix)):].startswith(command):

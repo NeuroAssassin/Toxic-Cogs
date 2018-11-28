@@ -5,7 +5,7 @@ import discord
 import heapq
 import os
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timezone
 
 import matplotlib
 matplotlib.use('agg')
@@ -85,6 +85,7 @@ class CommandChart(BaseCog):
         Aug 1 2008 1:33PM
         Jun 13 2017 12:45AM"""
         datetime_object = datetime.strptime(time, '%b %d %Y %I:%M%p')
+        datetime_object = datetime_object.replace(tzinfo=timezone.utc)
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk/gif")
         em = await ctx.send(embed=e)

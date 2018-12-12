@@ -89,6 +89,7 @@ class CommandChart(BaseCog):
         naive = datetime.strptime(time, '%b %d %Y %I:%M%p')
         local_dt = local.localize(naive, is_dst=None)
         datetime_object = local_dt.astimezone(pytz.utc)
+        await ctx.send(str(datetime_object))
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk/gif")
         em = await ctx.send(embed=e)

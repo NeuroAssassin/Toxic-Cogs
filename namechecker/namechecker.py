@@ -16,16 +16,17 @@ class NameChecker(BaseCog):
         self.config.register_guild(**default_server)
 
     async def on_member_join(self, member):
-        if await self.config.guild(member.guild).auto() == "True":
+        if await self.config.guild(member.guild).auto().lower() == "true":
             for invalid in ["http://", "https://", ".com", ".gg", ".org", ".gov", ".net", ".edu", "www."]:
                 if invalid.lower() in member.name.lower():
-                    if await self.config.guild(member.guild).action().lower() == "ban":
+                    action = await self.config.guild(member.guild).action()
+                    if action.lower() == "ban":
                         await member.ban(reason="Auto-ban; contained url part in name")
                         return
-                    elif await self.config.guild(member.guild).action().lower() == "kick":
+                    elif action.lower() == "kick":
                         await member.kick(reason="Auto-kick; contained url part in name")
                         return
-                    elif await self.config.guild(member.guild).action().lower() == "warn":
+                    elif action.lower() == "warn":
                         try:
                             await member.send("Warning; you have a piece of a url in your name, and it must be changed.  Otherwise, the moderators of the guild may kick or ban you.  Proceed at your own risk")
                         except:
@@ -33,13 +34,14 @@ class NameChecker(BaseCog):
             else:
                 for invalid in await self.config.guild(member.guild).personalized():
                     if invalid.lower() in member.name.lower():
-                        if await self.config.guild(member.guild).action().lower() == "ban":
+                        action = await self.config.guild(member.guild).action()
+                        if action.lower() == "ban":
                             await member.ban(reason="Ban; contained personalized part in name")
                             return
-                        elif await self.config.guild(member.guild).action().lower() == "kick":
+                        elif action.lower() == "kick":
                             await member.kick(reason="Kick; contained personalized part in name")
                             return
-                        elif await self.config.guild(member.guild).action().lower() == "warn":
+                        elif action.lower() == "warn":
                             try:
                                 await member.send("Warning; you have a part of a disallowed phrase in your name, and it must be changed.  Otherwise, the moderators of the guild may kick or ban you.  Proceed at your own risk")
                             except:

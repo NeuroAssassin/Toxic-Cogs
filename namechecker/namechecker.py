@@ -65,5 +65,5 @@ class NameChecker(BaseCog):
     async def showsettings(self, ctx):
         auto_set = await self.config.guild(ctx.guild).auto()
         action_set = await self.config.guild(ctx.guild).action()
-        personalized_set = self.config.guild(ctx.guild).personalized()
+        personalized_set = await self.config.guild(ctx.guild).personalized()
         await ctx.send(auto_set + "\n" + action_set + "\n" + personalized_set)

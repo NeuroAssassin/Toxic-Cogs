@@ -116,12 +116,12 @@ class CommandChart(BaseCog):
                                         print(msg.content[(len(ctx.clean_prefix)):] + msg.content[:group_end])
                                         beginning = msg.content[(len(ctx.clean_prefix)):]
                                         end = beginning[:group_end]
-                                        print(end)
+                                        print(end + "End")
                                         message_list.append(end)
                             else:
                                 beginning = msg.content[(len(ctx.clean_prefix)):]
                                 end = beginning[:(len(command.name)+1)]
-                                print("Single: " + end)
+                                print("Single: " + end + "End")
                                 message_list.append(end)
         except discord.errors.Forbidden:
             await em.delete()

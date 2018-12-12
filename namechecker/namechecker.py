@@ -44,6 +44,7 @@ class NameChecker(BaseCog):
                                 await member.send("Warning; you have a part of a disallowed phrase in your name, and it must be changed.  Otherwise, the moderators of the guild may kick or ban you.  Proceed at your own risk")
                             except:
                                 pass
+            print(member.name)
                                 
     @checks.has_permissions(ban_members=True)
     @commands.command()

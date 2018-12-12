@@ -88,7 +88,7 @@ class CommandChart(BaseCog):
         time = time.split(" ")
         await ctx.send(time)
         #local = pytz.timezone("US/Eastern")
-        datetime_object = datetime(int(time[2]), int(time[0]), int(time[1]), int(time[3]), int(time[4]), tzinfo=timezone.utc)
+        datetime_object = datetime(int(time[2]), int(time[0]), int(time[1]), int(time[3]), int(time[4]))
         #local_dt = local.localize(naive, is_dst=None)
         #datetime_object = local_dt.astimezone(pytz.utc)
         await ctx.send(str(datetime_object))

@@ -47,7 +47,7 @@ class NameChecker(BaseCog):
                                 
     @checks.has_permissions(ban_members=True)
     @commands.command()
-    async def settings(self, ctx, auto=False, action="ban", *set):
+    async def settings(self, ctx, auto="False", action="ban", *set):
         if not (auto.lower() in ["true", "false"]):
             return await ctx.send("Invalid auto argument; must be true or false.")
         if not (action.lower() in ["ban", "kick", "warn"]):

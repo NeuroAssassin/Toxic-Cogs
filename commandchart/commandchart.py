@@ -113,15 +113,12 @@ class CommandChart(BaseCog):
                                 for command_groupy in command.commands:
                                     if msg.content[(len(ctx.clean_prefix)+len(command.name)+1):].startswith(command_groupy.name):
                                         group_end = len(ctx.clean_prefix) + len(command.name) + len(command_groupy.name)
-                                        print(msg.content[(len(ctx.clean_prefix)):] + msg.content[:group_end])
                                         beginning = msg.content[(len(ctx.clean_prefix)):]
                                         end = beginning[:group_end]
-                                        print(end + "End")
                                         message_list.append(end)
                             else:
                                 beginning = msg.content[(len(ctx.clean_prefix)):]
                                 end = beginning[:(len(command.name)+1)]
-                                print("Single: " + end + "End")
                                 message_list.append(end)
         except discord.errors.Forbidden:
             await em.delete()

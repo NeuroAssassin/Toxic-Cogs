@@ -80,15 +80,17 @@ class CommandChart(BaseCog):
     async def commandchart(self, ctx, time, channel: discord.TextChannel = None, number=5000):
         """See the used commands after a certain time.  When entering the time, please include quotes around them ("") and follow this:
         
-        Mon int_date year h:minuteAMPM
+        Mon_int int_date year h minute
         
-        Examples:
-        Aug 1 2008 1:33PM
-        Jun 13 2017 12:45AM"""
-        local = pytz.timezone("US/Eastern")
-        naive = datetime.strptime(time, '%b %d %Y %I:%M%p')
-        local_dt = local.localize(naive, is_dst=None)
-        datetime_object = local_dt.astimezone(pytz.utc)
+        Examples (do not include dashes and month names):
+        12 1 2008 1 33  -- (Dec)
+        6 13 2017 13 45 -- (June)"""
+        time = time.split(" ")
+        #local = pytz.timezone("US/Eastern")
+
+        datetime_object = datetime(int(time[2]), int(time[0]), int(time[1]), int(time[3]), int(time[4]), tzinfo=timezone.utc)
+        #local_dt = local.localize(naive, is_dst=None)
+        #datetime_object = local_dt.astimezone(pytz.utc)
         await ctx.send(str(datetime_object))
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk/gif")

@@ -111,7 +111,7 @@ class CommandChart(BaseCog):
                         if msg.content[(len(ctx.clean_prefix)):].startswith(command.name):
                             if type(command) == commands.Group:
                                 for command_groupy in command.commands:
-                                    if msg.content[(len(ctx.clean_prefix)+len(command.name)+1):].startswith(command_groupy):
+                                    if msg.content[(len(ctx.clean_prefix)+len(command.name)+1):].startswith(command_groupy.name):
                                         group_end = len(ctx.clean_prefix) + len(command.name) + 1 + len(command_groupy.name) + 1 - len(ctx.clean_prefix)
                                         message_list.append(msg.content[(len(ctx.clean_prefix)):] + msg.content[:group_end])
                             else:

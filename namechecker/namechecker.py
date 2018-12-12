@@ -66,4 +66,4 @@ class NameChecker(BaseCog):
         auto_set = await self.config.guild(ctx.guild).auto()
         action_set = await self.config.guild(ctx.guild).action()
         personalized_set = await self.config.guild(ctx.guild).personalized()
-        await ctx.send(auto_set + "\n" + action_set + "\n" + personalized_set)
+        await ctx.send(auto_set + "\n" + action_set + "\n" + str(personalized_set))

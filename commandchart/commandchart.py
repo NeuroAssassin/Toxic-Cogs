@@ -112,7 +112,7 @@ class CommandChart(BaseCog):
                             if type(command) == commands.Group:
                                 for command_groupy in command.commands:
                                     if msg.content[(len(ctx.clean_prefix)+len(command.name)+1):].startswith(command_groupy.name):
-                                        group_end = len(ctx.clean_prefix) + len(command.name) + 1 + len(command_groupy.name) + 1
+                                        group_end = len(ctx.clean_prefix) + len(command.name) + len(command_groupy.name)
                                         print(msg.content[(len(ctx.clean_prefix)):] + msg.content[:group_end])
                                         beginning = msg.content[(len(ctx.clean_prefix)):]
                                         end = beginning[:group_end]

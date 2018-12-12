@@ -85,15 +85,13 @@ class CommandChart(BaseCog):
         Examples (do not include dashes and month names):
         12 1 2008 1 33  -- (Dec)
         6 13 2017 13 45 -- (June)"""
+        e = discord.Embed(description="Loading...", color=0x000099)
+        e.set_thumbnail(url="https://i.imgur.com/vSp4xRk/gif")
         time = time.split(" ")
-        await ctx.send(time)
         #local = pytz.timezone("US/Eastern")
         datetime_object = datetime(int(time[2]), int(time[0]), int(time[1]), int(time[3]), int(time[4]))
         #local_dt = local.localize(naive, is_dst=None)
         #datetime_object = local_dt.astimezone(pytz.utc)
-        await ctx.send(str(datetime_object))
-        e = discord.Embed(description="Loading...", color=0x000099)
-        e.set_thumbnail(url="https://i.imgur.com/vSp4xRk/gif")
         em = await ctx.send(embed=e)
 
         if channel is None:
@@ -105,13 +103,19 @@ class CommandChart(BaseCog):
         message_list = []
         command_list = []
         for x in self.bot.commands:
-            command_list.append(x.name)
+            command_list.append(x)
         try:
             async for msg in channel.history(limit=number, after=datetime_object):
                 if msg.content.startswith(ctx.clean_prefix):
                     for command in command_list:
-                        if msg.content[(len(ctx.clean_prefix)):].startswith(command):
-                            message_list.append(msg.content[(len(ctx.clean_prefix)):])
+                        if msg.content[(len(ctx.clean_prefix)):].startswith(command.name):
+                            if type(command) == commands.Group:
+                                for command_groupy in command.commands:
+                                    if msg.content[(len(ctx.clean_prefix)+len(command.name)+1):].startswith(command_groupy):
+                                        group_end = len(ctx.clean_prefix) + len(command.name) + 1 + len(command_groupy.name) + 1 - len(ctx.clean_prefix)
+                                        message_list.append(msg.content[(len(ctx.clean_prefix)):] + msg.content[:group_end])
+                            else:
+                                message_list.append(msg.content[(len(ctx.clean_prefix)):])
         except discord.errors.Forbidden:
             await em.delete()
             return await ctx.send("I do not have permission to look at that channel.")

@@ -60,3 +60,10 @@ class NameChecker(BaseCog):
         await self.config.guild(ctx.guild).action.set(action)
         await self.config.guild(ctx.guild).personalized.set(list(set))
         await ctx.send("Setting have been set")
+
+    @commands.command()
+    async def showsettings(self, ctx):
+        auto_set = await self.config.guild(ctx.guild).auto()
+        action_set = await self.config.guild(ctx.guild).action()
+        personalized_set = self.config.guild(ctx.guild).personalized()
+        await ctx.send(auto_set + "\n" + action_set + "\n" + personalized_set)

@@ -16,7 +16,8 @@ class NameChecker(BaseCog):
         self.config.register_guild(**default_server)
 
     async def on_member_join(self, member):
-        if await self.config.guild(member.guild).auto().lower() == "true":
+        auto_setting = await self.config.guild(member.guild).auto()
+        if auto_setting.lower() == "true":
             for invalid in ["http://", "https://", ".com", ".gg", ".org", ".gov", ".net", ".edu", "www."]:
                 if invalid.lower() in member.name.lower():
                     action = await self.config.guild(member.guild).action()

@@ -122,7 +122,7 @@ class CommandChart(BaseCog):
                                 beginning = msg.content[(len(ctx.clean_prefix)):]
                                 end = beginning[:(len(command.name)+1)]
                                 print("Single: " + end)
-                                message_list.append(msg.content[(len(ctx.clean_prefix)):])
+                                message_list.append(end)
         except discord.errors.Forbidden:
             await em.delete()
             return await ctx.send("I do not have permission to look at that channel.")

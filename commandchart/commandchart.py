@@ -3,7 +3,6 @@ You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/c
 
 import discord
 import heapq
-import os
 from io import BytesIO
 from datetime import datetime, timezone
 import pytz
@@ -76,6 +75,7 @@ class CommandChart(BaseCog):
         image_object.seek(0)
         return image_object
 
+    @commands.guild_only()
     @commands.command()
     async def commandchart(self, ctx, time, channel: discord.TextChannel = None, number=5000):
         """See the used commands after a certain time.  When entering the time, please include quotes around them ("") and follow this:
@@ -86,12 +86,9 @@ class CommandChart(BaseCog):
         12 1 2008 1 33  -- (Dec)
         6 13 2017 13 45 -- (June)"""
         e = discord.Embed(description="Loading...", color=0x000099)
-        e.set_thumbnail(url="https://i.imgur.com/vSp4xRk/gif")
+        e.set_thumbnail(url="https://i.imgur.com/vSp4xRk.gif")
         time = time.split(" ")
-        #local = pytz.timezone("US/Eastern")
         datetime_object = datetime(int(time[2]), int(time[0]), int(time[1]), int(time[3]), int(time[4]))
-        #local_dt = local.localize(naive, is_dst=None)
-        #datetime_object = local_dt.astimezone(pytz.utc)
         em = await ctx.send(embed=e)
 
         if channel is None:

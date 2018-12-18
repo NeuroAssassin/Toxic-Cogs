@@ -3,3 +3,4 @@ async-timeout==3.0.0
 discord.py==1.0.0a0
 bs4
 matplotlib
+pytz

@@ -1,3 +1,4 @@
+# THESE COGS ARE NOT BEING UPDATED OR RENOVATED; NO BUGS WILL BE FIXED.
 # Toxic-Cogs
 Cogs for Red - Discord Bot by TwentySix.
 

@@ -43,6 +43,7 @@ class Twenty(BaseCog):
 			else:
 				if str(reaction.emoji) == "\u2B06":
 					await message.remove_reaction("\u2B06", ctx.author)
+					
 					msg, nb = self.execute_move("up", board)
 				elif str(reaction.emoji) == "\u2B07":
 					await message.remove_reaction("\u2B07", ctx.author)
@@ -104,7 +105,7 @@ class Twenty(BaseCog):
 					nb[x][1] = nb[x][0]
 					nb[x][0] = '_'
 		if move.lower() == 'down':
-			nb = self.columize(nb)
+			nb = self.columize(board)
 			nb = self.check_down(nb)
 			for x in range(len(nb)):
 				while nb[x][0] == '_' and (nb[x][1] != '_' or nb[x][2] != '_' or nb[x][3] != '_'):

@@ -33,7 +33,7 @@ class Simon(BaseCog):
         await ctx.send("Click the Green Check Reaction when you are ready for the sequence.")
 
         def check(reaction, user):
-            return (user == ctx.author) and (str(reaction.emoji) in ["\u2705", "\u274C"]) and (reaction.message.channel.id == message.channel.id)
+            return (user == ctx.author) and (str(reaction.emoji) in ["\u2705", "\u274C"]) and (reaction.message.id == message.id)
 
         while True:
             try:

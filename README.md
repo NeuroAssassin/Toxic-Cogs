@@ -1,4 +1,4 @@
-# THESE COGS ARE NOT BEING UPDATED OR RENOVATED; NO BUGS WILL BE FIXED.
+# These cogs are currently out of order, due to me being busy.  I have decided that I will most likely return to these, but most likely not now.
 # Toxic-Cogs
 Cogs for Red - Discord Bot by TwentySix.
 
@@ -9,7 +9,7 @@ These cogs are made for Red V3 by TwentySix, which you can find here (https://gi
 Credit to https://outage.report/ which allows me to figure out whether websites/companies are down.
 Credit to Aikaterna's chatchart cog, which I based my commandchart cog off of.  You can find that cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart
 
-Contact me in Discord for bugs/issues/etc. by joining the Discord server at https://discord.gg/P3q25Sq.
+Contact me in Discord for bugs/issues/etc.
 
 # Required Libraries
 Beautiful Soup is required for the webstatus cog.

@@ -33,7 +33,7 @@ class Simon(BaseCog):
         await ctx.send("Click the Green Check Reaction when you are ready for the sequence.")
 
         def check(reaction, user):
-            return (user == ctx.author) and str(reaction.emoji) in ["\u2705", "\u274C"]
+            return (user == ctx.author) and (str(reaction.emoji) in ["\u2705", "\u274C"]) and (reaction.channel.id == message.channel.id)
 
         while True:
             try:
@@ -46,7 +46,6 @@ class Simon(BaseCog):
             else:
                 if str(reaction.emoji) == "\u274C":
                     await message.delete()
-                    self.playing = False
                     return
                 await message.remove_reaction('\u2705', self.bot.user)
                 await message.remove_reaction('\u2705', ctx.author)
@@ -94,7 +93,6 @@ class Simon(BaseCog):
                 except asyncio.TimeoutError:
                     await ctx.send(f"Sorry {ctx.author.mention}!  You took too long to answer.")
                     await message.remove_reaction("\u23F1", self.bot.user)
-                    self.playing = False
                     return
                 else:
                     await user_answer.delete()
@@ -104,7 +102,6 @@ class Simon(BaseCog):
                     else:
                         await message.add_reaction('\U0001F6AB')
                         await ctx.send(f"Sorry, but that was the incorrect pattern.  The pattern was {answer}")
-                        self.playing = False
                         return
                     another_message = await ctx.send("Sequence was correct.")
                     await asyncio.sleep(3)

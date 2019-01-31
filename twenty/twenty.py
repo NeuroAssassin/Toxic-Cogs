@@ -32,7 +32,7 @@ class Twenty(BaseCog):
 		await message.add_reaction("\u274C")
 
 		def check(reaction, user):
-			return (user == ctx.author) and str(reaction.emoji) in ["\u2B06", "\u2B07", "\u2B05", "\u27A1", "\u274C"]
+			return (user == ctx.author) and (str(reaction.emoji) in ["\u2B06", "\u2B07", "\u2B05", "\u27A1", "\u274C"]) and (reaction.message.id == message.id)
 		while True:
 			try:
 				reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=300.0)

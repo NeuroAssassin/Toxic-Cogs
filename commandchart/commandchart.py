@@ -103,20 +103,9 @@ class CommandChart(BaseCog):
             command_list.append(x)
         try:
             async for msg in channel.history(limit=number, after=datetime_object):
-                if msg.content.startswith(ctx.clean_prefix):
-                    for command in command_list:
-                        if msg.content[(len(ctx.clean_prefix)):].startswith(command.name):
-                            if type(command) == commands.Group:
-                                for command_groupy in command.commands:
-                                    if msg.content[(len(ctx.clean_prefix)+len(command.name)+1):].startswith(command_groupy.name):
-                                        group_end = len(ctx.clean_prefix) + len(command.name) + len(command_groupy.name)
-                                        beginning = msg.content[(len(ctx.clean_prefix)):]
-                                        end = beginning[:group_end]
-                                        message_list.append(end)
-                            else:
-                                beginning = msg.content[(len(ctx.clean_prefix)):]
-                                end = beginning[:(len(command.name)+1)]
-                                message_list.append(end)
+                message_context = await self.bot.get_context(msg)
+                if message_context.valid:
+                    message_list.append(message_context.command.qualified_name)
         except discord.errors.Forbidden:
             await em.delete()
             return await ctx.send("I do not have permission to look at that channel.")

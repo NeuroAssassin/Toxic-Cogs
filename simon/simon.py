@@ -12,7 +12,6 @@ class Simon(BaseCog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.playing = False
 
     @commands.group()
     async def simon(self, ctx):
@@ -22,11 +21,6 @@ class Simon(BaseCog):
     @simon.command()
     async def start(self, ctx):
         """Start Simon game"""
-        if self.playing == True:
-            await ctx.send("A game is already in progress.  Please wait for that person to finish!")
-            return
-        else:
-            self.playing = True
         await ctx.send("Starting game...\n**RULES:**\n```1. When you are ready for the sequence, click the green checkmark.\n2. Watch the sequence carefully, then repeat it back into chat.  For example, if the 1 then the 2 changed, I would type 12.\n3. You are given 10 seconds to repeat the sequence.\n4. When waiting for confirmation for next sequence, click the green check within 5 minutes of the bot being ready.\n5. Answer as soon as you can once the bot adds the stop watch emoji.```")
         board = [
             [1, 2],

@@ -1,0 +1,10 @@
+{
+    "author" : "Neuro Assassin",
+    "install_msg" : "Thank you for downloading this cog.",
+    "name" : "sql",
+    "short" : "Allows you to run sql commands in Discord",
+    "description" : "This cog allows a Discord User to store data using sql in either the bot's memory (effective until reboot) or in a file (permanent).",
+    "tags" : ["tools"],
+    "requirements" : [],
+    "hidden" : true
+}

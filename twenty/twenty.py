@@ -43,7 +43,6 @@ class Twenty(BaseCog):
 			else:
 				if str(reaction.emoji) == "\u2B06":
 					await message.remove_reaction("\u2B06", ctx.author)
-					
 					msg, nb = self.execute_move("up", board)
 				elif str(reaction.emoji) == "\u2B07":
 					await message.remove_reaction("\u2B07", ctx.author)
@@ -158,8 +157,8 @@ class Twenty(BaseCog):
 				while board[row][column] != '_':
 					column = random.randint(0, 3)
 		else:
-			board = self.add_number(board)
-			return "", board
+			result, board = self.add_number(board)
+			return result, board
 		joining = random.randint(0, 100)
 		if joining < 75:
 			joining = 2

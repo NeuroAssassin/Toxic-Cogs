@@ -96,7 +96,108 @@ class Sql(commands.Cog):
             self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
         elif space == "file":
             self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
-        await ctx.send("Settings have been recreated.")    
+        await ctx.send("Settings have been recreated.")
+    
+    @sql.command(name="delete", aliases=["drop"])
+    async def tabledelete(self, ctx, space, table):
+        """Deletes a table in the certain space.  Only people who have the role to edit the table can perform this command."""
+        await ctx.send("Verifying authority...")
+        if space == "mem":
+            try:
+                self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
+                self.memsetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
+                settings = self.memsetc.fetchall()
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                return
+            else:
+                table_settings = None
+                for entry in settings:
+                    if entry[0] == table:
+                        table_settings = entry
+                        break
+                if table_settings == None:
+                    await ctx.send("That table does not exist.")
+                    return
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                    await ctx.send("Permissions confirmed.  Deleting table...")
+                else:
+                    await ctx.send("You do not have permission to delete this table.  Please contact someone who has the appropriate edit role in order to delete this table.")
+                    return
+                command = "DROP TABLE " + table
+                try:
+                    self.memc.execute(command)
+                except Exception as e:
+                    await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                    await ctx.send("Your table failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
+                else:
+                    await ctx.send("The `" + table + "` table has been deleted from your server's database.  Deleting table settings...")
+                    try:
+                        self.memsetc.execute(f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?", (table,))
+                    except Exception as e:
+                        await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                        await ctx.send("Your table was deleted, but the entry for this table failed to be deleted from the settings table.  Please notify the owner of the bot about this issue.")
+                        return
+                    await ctx.send("Your table has been deleted and the settings have been updated.  Commit to database? (y/n)")
+                    def check(m):
+                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                    message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    if message.content.lower().startswith('y'):
+                        self.memdb.commit()
+                        self.memset.commit()
+                        await ctx.send("Commited to database.")
+                    else:
+                        await ctx.send("Not commiting to database.")
+        elif space == "file":
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filec = filedb.cursor()
+            try:
+                self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
+                self.filesetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
+                settings = self.filesetc.fetchall()
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                return
+            else:
+                table_settings = None
+                for entry in settings:
+                    if entry[0] == table:
+                        table_settings = entry
+                        break
+                if table_settings == None:
+                    await ctx.send("That table does not exist.")
+                    return
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                    await ctx.send("Permissions confirmed.  Deleting table...")
+                else:
+                    await ctx.send("You do not have permission to delete this table.  Please contact the server owner in order to delete this table.")
+                    return
+                command = "DROP TABLE " + table
+                try:
+                    filec.execute(command)
+                except Exception as e:
+                    await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                    await ctx.send("Your table failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
+                else:
+                    await ctx.send("The `" + table + "` table has been deleted from your server's database.  Deleting table settings...")
+                    try:
+                        self.filesetc.execute(f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?", (table,))
+                    except Exception as e:
+                        await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                        await ctx.send("Your table was deleted, but the entry for this table failed to be deleted from the settings table.  Please notify the owner of the bot about this issue.")
+                        return
+                    await ctx.send("Your table has been deleted and the settings have been updated.  Commit to database? (y/n)")
+                    def check(m):
+                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                    message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    if message.content.lower().startswith('y'):
+                        filedb.commit()
+                        self.fileset.commit()
+                        await ctx.send("Commited to database.")
+                    else:
+                        await ctx.send("Not commiting to database.")
 
     @checks.admin()
     @sql.command()
@@ -113,7 +214,7 @@ class Sql(commands.Cog):
             nex = message.content
             if nex != "exit":
                 categories.append(nex)
-            await ctx.send("Category noted.  Type your next category or type 'exit'")
+                await ctx.send("Category noted.  Type your next category or type 'exit'")
         command = "CREATE TABLE " + name + "(" + ", ".join(categories) + ")"
         editrole = ctx.guild.get_role(edit)
         selectrole = ctx.guild.get_role(select)
@@ -145,7 +246,7 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{ctx.guild.id}db")
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{ctx.guild.id}db.sqlite")
             filec = filedb.cursor()
             try:
                 filec.execute(command)
@@ -173,14 +274,14 @@ class Sql(commands.Cog):
             filedb.close()
         
 
-    @checks.admin()
+    @checks.guildowner()
     @sql.command()
     async def execute(self, ctx: commands.context, space: str, ret: str, *, command):
         """Executes a raw sql command safely.
         The command can be run in either the bot's memory db or in your server's file db.  The bot's memory lasts until the next reboot, while the file db is permanent.  For setting the return values, use 'n' if you do not want anything returned, but if you do, use 'yall' to get all or 'yone' to get one.
 
         This command is discouraged unless this is necessary.  While creating tables, settings are not registered for it, and the owner bypasses every permission.  If settings are needed, they will need to be set manually."""
-        await ctx.send("**Warning!**  This command is discouraged from use.  It is recommended to use to prebuilt commands unless you have to use this.  When creating tables, settings are not registered  That is heavily discouraged.\nWould you like to proceed?  (y/n)")
+        await ctx.send("**Warning!**  This command is discouraged from use.  It is recommended to use to prebuilt commands unless you have to use this.  When creating tables, settings are not registered.  That is heavily discouraged.\nWould you like to proceed?  (y/n)")
         def check(m):
             return (m.author.id == ctx.author.id) and (m.content.lower().startswith('y') or m.content.lower().startswith('n')) and (m.channel.id == ctx.channel.id)
         try:
@@ -229,7 +330,7 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{ctx.guild.id}db")
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{ctx.guild.id}db.sqlite")
             filec = filedb.cursor()
             if ret.startswith("y"):
                 try:

@@ -1,4 +1,5 @@
 from redbot.core import commands, checks
+from redbot.core.data_manager import bundled_data_path
 import sqlite3
 import traceback
 import asyncio
@@ -13,22 +14,22 @@ class Sql(commands.Cog):
         self.memdb = sqlite3.connect(":memory:")
         self.memc = self.memdb.cursor()
 
-        self.filedb = sqlite3.connect("sqldb.sqlite")
-        self.filec = self.filedb.cursor()
+        #self.filedb = sqlite3.connect("sqldb.sqlite")
+        #self.filec = self.filedb.cursor()
 
         # Set up database settings
-        self.memset = sqlite3.connect("memsettings.sqlite")
+        self.memset = sqlite3.connect(str(bundled_data_path(self)) + "/memsettings.sqlite")
         self.memsetc = self.memset.cursor()
 
-        self.fileset = sqlite3.connect("filesettings.sqlite")
+        self.fileset = sqlite3.connect(str(bundled_data_path(self)) + "/filesettings.sqlite")
         self.filesetc = self.fileset.cursor()
 
         # Create settings tables
-        self.memsetc.execute("CREATE TABLE IF NOT EXISTS settings(name STRING, edit INTEGER, view INTEGER)")
-        self.memset.commit()
+        #self.memsetc.execute("CREATE TABLE IF NOT EXISTS settings(name STRING, server INTEGER, edit INTEGER, view INTEGER)")
+        #self.memset.commit()
 
-        self.filesetc.execute("CREATE TABLE IF NOT EXISTS settings(name STRING, edit INTEGER, view INTEGER)")
-        self.fileset.commit()
+        #self.filesetc.execute("CREATE TABLE IF NOT EXISTS settings(name STRING, server INTEGER, edit INTEGER, view INTEGER)")
+        #self.fileset.commit()
 
     def __unload(self):
         print("In __unload")
@@ -45,7 +46,13 @@ class Sql(commands.Cog):
         self.memdb.close()
 
         # Destroy settings
-        self.memsetc.execute("DROP TABLE settings")
+        self.memsetc.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
+        tables = self.memsetc.fetchall()
+        for table in tables:
+            try:
+                self.memsetc.execute("DROP TABLE " + table[0])
+            except:
+                pass
         self.memset.commit()
         self.memset.close()
 
@@ -54,16 +61,42 @@ class Sql(commands.Cog):
         """Group command for SQL cog.  Warning: due to the input of values, SQL commands are not sanitized and can result in the destruction of tables on accident.  Run at your own risk."""
         pass
 
-    @checks.admin()
-    @sql.command()
+    @sql.group()
     async def settings(self, ctx):
+        """Group command for settings management"""
+
+    @checks.admin()
+    @settings.command()
+    async def show(self, ctx):
         await ctx.send("Fetching settings...")
-        self.memsetc.execute('SELECT * FROM settings')
-        tables = self.memsetc.fetchall()
+        try:
+            self.memsetc.execute(f'SELECT * FROM settings{str(ctx.guild.id)}')
+            tables = self.memsetc.fetchall()
+        except:
+            # Hasn't created settings for memory yet
+            tables = "ERROR: No tables!"
         await ctx.send("**Memory:**\n```py\n" + str(tables) + "```")
-        self.filesetc.execute('SELECT * FROM settings')
-        tables = self.filesetc.fetchall()
+        try:
+            self.filesetc.execute(f'SELECT * FROM settings{str(ctx.guild.id)}')
+            tables = self.filesetc.fetchall()
+        except:
+            # Hasn't created settings for file yet
+            tables = "ERROR: No tables!"
         await ctx.send("**File:**\n```py\n" + str(tables) + "```")
+
+    @checks.admin()
+    @settings.command()
+    async def delete(self, ctx, space):
+        if space == "mem":
+            self.memsetc.execute(f"DROP TABLE IF EXISTS settings{str(ctx.guild.id)}")
+        elif space == "file":
+            self.filesetc.execute(f"DROP TABLE IF EXISTS settings{str(ctx.guild.id)}")
+        await ctx.send("Settings have been deleted.  Recreating tables...")
+        if space == "mem":
+            self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
+        elif space == "file":
+            self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
+        await ctx.send("Settings have been recreated.")    
 
     @checks.admin()
     @sql.command()
@@ -80,6 +113,7 @@ class Sql(commands.Cog):
             nex = message.content
             if nex != "exit":
                 categories.append(nex)
+            await ctx.send("Category noted.  Type your next category or type 'exit'")
         command = "CREATE TABLE " + name + "(" + ", ".join(categories) + ")"
         editrole = ctx.guild.get_role(edit)
         selectrole = ctx.guild.get_role(select)
@@ -94,7 +128,8 @@ class Sql(commands.Cog):
                 return
             await ctx.send("The CREATE TABLE command has been run.  Updating settings table...")
             try:
-                self.memsetc.execute('INSERT INTO settings(name, edit, view) VALUES(?,?,?)', (name, edit, select))
+                self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
+                self.memsetc.execute(f'INSERT INTO settings{str(ctx.guild.id)}(name, edit, view) VALUES(?,?,?)', (name, edit, select))
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                 await ctx.send("Your table has been created, but settings have not been registered and changes have not been committed.  Run [p]sql commit to commit these changes.")
@@ -110,14 +145,17 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{ctx.guild.id}db")
+            filec = filedb.cursor()
             try:
-                self.filec.execute(command)
+                filec.execute(command)
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                 return
             await ctx.send("The CREATE TABLE command has been run.  Updating settings table...")
             try:
-                self.filesetc.execute('INSERT INTO settings(name, edit, view) VALUES(?,?,?)', (name, edit, select))
+                self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
+                self.filesetc.execute(f'INSERT INTO settings{str(ctx.guild.id)}(name, edit, view) VALUES(?,?,?)', (name, edit, select))
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                 await ctx.send("Your table has been created, but settings have not been registered and changes have not been committed.  Run [p]sql commit to commit these changes.")
@@ -127,18 +165,19 @@ class Sql(commands.Cog):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             message = await self.bot.wait_for('message', check=check2, timeout=30.0)
             if message.content.lower().startswith('y'):
-                self.filedb.commit()
+                filedb.commit()
                 self.fileset.commit()
                 await ctx.send("Committed to database.")
             else:
                 await ctx.send("Not commiting to database.")
+            filedb.close()
         
 
-    @checks.is_owner()
+    @checks.admin()
     @sql.command()
     async def execute(self, ctx: commands.context, space: str, ret: str, *, command):
         """Executes a raw sql command safely.
-        The command can be run in either the bot's memory db or in the bot's file db.  The bot's memory lasts until the next reboot, while the file db is permanent.
+        The command can be run in either the bot's memory db or in your server's file db.  The bot's memory lasts until the next reboot, while the file db is permanent.  For setting the return values, use 'n' if you do not want anything returned, but if you do, use 'yall' to get all or 'yone' to get one.
 
         This command is discouraged unless this is necessary.  While creating tables, settings are not registered for it, and the owner bypasses every permission.  If settings are needed, they will need to be set manually."""
         await ctx.send("**Warning!**  This command is discouraged from use.  It is recommended to use to prebuilt commands unless you have to use this.  When creating tables, settings are not registered  That is heavily discouraged.\nWould you like to proceed?  (y/n)")
@@ -190,13 +229,15 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{ctx.guild.id}db")
+            filec = filedb.cursor()
             if ret.startswith("y"):
                 try:
-                    self.filec.execute(command)
+                    filec.execute(command)
                     if ret[1:] == "all":
-                        value = self.filec.fetchall()
+                        value = filec.fetchall()
                     elif ret[1:] == "one":
-                        value = self.filec.fetchone()
+                        value = filec.fetchone()
                     else:
                         await ctx.send("Return value argument invalid.")
                         return
@@ -207,7 +248,7 @@ class Sql(commands.Cog):
                     await ctx.send("Value returned from command:\n```py\n" + str(value) + "```")
             else:
                 try:
-                    self.filec.execute(command)
+                    filec.execute(command)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     return
@@ -218,7 +259,8 @@ class Sql(commands.Cog):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             message = await self.bot.wait_for('message', check=check3, timeout=30.0)
             if message.content.lower().startswith('y'):
-                self.filedb.commit()
+                filedb.commit()
                 await ctx.send("Commited to database.")
             else:
                 await ctx.send("Not commiting to database.")
+            filedb.close()

@@ -1,5 +1,5 @@
 # Toxic-Cogs
-[![Discord server](https://discordapp.com/api/guilds/540613833237069836/widget.json)](https://discord.gg/vQZTdB9)
+[![Discord server](https://discordapp.com/api/guilds/540613833237069836/embed.png)](https://discord.gg/vQZTdB9)
 [![Red cogs](https://img.shields.io/badge/Red--DiscordBot-cogs-red.svg)](https://github.com/Cog-Creators/Red-DiscordBot/tree/V3/develop)
 [![discord.py](https://img.shields.io/badge/discord-py-blue.svg)](https://github.com/Rapptz/discord.py)
 

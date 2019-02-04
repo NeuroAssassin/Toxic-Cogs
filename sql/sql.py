@@ -176,6 +176,7 @@ class Sql(commands.Cog):
                     await ctx.send("Failed to fetch data from the table.  Please make sure you put in a correct category.")
                     return
                 data = filec.fetchall()
+                filedb.close()
                 await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
     
 
@@ -223,7 +224,11 @@ class Sql(commands.Cog):
                     await ctx.send("Your table has been deleted and the settings have been updated.  Commit to database? (y/n)")
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
-                    message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    try:
+                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    except asyncio.TimeoutError:
+                        await ctx.send("Not commiting to database.")
+                        return
                     if message.content.lower().startswith('y'):
                         self.memdb.commit()
                         self.memset.commit()
@@ -272,13 +277,18 @@ class Sql(commands.Cog):
                     await ctx.send("Your table has been deleted and the settings have been updated.  Commit to database? (y/n)")
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
-                    message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    try:
+                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    except asyncio.TimeoutError:
+                        await ctx.send("Not commiting to database.")
+                        return
                     if message.content.lower().startswith('y'):
                         filedb.commit()
                         self.fileset.commit()
                         await ctx.send("Commited to database.")
                     else:
                         await ctx.send("Not commiting to database.")
+                    filedb.close()
 
     @checks.admin()
     @sql.command()
@@ -319,7 +329,11 @@ class Sql(commands.Cog):
             await ctx.send("The settings table has been updated.  Commit to database? (y/n)")
             def check2(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
-            message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+            try:
+                message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+            except asyncio.TimeoutError:
+                await ctx.send("Not commiting to database.")
+                return
             if message.content.lower().startswith('y'):
                 self.memdb.commit()
                 self.memset.commit()
@@ -345,7 +359,11 @@ class Sql(commands.Cog):
             await ctx.send("The settings table has been updated.  Commit to database? (y/n)")
             def check2(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
-            message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+            try:
+                message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+            except asyncio.TimeoutError:
+                await ctx.send("Not commiting to database.")
+                return
             if message.content.lower().startswith('y'):
                 filedb.commit()
                 self.fileset.commit()
@@ -404,7 +422,11 @@ class Sql(commands.Cog):
 
             def check2(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
-            message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+            try:
+                message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+            except asyncio.TimeoutError:
+                await ctx.send("Not commiting to database.")
+                return
             if message.content.lower().startswith('y'):
                 self.memdb.commit()
                 await ctx.send("Commited to database.")
@@ -439,7 +461,11 @@ class Sql(commands.Cog):
             await ctx.send("Command has been run.  Commit to database? (y/n)")
             def check3(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
-            message = await self.bot.wait_for('message', check=check3, timeout=30.0)
+            try:
+                message = await self.bot.wait_for('message', check=check3, timeout=30.0)
+            except asyncio.TimeoutError:
+                await ctx.send("Not commiting to database.")
+                return
             if message.content.lower().startswith('y'):
                 filedb.commit()
                 await ctx.send("Commited to database.")

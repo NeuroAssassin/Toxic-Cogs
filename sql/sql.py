@@ -98,6 +98,21 @@ class Sql(commands.Cog):
             self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
         await ctx.send("Settings have been recreated.")
 
+    @sql.command(name="all", aliases=['show'])
+    async def allt(self, ctx, space):
+        """Returns all tables in either the bot's memory or your server's file.  However, the list of tables in memory is taken from the memory settings, so you can't see other server's tables in memory"""
+        if space == "mem":
+            self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
+            self.memsetc.execute(f"SELECT name FROM settings{str(ctx.guild.id)}")
+            tables = self.memsetc.fetchall()
+            await ctx.send("All tables in memory:```python\n" + str(tables) + "```")
+        elif space == "file":
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filec = filedb.cursor()
+            filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
+            tables = filec.fetchall()
+            await ctx.send("All tables in server file:```python\n" + str(tables) + "```")
+
     @sql.command()
     async def insert(self, ctx, space, table, *values):
         """Inserts data into a table.  Can only be run by users with the edit role that is specified in the table settings"""

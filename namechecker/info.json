@@ -1,9 +1,0 @@
-{
-    "author" : "Neuro Assassin",
-    "install_msg" : "Thank you for downloading this cog.",
-    "name" : "namechecker",
-    "short" : "Bans/kicks/warns users with urls or certain phrases in names.",
-    "description" : "This cog will kick, ban or warn a user if they contain a part of a url in there name, or if they have a certain phrase in their name that has been disallowed by a moderator.",
-    "tags" : ["tools", "moderation"],
-    "hidden" : false
-}

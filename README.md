@@ -1,5 +1,5 @@
 # Toxic-Cogs
-[![Discord server](https://discordapp.com/widget?id=540613833237069836&theme=dark)](https://discord.gg/vQZTdB9)
+[![Discord server](https://discordapp.com/api/guilds/540613833237069836/widget.json)](https://discord.gg/vQZTdB9)
 [![Red cogs](https://img.shields.io/badge/Red--DiscordBot-cogs-red.svg)](https://github.com/Cog-Creators/Red-DiscordBot/tree/V3/develop)
 [![discord.py](https://img.shields.io/badge/discord-py-blue.svg)](https://github.com/Rapptz/discord.py)
 
@@ -11,7 +11,7 @@ The Toxic-Cogs repo holds cogs that provide some fun in Discord, while also prov
 
 ## How to install
 
-These cogs are made for Red V3 by TwentySix, which you can find here (https://github.com/Cog-Creators/Red-DiscordBot).  Using Red V3, you can add my repo by doing `[p]repo add Toxic-Cogs https://github.com/NeuroAssassin/Toxic-Cogs master`, then using `[p]cog install Toxic-Cogs <cog-name>`
+These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot) by TwentySix.  Using Red V3, you can add my repo by doing `[p]repo add Toxic-Cogs https://github.com/NeuroAssassin/Toxic-Cogs master`, then using `[p]cog install Toxic-Cogs <cog-name>` (with `[p]` being your prefix)
 
 ## Credits
 

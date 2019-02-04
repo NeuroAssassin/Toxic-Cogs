@@ -22,6 +22,8 @@ Credit to Aikaterna's chatchart cog, which I based my commandchart cog off of (w
 For bugs, contact me at Neuro Assassin#4779 <@473541068378341376>.  It would be best though to join my support server, where other people could help you too.  You can find the invite button at the top of this file.
 
 ## Required Libraries
-Beautiful Soup is required for the webstatus cog.
-Matplotlib and pytz are required for the commandchart cog.
-Colour is required for the color cog.
+[Beautiful Soup](https://pypi.org/project/beautifulsoup4/) is required for the webstatus cog.
+
+[Matplotlib](https://pypi.org/project/matplotlib/) and [pytz](https://pypi.org/project/pytz/) are required for the commandchart cog.
+
+[Colour](https://pypi.org/project/colour/) is required for the color cog.

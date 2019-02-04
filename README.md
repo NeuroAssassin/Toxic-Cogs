@@ -1,7 +1,8 @@
 # Toxic-Cogs
-[![Discord Server](https://discordapp.com/api/guilds/540613833237069836/embed.png)](https://discord.gg/vQZTdB9)
+[![Discord Server](https://discordapp.com/widget?id=540613833237069836&theme=dark)](https://discord.gg/vQZTdB9)
 [![Red cogs](https://img.shields.io/badge/Red--DiscordBot-cogs-red.svg)](https://github.com/Cog-Creators/Red-DiscordBot/tree/V3/develop)
 [![discord.py](https://img.shields.io/badge/discord-py-blue.svg)](https://github.com/Rapptz/discord.py)
+
 Cogs for Red - Discord Bot by TwentySix.
 
 ## Information

@@ -98,6 +98,111 @@ class Sql(commands.Cog):
             self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
         await ctx.send("Settings have been recreated.")
 
+    @sql.command()
+    async def insert(self, ctx, space, table, *values):
+        """Inserts data into a table.  Can only be run by users with the edit role that is specified in the table settings"""
+        await ctx.send("Verifying authority...")
+        if space == "mem":
+            try:
+                self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
+                self.memsetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
+                settings = self.memsetc.fetchall()
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                return
+            else:
+                table_settings = None
+                for entry in settings:
+                    if entry[0] == table:
+                        table_settings = entry
+                        break
+                if table_settings == None:
+                    await ctx.send("That table does not exist.")
+                    return
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                    await ctx.send("Permissions confirmed.  Inserting data...")
+                else:
+                    await ctx.send("You do not have permission to insert data into this table.  Please contact someone who has the appropriate edit role in order to insert data into this table.")
+                    return
+                command = "INSERT INTO " + table + " VALUES("
+                for x in range(len(values)):
+                    command += "?"
+                    if x != len(values) - 1:
+                        command += ","
+                command += ")"
+                try:
+                    self.memc.execute(command, values)
+                except Exception as e:
+                    await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                    await ctx.send("Your data failed to be inserted into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
+                else:
+                    await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "`.  Commit to database? (y/n)")
+                    def check(m):
+                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                    try:
+                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    except asyncio.TimeoutError:
+                        await ctx.send("Not commiting to database.")
+                        return
+                    if message.content.lower().startswith('y'):
+                        self.memdb.commit()
+                        self.memset.commit()
+                        await ctx.send("Commited to database.")
+                    else:
+                        await ctx.send("Not commiting to database.")
+        elif space == "file":
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filec = filedb.cursor()
+            try:
+                self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
+                self.filesetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
+                settings = self.filesetc.fetchall()
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                return
+            else:
+                table_settings = None
+                for entry in settings:
+                    if entry[0] == table:
+                        table_settings = entry
+                        break
+                if table_settings == None:
+                    await ctx.send("That table does not exist.")
+                    return
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                    await ctx.send("Permissions confirmed.  Inserting data...")
+                else:
+                    await ctx.send("You do not have permission to insert data into this table.  Please contact someone who has the appropriate edit role in order to insert data into this table.")
+                    return
+                command = "INSERT INTO " + table + " VALUES("
+                for x in range(len(values)):
+                    command += "?"
+                    if x != len(values) - 1:
+                        command += ","
+                command += ")"
+                try:
+                    filec.execute(command, values)
+                except Exception as e:
+                    await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                    await ctx.send("Your data failed to be inserted into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
+                else:
+                    await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "`.  Commit to database? (y/n)")
+                    def check(m):
+                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                    try:
+                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    except asyncio.TimeoutError:
+                        await ctx.send("Not commiting to database.")
+                        return
+                    if message.content.lower().startswith('y'):
+                        filedb.commit()
+                        await ctx.send("Commited to database.")
+                    else:
+                        await ctx.send("Not commiting to database.")
+                    filedb.close()
+
     @sql.command(name="view", aliases=["see", "select"])
     async def select(self, ctx, space, table, category="", value=""):
         """Views data from a table, with a condition able to be specified.  Only people who have the role to view the table can perform this command.

@@ -7,7 +7,7 @@ class Color(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group()
+    @commands.group(aliases=["colour"])
     async def color(self, ctx):
         """Group command for color commands"""
         pass

@@ -97,7 +97,88 @@ class Sql(commands.Cog):
         elif space == "file":
             self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
         await ctx.send("Settings have been recreated.")
+
+    @sql.command(name="view", aliases=["see", "select"])
+    async def select(self, ctx, space, table, category="", value=""):
+        """Views data from a table, with a condition able to be specified.  Only people who have the role to view the table can perform this command.
+        
+        If you wish to see a certain entry, you can specify the category and the value you want the category to be using the last two arguments.
+        """
+        await ctx.send("Verifying authority...")
+        if space == "mem":
+            try:
+                self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
+                self.memsetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
+                settings = self.memsetc.fetchall()
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                return
+            else:
+                table_settings = None
+                for entry in settings:
+                    if entry[0] == table:
+                        table_settings = entry
+                        break
+                if table_settings == None:
+                    await ctx.send("That table does not exist.")
+                    return
+                if int(table_settings[2]) in [role.id for role in ctx.author.roles]:
+                    await ctx.send("Permissions confirmed")
+                else:
+                    await ctx.send("You do not have permission to view data from this table.  Please contact someone who has the appropriate edit role in order to view this table.")
+                    return
+                if category == "":
+                    command = "SELECT * FROM " + table
+                else:
+                    command = "SELECT * FROM " + table + " WHERE " + category + "='" + value + "'"
+                try:
+                    self.memc.execute(command)
+                except Exception as e:
+                    await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                    await ctx.send("Failed to fetch data from the table.  Please make sure you put in a correct category.")
+                    return
+                data = self.memc.fetchall()
+                await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
+        elif space == "file":
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filec = filedb.cursor()
+            try:
+                self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
+                self.filesetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
+                settings = self.filesetc.fetchall()
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                return
+            else:
+                table_settings = None
+                for entry in settings:
+                    if entry[0] == table:
+                        table_settings = entry
+                        break
+                if table_settings == None:
+                    await ctx.send("That table does not exist.")
+                    return
+                if int(table_settings[2]) in [role.id for role in ctx.author.roles]:
+                    await ctx.send("Permissions confirmed")
+                else:
+                    await ctx.send("You do not have permission to view data from this table.  Please contact someone who has the appropriate edit role in order to view this table.")
+                    return
+                if category == "":
+                    command = "SELECT * FROM " + table
+                else:
+                    command = "SELECT * FROM " + table + " WHERE " + category + "='" + value + "'"
+                try:
+                    filec.execute(command)
+                except Exception as e:
+                    await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                    await ctx.send("Failed to fetch data from the table.  Please make sure you put in a correct category.")
+                    return
+                data = filec.fetchall()
+                await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
     
+
     @sql.command(name="delete", aliases=["drop"])
     async def tabledelete(self, ctx, space, table):
         """Deletes a table in the certain space.  Only people who have the role to edit the table can perform this command."""

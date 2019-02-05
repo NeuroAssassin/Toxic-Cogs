@@ -23,6 +23,22 @@ class CommandChart(BaseCog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def command_from_message(self, m: discord.Message):
+        message_context = await self.bot.get_context(m)
+        if not message_context.valid:
+            return None
+
+        maybe_command = message_context.command
+        command = maybe_command
+        while isinstance(maybe_command, commands.Group):
+            message_context.view.skip_ws()
+            possible = message_context.view.get_word()
+            maybe_command = maybe_command.all_commands.get(possible, None)
+            if maybe_command:
+                command = maybe_command
+
+        return command
+
     def create_chart(self, top, others, channel):
         plt.clf()
         sizes = [x[1] for x in top]
@@ -103,9 +119,10 @@ class CommandChart(BaseCog):
             command_list.append(x)
         try:
             async for msg in channel.history(limit=number):
-                message_context = await self.bot.get_context(msg)
-                if message_context.valid:
-                    message_list.append(message_context.command.qualified_name)
+                # Thanks Sinbad
+                com = await self.command_from_message(msg)
+                if com != None:
+                    message_list.append(com.qualified_name)
         except discord.errors.Forbidden:
             await em.delete()
             return await ctx.send("I do not have permission to look at that channel.")

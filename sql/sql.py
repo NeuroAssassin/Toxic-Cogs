@@ -58,6 +58,7 @@ class Sql(commands.Cog):
     @checks.admin()
     @settings.command()
     async def show(self, ctx):
+        """Shows the settings of the tables that pertain to your server"""
         await ctx.send("Fetching settings...")
         try:
             self.memsetc.execute(f'SELECT * FROM settings{str(ctx.guild.id)}')
@@ -88,11 +89,113 @@ class Sql(commands.Cog):
             self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
         await ctx.send("Settings have been recreated.")
 
+    @sql.command(aliases=["remove"])
+    async def deleteentry(self, ctx, space, table, category, *value):
+        """Removes a row from a table in either memory or the server's file.  Only users with the edit role specified when making the table can run this command.  Does sanitize data inputs.
+
+        Arguments:
+            Space: mem |or| file
+            Table: name of table you're editing
+            Category: name of the category of which you'll be specifying a value to choose a certain row
+            Value: the value that is in the category of the row you want to delete"""
+        await ctx.send("Verifying authority...")
+        if space == "mem":
+            try:
+                self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
+                self.memsetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
+                settings = self.memsetc.fetchall()
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your row failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                return
+            else:
+                table_settings = None
+                for entry in settings:
+                    if entry[0] == table:
+                        table_settings = entry
+                        break
+                if table_settings == None:
+                    await ctx.send("That table does not exist.")
+                    return
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                    await ctx.send("Permissions confirmed.  Deleting row from table table...")
+                else:
+                    await ctx.send("You do not have permission to delete data from this table.  Please contact someone who has the appropriate edit role in order to delete data from this table.")
+                    return
+                command = "DELETE FROM " + table + " WHERE " + category + "=?"
+                await ctx.send(command + "VALUE: " + str(value))
+                try:
+                    self.memc.execute(command, value)
+                except Exception as e:
+                    await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                    await ctx.send("Your data failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
+                else:
+                    await ctx.send("The data with the value of `" + value[0] + "` in the `" + category + "` category in the `" + table + "` table has been deleted from your server's database.  Commit to database? (y/n)")
+                    def check(m):
+                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                    try:
+                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    except asyncio.TimeoutError:
+                        await ctx.send("Not commiting to database.")
+                        return
+                    if message.content.lower().startswith('y'):
+                        self.memdb.commit()
+                        await ctx.send("Commited to database.")
+                    else:
+                        await ctx.send("Not commiting to database.")
+        elif space == "file":
+            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filec = filedb.cursor()
+            try:
+                self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
+                self.filesetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
+                settings = self.filesetc.fetchall()
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your row failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                return
+            else:
+                table_settings = None
+                for entry in settings:
+                    if entry[0] == table:
+                        table_settings = entry
+                        break
+                if table_settings == None:
+                    await ctx.send("That table does not exist.")
+                    return
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                    await ctx.send("Permissions confirmed.  Deleting row from table...")
+                else:
+                    await ctx.send("You do not have permission to delete data from this table.  Please contact someone who has the appropriate edit role in order to delete data from this table.")
+                    return
+                command = "DELETE FROM " + table + " WHERE " + category + "=?"
+                try:
+                    filec.execute(command, value)
+                except Exception as e:
+                    await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                    await ctx.send("Your data failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
+                else:
+                    await ctx.send("The data with the value of `" + value[0] + "` in the `" + category + "` category in the `" + table + "` table has been deleted from your server's database.  Commit to database? (y/n)")
+                    def check(m):
+                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                    try:
+                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                    except asyncio.TimeoutError:
+                        await ctx.send("Not commiting to database.")
+                        return
+                    if message.content.lower().startswith('y'):
+                        filedb.commit()
+                        await ctx.send("Commited to database.")
+                    else:
+                        await ctx.send("Not commiting to database.")
+                    filedb.close()
+
     @sql.command()
     async def update(self, ctx, space, table, category, value, *values):
-        """Updates an entry in a table either in the bot's memory or your server's file.  You must have the edit role that was specified in the making in the table to run this
-        
-        Argument info:
+        """Updates an entry in a table either in the bot's memory or your server's file.  You must have the edit role that was specified in the making in the table to run this.  Does sanitize data inputs
+
+        Arguments:
+            Space: mem |or| file
             Table: The name of the table you wish to update
             Category + value: describes where your making the change.  The catgory is the column and the value is the value of the column of the row you want to replace
             Values: Values to replace the current row's values
@@ -132,9 +235,9 @@ class Sql(commands.Cog):
                     except IndexError:
                         await ctx.send("Not enough values were provided to update the row in the table.")
                         return
-                command += " WHERE " + category + "='" + value + "'"
+                command += " WHERE " + category + "=?"
                 try:
-                    self.memc.execute(command)
+                    self.memc.execute(command, (value,))
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your data failed to be updated into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
@@ -188,9 +291,9 @@ class Sql(commands.Cog):
                     except IndexError:
                         await ctx.send("Not enough values were provided to update the row in the table.")
                         return
-                command += " WHERE " + category + "='" + value + "'"
+                command += " WHERE " + category + "=?"
                 try:
-                    filec.execute(command)
+                    filec.execute(command, (value,))
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your data failed to be updated into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
@@ -213,7 +316,10 @@ class Sql(commands.Cog):
 
     @sql.command(name="all", aliases=['show'])
     async def allt(self, ctx, space):
-        """Returns all tables in either the bot's memory or your server's file.  However, the list of tables in memory is taken from the memory settings, so you can't see other server's tables in memory"""
+        """Returns all tables in either the bot's memory or your server's file.  However, the list of tables in memory is taken from the memory settings, so you can't see other server's tables in memory
+        
+        Arguments:
+            Space: mem |or| file"""
         if space == "mem":
             self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
             self.memsetc.execute(f"SELECT name FROM settings{str(ctx.guild.id)}")
@@ -229,7 +335,12 @@ class Sql(commands.Cog):
 
     @sql.command()
     async def insert(self, ctx, space, table, *values):
-        """Inserts data into a table.  Can only be run by users with the edit role that is specified in the table settings"""
+        """Inserts data into a table.  Can only be run by users with the edit role that is specified in the table settings.  Does sanitize data inputs.
+
+        Arguments:
+            Space: mem |or| file
+            Table: name of the table you wish to insert data into
+            Values: the data you wish to insert into the table, in column order"""
         await ctx.send("Verifying authority...")
         if space == "mem":
             try:
@@ -333,10 +444,15 @@ class Sql(commands.Cog):
 
     @sql.command(name="view", aliases=["see", "select"])
     async def select(self, ctx, space, table, category="", value=""):
-        """Views data from a table, with a condition able to be specified.  Only people who have the role to view the table can perform this command.
-        
+        """Views data from a table, with a condition able to be specified.  Only people who have the role to view the table can perform this command.  Does sanitize data inputs.
+
         If you wish to see a certain entry, you can specify the category and the value you want the category to be using the last two arguments.
-        """
+        
+        Arguments:
+            Space: mem |or| file
+            Table: the table from which you'd like to read data
+            Category (optional): the name of the category of the value you are specifying
+            Value (optional): value of the column of the row of which you'd like to select data from"""
         await ctx.send("Verifying authority...")
         if space == "mem":
             try:
@@ -363,10 +479,18 @@ class Sql(commands.Cog):
                     return
                 if category == "":
                     command = "SELECT * FROM " + table
+                    extra = False
                 else:
-                    command = "SELECT * FROM " + table + " WHERE " + category + "='" + value + "'"
+                    if value == "":
+                        await ctx.send("You provided a column, but not a value for the column.  Cannot perform sql command.")
+                        return
+                    command = "SELECT * FROM " + table + " WHERE " + category + "=?"
+                    extra = True
                 try:
-                    self.memc.execute(command)
+                    if extra:
+                        self.memc.execute(command, (value,))
+                    else:
+                        self.memc.execute(command)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Failed to fetch data from the table.  Please make sure you put in a correct category.")
@@ -400,10 +524,18 @@ class Sql(commands.Cog):
                     return
                 if category == "":
                     command = "SELECT * FROM " + table
+                    extra = False
                 else:
-                    command = "SELECT * FROM " + table + " WHERE " + category + "='" + value + "'"
+                    if value == "":
+                        await ctx.send("You provided a column, but not a value for the column.  Cannot perform sql command.")
+                        return
+                    command = "SELECT * FROM " + table + " WHERE " + category + "=?"
+                    extra = True
                 try:
-                    filec.execute(command)
+                    if extra:
+                        filec.execute(command, (value,))
+                    else:
+                        filec.execute(command)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Failed to fetch data from the table.  Please make sure you put in a correct category.")
@@ -415,7 +547,11 @@ class Sql(commands.Cog):
 
     @sql.command(name="delete", aliases=["drop"])
     async def tabledelete(self, ctx, space, table):
-        """Deletes a table in the certain space.  Only people who have the role to edit the table can perform this command."""
+        """Deletes a table in the certain space.  Only people who have the role to edit the table can perform this command.  Does not sanitize data inputs.
+
+        Arguments:
+            Space: mem |or| file
+            Table: name of the table of which you'd like to delete"""
         await ctx.send("Verifying authority...")
         if space == "mem":
             try:
@@ -526,7 +662,13 @@ class Sql(commands.Cog):
     @checks.admin()
     @sql.command()
     async def create(self, ctx, space, edit: int, select: int, name):
-        """Creates a table in either the file or memory database.  Can only be run by administrators.  Provide the id of the role that is necessary to edit it and the id of the role necessary to select/view values from the table."""
+        """Creates a table in either the file or memory database.  Can only be run by administrators.  Provide the id of the role that is necessary to edit it and the id of the role necessary to select/view values from the table. Does not sanitize data inputs.
+
+        Arguments:
+            Space: mem |or| file
+            Edit: id of the role that is required to edit data from this table
+            Select: id of the role that is required to select/view data from this table
+            Name: name of the table of which you'd like to create"""
         await ctx.send("Entering Interactive Mode for Creating Table...")
         await ctx.send("For every category in you want in the server, type the name of the category and then the type.  For example, 'string text' or 'id integer'.  Type 'exit' to exit interactive mode.")
         def check(m):
@@ -608,11 +750,16 @@ class Sql(commands.Cog):
 
     @checks.guildowner()
     @sql.command()
-    async def execute(self, ctx: commands.context, space: str, ret: str, *, command):
+    async def execute(self, ctx, space: str, ret: str, *, command):
         """Executes a raw sql command safely.
-        The command can be run in either the bot's memory db or in your server's file db.  The bot's memory lasts until the next reboot, while the file db is permanent.  For setting the return values, use 'n' if you do not want anything returned, but if you do, use 'yall' to get all or 'yone' to get one.
+        The command can be run in either the bot's memory db or in your server's file db.  The bot's memory lasts until the next reboot, while the file db is permanent.  For setting the return values, use 'n' if you do not want anything returned, but if you do, use 'yall' to get all or 'yone' to get one.  Does not sanitize data inputs.
 
-        This command is discouraged unless this is necessary.  While creating tables, settings are not registered for it, and the owner bypasses every permission.  If settings are needed, they will need to be set manually."""
+        This command is discouraged unless this is necessary.  While creating tables, settings are not registered for it, and the owner bypasses every permission.  If settings are needed, they will need to be set manually.
+        
+        Arguments:
+            Space: mem |or| file
+            Ret: whether to return value; n if not, y if so (add 'all' for all data to be returned or 'one' if you'd like only one piece of the data returned
+            Command: command to be run"""
         await ctx.send("**Warning!**  This command is discouraged from use.  It is recommended to use to prebuilt commands unless you have to use this.  When creating tables, settings are not registered.  That is heavily discouraged.\nWould you like to proceed?  (y/n)")
         def check(m):
             return (m.author.id == ctx.author.id) and (m.content.lower().startswith('y') or m.content.lower().startswith('n')) and (m.channel.id == ctx.channel.id)

@@ -1,5 +1,7 @@
 """This cog is mostly derived from Aikaterna's cog "chatchart"
-You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart"""
+You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart
+
+This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""
 
 import discord
 import heapq
@@ -77,18 +79,16 @@ class CommandChart(BaseCog):
 
     @commands.guild_only()
     @commands.command()
-    async def commandchart(self, ctx, time, channel: discord.TextChannel = None, number=5000):
-        """See the used commands after a certain time.  When entering the time, please include quotes around them ("") and follow this:
-        
-        Mon_int int_date year h minute
-        
-        Examples (do not include dashes and month names):
-        12 1 2008 1 33  -- (Dec)
-        6 13 2017 13 45 -- (June)"""
+    async def commandchart(self, ctx, channel: discord.TextChannel = None, number: int=5000):
+        """See the used commands in a certain channel with a certain amount of messages."""
+
+        # Mon_int int_date year h minute
+        # 12 1 2008 1 33  -- (Dec)
+        # 6 13 2017 13 45 -- (June)
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk.gif")
-        time = time.split(" ")
-        datetime_object = datetime(int(time[2]), int(time[0]), int(time[1]), int(time[3]), int(time[4]))
+        #time = time.split(" ")
+        #datetime_object = datetime(int(time[2]), int(time[0]), int(time[1]), int(time[3]), int(time[4]))
         em = await ctx.send(embed=e)
 
         if channel is None:
@@ -102,7 +102,7 @@ class CommandChart(BaseCog):
         for x in self.bot.commands:
             command_list.append(x)
         try:
-            async for msg in channel.history(limit=number, after=datetime_object):
+            async for msg in channel.history(limit=number):
                 message_context = await self.bot.get_context(msg)
                 if message_context.valid:
                     message_list.append(message_context.command.qualified_name)

@@ -1,0 +1,1 @@
+This file is only here so that it becomes mandatory to create the data folder when downloading this cog.

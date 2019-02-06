@@ -75,9 +75,13 @@ class Sql(commands.Cog):
             tables = "ERROR: No tables!"
         await ctx.send("**File:**\n```py\n" + str(tables) + "```")
 
-    @checks.admin()
-    @settings.command()
+    @checks.guildowner()
+    @settings.command(aliases=["wipe"])
     async def delete(self, ctx, space):
+        """Deletes the settings of your tables in either the bot's memory or in your server's file.  Can only be run by guild owner.
+        
+        Arguments:
+            Space: mem |or| file"""
         if space == "mem":
             self.memsetc.execute(f"DROP TABLE IF EXISTS settings{str(ctx.guild.id)}")
         elif space == "file":
@@ -88,6 +92,139 @@ class Sql(commands.Cog):
         elif space == "file":
             self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
         await ctx.send("Settings have been recreated.")
+
+    @checks.admin()
+    @settings.command(name="update")
+    async def settings_update(self, ctx, space, table, edit: int, select: int):
+        """Updates a settings entry for a table in the bot's memory or in your server's file.
+
+        Arguments:
+            Space: mem |or| file
+            Table: name of the table that you are editing the settings for
+            Edit: the id of the new role that will be required for editing the table
+            Select: the id of the new role that will be required for view data from the table"""
+        if space == "mem":
+            editrole = ctx.guild.get_role(edit)
+            selectrole = ctx.guild.get_role(select)
+            if not (editrole and selectrole):
+                await ctx.send("Cannot perform settings update command, invalid role ids.")
+                return
+            try:
+                self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
+                self.memsetc.execute(f"UPDATE settings{str(ctx.guild.id)} SET edit=?, view=? WHERE name=?", (edit, select, table))
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your settings failed to be updated because of an error while updating them.  Please notify the owner of the bot about this issues.")
+                return
+            await ctx.send("Your settings have been updated.  Commit to database? (y/n)")
+            def check(m):
+                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+            try:
+                message = await self.bot.wait_for('message', check=check, timeout=30.0)
+            except asyncio.TimeoutError:
+                await ctx.send("Not commiting to database.")
+                return
+            if message.content.lower().startswith('y'):
+                self.memset.commit()
+                await ctx.send("Commited to database.")
+            else:
+                await ctx.send("Not commiting to database.")
+        elif space == "file":
+            editrole = ctx.guild.get_role(edit)
+            selectrole = ctx.guild.get_role(select)
+            if not (editrole and selectrole):
+                await ctx.send("Cannot perform settings update command, invalid role ids.")
+                return
+            try:
+                self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
+                self.filesetc.execute(f"UPDATE settings{str(ctx.guild.id)} SET edit=?, view=? WHERE name=?", (edit, select, table))
+            except Exception as e:
+                await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+                await ctx.send("Your settings failed to be updated because of an error while updating them.  Please notify the owner of the bot about this issues.")
+                return
+            await ctx.send("Your settings have been updated.  Commit to database? (y/n)")
+            def check(m):
+                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+            try:
+                message = await self.bot.wait_for('message', check=check, timeout=30.0)
+            except asyncio.TimeoutError:
+                await ctx.send("Not commiting to database.")
+                return
+            if message.content.lower().startswith('y'):
+                self.fileset.commit()
+                await ctx.send("Commited to database.")
+            else:
+                await ctx.send("Not commiting to database.")
+
+    @checks.admin()
+    @settings.command()
+    async def commit(self, ctx, space):
+        """Commits changes to the settings database, either the bot's memory's settings or your server's file's settings.
+
+        Arguments:
+            Space: mem |or| file"""
+        if space == "mem":
+            self.memset.commit()
+        elif space == "file":
+            self.fileset.commit()
+        await ctx.send("Your changes to the settings have been commited.")
+    
+    @checks.guildowner()
+    @settings.command()
+    async def rollback(self, ctx, space):
+        """Rolls back changes from the most recent commit, but this is not guaranteed to work.  This is part of the library, so it should be made.
+
+        Arguments:
+            Space: mem |or| file"""
+        if space == "mem":
+            self.memset.rollback()
+        elif space == "file":
+            self.fileset.rollback()
+        await ctx.send("Your changes to the settings have been attempted to have been rolled back, however, it is possible that they were not.")
+
+    @checks.admin()
+    @settings.command(name="insert")
+    async def settings_insert(self, ctx, table, edit: int, select: int):
+        """Inserts a settings entry into the table in case it failed to be made during `[p]sql create` or if the table was made using `[p]sql execute`.  However, you cannot create for memory databases through this because of effects with other tables.
+
+        Arguments:
+            Table: name of the table you are creating settings for
+            Edit: id of the role that is required for editing the table
+            Select: id of the role that is required for viewing/selecting the table"""
+        filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+        filec = filedb.cursor()
+        filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
+        tables = filec.fetchall()
+        tables = tables[0]
+        if not (table in tables):
+            await ctx.send("That table is not registered in your server's database file.")
+            return
+        editrole = ctx.guild.get_role(edit)
+        selectrole = ctx.guild.get_role(select)
+        if not (editrole and selectrole):
+            await ctx.send("Invalid role IDs")
+            return
+        try:
+            self.filesetc.execute(f"INSERT INTO settings{str(ctx.guild.id)} VALUES (?,?,?)", (table, edit, select))
+        except Exception as e:
+            await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
+            await ctx.send("Your entry failed to be insert into settings because of an error while doing so.  Please notify the owner of the bot about this issues.")
+            return
+        await ctx.send("Your data has been inserted into settings.  Commit to database? (y/n)")
+        def check(m):
+            return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+        try:
+            message = await self.bot.wait_for('message', check=check, timeout=30.0)
+        except asyncio.TimeoutError:
+            await ctx.send("Not commiting to database.")
+            return
+        if message.content.lower().startswith('y'):
+            self.fileset.commit()
+            await ctx.send("Commited to database.")
+        else:
+            await ctx.send("Not commiting to database.")
+        filedb.close()
+        
 
     @sql.command(aliases=["remove"])
     async def deleteentry(self, ctx, space, table, category, *value):
@@ -627,7 +764,7 @@ class Sql(commands.Cog):
                 if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
                     await ctx.send("Permissions confirmed.  Deleting table...")
                 else:
-                    await ctx.send("You do not have permission to delete this table.  Please contact the server owner in order to delete this table.")
+                    await ctx.send("You do not have permission to delete this table.  Please contact someone who has the appropriate edit role in order to delete this table.")
                     return
                 command = "DROP TABLE " + table
                 try:

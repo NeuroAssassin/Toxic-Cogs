@@ -3,8 +3,7 @@ from redbot.core.data_manager import bundled_data_path
 import sqlite3
 import traceback
 import asyncio
-
-#BaseCog = getattr(commands, "Cog", object)
+import discord
 
 class Sql(commands.Cog):
     def __init__(self, bot):
@@ -45,6 +44,8 @@ class Sql(commands.Cog):
                 pass
         self.memset.commit()
         self.memset.close()
+
+        self.fileset.close()
 
     @commands.group()
     async def sql(self, ctx):
@@ -989,3 +990,20 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
             filedb.close()
+
+    @sql.command()
+    async def help(self, ctx):
+        """Provides information about the cog, because I know this cog seems confusing"""
+        message = "Hello there.  Thank you for downloading this cog.  Here are some tips on how to use it:\n\n"
+        message += "This cog is primarily for the storing of data in sql format.  You can store whatever you want in them.  For example, you can store your favorite singers, warnings for users and a bunch of other stuff!\n"
+        message += "**Now that we've said what it can do, here's some tips:**\n"
+        message += "    1. While there is a command to run straight up sql commands (only for guild owners), I strongly suggest not using it.  It is better to use the shortcut commands since they also create settings for tables and permission checks.\n"
+        message += "    2. When tables are created using `[p]sql create`, a settings entry is also registered for it on your server's database settings.  This allows you to control who can edit data from the table and who can view data in the table.\n"
+        message += "    3. It is recommended to create tables in your server's file database, instead of the bot's memory.  This is because tables created in the bot's memory can be affected by other guild owners by using `[p]sql execute`.  However, your server's file is completely safe.\n"
+        message += "    4. When a command asks for the 'space', you can reply with `mem` or `file.`  Entering `mem` puts/searches in the bot's memory, while `file` puts/searches in your server's database file.\n"
+        message += "    5. Right now, with tables, you can create them, delete them, insert data into them, update data in them, delete data from them and also view data from them.\n"
+        message += "    6. Right now, with settings, you can view them, delete them (strongly discouraged), insert setting entries and update setting entries.\n"
+        message += "    7. I mentioned above that it is recommended to use pre-built commands, mostly because of settings.  If you create a table without settings, no one access them through any commands.  The only way to access the table would be through `[p]sql execute`.\n"
+        message += "Well, I hope that makes you understand the SQL cog a bit more.  Hope it turns out to help!"
+        await ctx.send(message)
+        await ctx.send("*If you need help, don't hesitate to join my support server here: https://discord.gg/vQZTdB9*")

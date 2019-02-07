@@ -86,12 +86,7 @@ class Sql(commands.Cog):
     @sql.command(name="check")
     @checks.is_owner()
     async def check_sentry(self, ctx):
-        self.sentry.disable_stdout()
-        log.error(
-            f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=error.original
-        )
-        self.sentry.enable_stdout()  # re-enable console output for warnings
-        self._set_context({})  # remove context for future logs
+        causing a fun fun error here
 
     @sql.command()
     @checks.is_owner()

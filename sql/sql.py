@@ -2,6 +2,7 @@
 
 from redbot.core import commands, checks
 from redbot.core.data_manager import bundled_data_path
+from redbot.core.data_manager import cog_data_path
 import sqlite3
 import traceback
 import asyncio
@@ -22,17 +23,23 @@ class Sql(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.__version__ = "1.0.0"
+        self.cog_path = cog_data_path(raw_name="sql")
+        if self.cog_path.exists():
+            log_path = self.cog_path / "sqlcog.log"
+            file_logger = logging.FileHandler(log_path)
+            file_logger.setLevel(logging.DEBUG)
+            file_logger.setFormatter(self.format)
+            log.addHandler(file_logger)
 
         # Set up databases
         self.memdb = sqlite3.connect(":memory:")
         self.memc = self.memdb.cursor()
 
         # Set up database settings
-        self.memset = sqlite3.connect(str(bundled_data_path(self)) + "/memsettings.sqlite")
+        self.memset = sqlite3.connect(self.cog_path / "memsettings.sqlite")
         self.memsetc = self.memset.cursor()
 
-        self.fileset = sqlite3.connect(str(bundled_data_path(self)) + "/filesettings.sqlite")
+        self.fileset = sqlite3.connect(self.cog_path / "filesettings.sqlite")
         self.filesetc = self.fileset.cursor()
 
         # Sentry stuff
@@ -40,6 +47,8 @@ class Sql(commands.Cog):
         self.data = Config.get_conf(self, 4578594726)
         def_global = {"enable_sentry": None}
         self.data.register_global(**def_global)
+
+    __version__ = "1.0.1"
 
     def __unload(self):
         print("In __unload")
@@ -94,7 +103,7 @@ class Sql(commands.Cog):
     @checks.is_owner()
     async def internal(self, ctx, sentry: str=None):
         """Turns sentry either on or off.  Type sentry in as an argument to turn it to the opposite setting."""
-        current_status = self.data.enable_sentry()
+        current_status = await self.data.enable_sentry()
         status = lambda x: ("enable", "enabled") if x else ("disable", "disabled")
 
         if sentry is not None and "sentry" in sentry:
@@ -271,7 +280,7 @@ class Sql(commands.Cog):
             Table: name of the table you are creating settings for
             Edit: id of the role that is required for editing the table
             Select: id of the role that is required for viewing/selecting the table"""
-        filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+        filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
         filec = filedb.cursor()
         filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
         tables = filec.fetchall()
@@ -361,7 +370,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -473,7 +482,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -543,7 +552,7 @@ class Sql(commands.Cog):
             tables = self.memsetc.fetchall()
             await ctx.send("All tables in memory:```python\n" + str(tables) + "```")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
             filec = filedb.cursor()
             filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
             tables = filec.fetchall()
@@ -608,7 +617,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -715,7 +724,7 @@ class Sql(commands.Cog):
                 data = self.memc.fetchall()
                 await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -822,7 +831,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -933,7 +942,7 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{ctx.guild.id}db.sqlite")
+            filedb = sqlite3.connect(self.cog_path / f"{ctx.guild.id}db.sqlite")
             filec = filedb.cursor()
             try:
                 filec.execute(command)
@@ -1030,7 +1039,7 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(bundled_data_path(self)) + f"/{ctx.guild.id}db.sqlite")
+            filedb = sqlite3.connect(self.cog_path / f"{ctx.guild.id}db.sqlite")
             filec = filedb.cursor()
             if ret.startswith("y"):
                 try:

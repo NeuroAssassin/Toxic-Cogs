@@ -57,7 +57,7 @@ class Log:
 
         # logging to a log file
         # file is automatically created by the module, if the parent foler exists
-        cog_path = cog_data_path(raw_name="SQLCog")
+        cog_path = cog_data_path(raw_name="sql")
         if cog_path.exists():
             log_path = cog_path / "sqlcog.log"
             file_logger = logging.FileHandler(log_path)

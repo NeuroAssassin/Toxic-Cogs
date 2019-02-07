@@ -22,6 +22,8 @@ class Sql(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+        self.__version__ = "1.0.0"
+
         # Set up databases
         self.memdb = sqlite3.connect(":memory:")
         self.memc = self.memdb.cursor()

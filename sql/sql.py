@@ -42,6 +42,8 @@ class Sql(commands.Cog):
     def __unload(self):
         print("In __unload")
 
+        log.handlers = []
+
         # Delete tables from memory
         self.memc.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
         tables = self.memc.fetchall()
@@ -75,6 +77,16 @@ class Sql(commands.Cog):
     async def sql(self, ctx):
         """Group command for SQL cog.  Warning: due to the input of values, SQL commands are not always sanitized and can result in the destruction of tables on accident.  Run at your own risk."""
         pass
+
+    @sql.command(name="check")
+    @checks.is_owner()
+    async def check_sentry(self, ctx):
+        self.sentry.disable_stdout()
+        log.error(
+            f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=error.original
+        )
+        self.sentry.enable_stdout()  # re-enable console output for warnings
+        self._set_context({})  # remove context for future logs
 
     @sql.command()
     @checks.is_owner()

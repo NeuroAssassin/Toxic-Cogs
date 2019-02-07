@@ -30,10 +30,10 @@ class Sql(commands.Cog):
         self.memc = self.memdb.cursor()
 
         # Set up database settings
-        self.memset = sqlite3.connect(self.cog_path / "memsettings.sqlite")
+        self.memset = sqlite3.connect(str(self.cog_path / "memsettings.sqlite"))
         self.memsetc = self.memset.cursor()
 
-        self.fileset = sqlite3.connect(self.cog_path / "filesettings.sqlite")
+        self.fileset = sqlite3.connect(str(self.cog_path / "filesettings.sqlite"))
         self.filesetc = self.fileset.cursor()
 
         # Sentry stuff
@@ -274,7 +274,7 @@ class Sql(commands.Cog):
             Table: name of the table you are creating settings for
             Edit: id of the role that is required for editing the table
             Select: id of the role that is required for viewing/selecting the table"""
-        filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+        filedb = sqlite3.connect(str(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")))
         filec = filedb.cursor()
         filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
         tables = filec.fetchall()
@@ -364,7 +364,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -476,7 +476,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(str(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")))
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -546,7 +546,7 @@ class Sql(commands.Cog):
             tables = self.memsetc.fetchall()
             await ctx.send("All tables in memory:```python\n" + str(tables) + "```")
         elif space == "file":
-            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
             filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
             tables = filec.fetchall()
@@ -611,7 +611,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -718,7 +718,7 @@ class Sql(commands.Cog):
                 data = self.memc.fetchall()
                 await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
         elif space == "file":
-            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -825,7 +825,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")

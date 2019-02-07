@@ -86,7 +86,7 @@ class Sql(commands.Cog):
     @sql.command(name="check")
     @checks.is_owner()
     async def check_sentry(self, ctx):
-        causing a fun fun error here
+        error_was_too_good()
 
     @sql.command()
     @checks.is_owner()

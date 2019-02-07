@@ -23,13 +23,7 @@ class Sql(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.cog_path = cog_data_path(raw_name="sql")
-        if self.cog_path.exists():
-            log_path = self.cog_path / "sqlcog.log"
-            file_logger = logging.FileHandler(log_path)
-            file_logger.setLevel(logging.DEBUG)
-            file_logger.setFormatter(self.format)
-            log.addHandler(file_logger)
+        self.cog_path = cog_data_path(self)
 
         # Set up databases
         self.memdb = sqlite3.connect(":memory:")

@@ -42,7 +42,7 @@ class Sql(commands.Cog):
         def_global = {"enable_sentry": None}
         self.data.register_global(**def_global)
 
-    __version__ = "1.0.1"
+    __version__ = "1.1.0"
 
     def __unload(self):
         print("In __unload")
@@ -82,11 +82,6 @@ class Sql(commands.Cog):
     async def sql(self, ctx):
         """Group command for SQL cog.  Warning: due to the input of values, SQL commands are not always sanitized and can result in the destruction of tables on accident.  Run at your own risk."""
         pass
-
-    @sql.command(name="check")
-    @checks.is_owner()
-    async def check_sentry(self, ctx):
-        error_was_too_good()
 
     @sql.command()
     @checks.is_owner()
@@ -192,7 +187,13 @@ class Sql(commands.Cog):
                 self.memsetc.execute(f"UPDATE settings{str(ctx.guild.id)} SET edit=?, view=? WHERE name=?", (edit, select, table))
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your settings failed to be updated because of an error while updating them.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your settings failed to be updated because of an error while updating them.  If error logging is enabled, this error has been reported to the owner of the cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             await ctx.send("Your settings have been updated.  Commit to database? (y/n)")
             def check(m):
@@ -218,7 +219,13 @@ class Sql(commands.Cog):
                 self.filesetc.execute(f"UPDATE settings{str(ctx.guild.id)} SET edit=?, view=? WHERE name=?", (edit, select, table))
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your settings failed to be updated because of an error while updating them.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your settings failed to be updated because of an error while updating them.  If error logging is enabled, this error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             await ctx.send("Your settings have been updated.  Commit to database? (y/n)")
             def check(m):
@@ -286,7 +293,13 @@ class Sql(commands.Cog):
             self.filesetc.execute(f"INSERT INTO settings{str(ctx.guild.id)} VALUES (?,?,?)", (table, edit, select))
         except Exception as e:
             await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-            await ctx.send("Your entry failed to be insert into settings because of an error while doing so.  Please notify the owner of the bot about this issues.")
+            await ctx.send("Your entry failed to be insert into settings because of an error while doing so.  If error logging is enabled, the error has been reported to the owner of the this cog.  Please notify the owner of the bot about this issues.")
+            self.sentry.disable_stdout()  # remove console output since red also handle this
+            log.error(
+                f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+            )
+            self.sentry.enable_stdout()  # re-enable console output for warnings
+            self._set_context({})  # remove context for future logs
             return
         await ctx.send("Your data has been inserted into settings.  Commit to database? (y/n)")
         def check(m):
@@ -321,7 +334,13 @@ class Sql(commands.Cog):
                 settings = self.memsetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your row failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your row failed to be deleted because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -343,7 +362,13 @@ class Sql(commands.Cog):
                     self.memc.execute(command, value)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                    await ctx.send("Your data failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
+                    await ctx.send("Your data failed to be deleted because of an error while deleting it.  If error reporting is enabled, the error has been reported to the owner of the sql cog.  Please notify the owner of the bot about this issue.")
+                    self.sentry.disable_stdout()  # remove console output since red also handle this
+                    log.error(
+                        f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                    )
+                    self.sentry.enable_stdout()  # re-enable console output for warnings
+                    self._set_context({})  # remove context for future logs
                 else:
                     await ctx.send("The data with the value of `" + value[0] + "` in the `" + category + "` category in the `" + table + "` table has been deleted from your server's database.  Commit to database? (y/n)")
                     def check(m):
@@ -367,7 +392,13 @@ class Sql(commands.Cog):
                 settings = self.filesetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your row failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your row failed to be deleted because of an error while checking settings.  If error reporting has been enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -388,7 +419,13 @@ class Sql(commands.Cog):
                     filec.execute(command, value)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                    await ctx.send("Your data failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
+                    await ctx.send("Your data failed to be deleted because of an error while deleting it.  If error reporting has been enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issue.")
+                    self.sentry.disable_stdout()  # remove console output since red also handle this
+                    log.error(
+                        f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                    )
+                    self.sentry.enable_stdout()  # re-enable console output for warnings
+                    self._set_context({})  # remove context for future logs
                 else:
                     await ctx.send("The data with the value of `" + value[0] + "` in the `" + category + "` category in the `" + table + "` table has been deleted from your server's database.  Commit to database? (y/n)")
                     def check(m):
@@ -423,7 +460,13 @@ class Sql(commands.Cog):
                 settings = self.memsetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your table failed to be updated because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your table failed to be updated because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -455,7 +498,13 @@ class Sql(commands.Cog):
                     self.memc.execute(command, (value,))
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                    await ctx.send("Your data failed to be updated into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
+                    await ctx.send("Your data failed to be updated into the table because of an error while inserting it.  If error reporting is enabled, the error has been reported to the owner bot this cog.  Please notify the owner of the bot about this issue.")
+                    self.sentry.disable_stdout()  # remove console output since red also handle this
+                    log.error(
+                        f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                    )
+                    self.sentry.enable_stdout()  # re-enable console output for warnings
+                    self._set_context({})  # remove context for future logs
                 else:
                     await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "` (updated a row).  Commit to database? (y/n)")
                     def check(m):
@@ -479,7 +528,13 @@ class Sql(commands.Cog):
                 settings = self.filesetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your table failed to be updated because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your table failed to be updated because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -511,7 +566,13 @@ class Sql(commands.Cog):
                     filec.execute(command, (value,))
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                    await ctx.send("Your data failed to be updated into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
+                    await ctx.send("Your data failed to be updated into the table because of an error while inserting it.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issue.")
+                    self.sentry.disable_stdout()  # remove console output since red also handle this
+                    log.error(
+                        f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                    )
+                    self.sentry.enable_stdout()  # re-enable console output for warnings
+                    self._set_context({})  # remove context for future logs
                 else:
                     await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "` (updated a row).  Commit to database? (y/n)")
                     def check(m):
@@ -564,7 +625,13 @@ class Sql(commands.Cog):
                 settings = self.memsetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your data failed to be inserted into the table because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your data failed to be inserted into the table because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -590,7 +657,13 @@ class Sql(commands.Cog):
                     self.memc.execute(command, values)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                    await ctx.send("Your data failed to be inserted into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
+                    await ctx.send("Your data failed to be inserted into the table because of an error while inserting it.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issue.")
+                    self.sentry.disable_stdout()  # remove console output since red also handle this
+                    log.error(
+                        f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                    )
+                    self.sentry.enable_stdout()  # re-enable console output for warnings
+                    self._set_context({})  # remove context for future logs
                 else:
                     await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "`.  Commit to database? (y/n)")
                     def check(m):
@@ -614,7 +687,13 @@ class Sql(commands.Cog):
                 settings = self.filesetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your data failed to be inserted into the table because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your data failed to be inserted into the table because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -640,7 +719,13 @@ class Sql(commands.Cog):
                     filec.execute(command, values)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                    await ctx.send("Your data failed to be inserted into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
+                    await ctx.send("Your data failed to be inserted into the table because of an error while inserting it.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issue.")
+                    self.sentry.disable_stdout()  # remove console output since red also handle this
+                    log.error(
+                        f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                    )
+                    self.sentry.enable_stdout()  # re-enable console output for warnings
+                    self._set_context({})  # remove context for future logs
                 else:
                     await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "`.  Commit to database? (y/n)")
                     def check(m):
@@ -676,7 +761,13 @@ class Sql(commands.Cog):
                 settings = self.memsetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -721,7 +812,13 @@ class Sql(commands.Cog):
                 settings = self.filesetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -775,7 +872,13 @@ class Sql(commands.Cog):
                 settings = self.memsetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -796,14 +899,26 @@ class Sql(commands.Cog):
                     self.memc.execute(command)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                    await ctx.send("Your table failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
+                    await ctx.send("Your table failed to be deleted because of an error while deleting it.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issue.")
+                    self.sentry.disable_stdout()  # remove console output since red also handle this
+                    log.error(
+                        f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                    )
+                    self.sentry.enable_stdout()  # re-enable console output for warnings
+                    self._set_context({})  # remove context for future logs
                 else:
                     await ctx.send("The `" + table + "` table has been deleted from your server's database.  Deleting table settings...")
                     try:
                         self.memsetc.execute(f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?", (table,))
                     except Exception as e:
                         await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                        await ctx.send("Your table was deleted, but the entry for this table failed to be deleted from the settings table.  Please notify the owner of the bot about this issue.")
+                        await ctx.send("Your table was deleted, but the entry for this table failed to be deleted from the settings table.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issue.")
+                        self.sentry.disable_stdout()  # remove console output since red also handle this
+                        log.error(
+                            f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                        )
+                        self.sentry.enable_stdout()  # re-enable console output for warnings
+                        self._set_context({})  # remove context for future logs
                         return
                     await ctx.send("Your table has been deleted and the settings have been updated.  Commit to database? (y/n)")
                     def check(m):
@@ -828,7 +943,13 @@ class Sql(commands.Cog):
                 settings = self.filesetc.fetchall()
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your table failed to be deleted because of an error while checking settings.  Please notify the owner of the bot about this issues.")
+                await ctx.send("Your table failed to be deleted because of an error while checking settings.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issues.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             else:
                 table_settings = None
@@ -849,14 +970,26 @@ class Sql(commands.Cog):
                     filec.execute(command)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                    await ctx.send("Your table failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
+                    await ctx.send("Your table failed to be deleted because of an error while deleting it.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issue.")
+                    self.sentry.disable_stdout()  # remove console output since red also handle this
+                    log.error(
+                        f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                    )
+                    self.sentry.enable_stdout()  # re-enable console output for warnings
+                    self._set_context({})  # remove context for future logs
                 else:
                     await ctx.send("The `" + table + "` table has been deleted from your server's database.  Deleting table settings...")
                     try:
                         self.filesetc.execute(f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?", (table,))
                     except Exception as e:
                         await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                        await ctx.send("Your table was deleted, but the entry for this table failed to be deleted from the settings table.  Please notify the owner of the bot about this issue.")
+                        await ctx.send("Your table was deleted, but the entry for this table failed to be deleted from the settings table.  If error reporting is enabled, the error has been reported to the owner of this cog.  Please notify the owner of the bot about this issue.")
+                        self.sentry.disable_stdout()  # remove console output since red also handle this
+                        log.error(
+                            f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                        )
+                        self.sentry.enable_stdout()  # re-enable console output for warnings
+                        self._set_context({})  # remove context for future logs
                         return
                     await ctx.send("Your table has been deleted and the settings have been updated.  Commit to database? (y/n)")
                     def check(m):
@@ -910,11 +1043,18 @@ class Sql(commands.Cog):
                 return
             await ctx.send("The CREATE TABLE command has been run.  Updating settings table...")
             try:
+                testing_this()
                 self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
                 self.memsetc.execute(f'INSERT INTO settings{str(ctx.guild.id)}(name, edit, view) VALUES(?,?,?)', (name, edit, select))
             except Exception as e:
                 await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
-                await ctx.send("Your table has been created, but settings have not been registered and changes have not been committed.  Run [p]sql commit to commit these changes.")
+                await ctx.send("Your table has been created, but settings have not been registered and changes have not been committed.")
+                self.sentry.disable_stdout()  # remove console output since red also handle this
+                log.error(
+                    f"Exception in command '{ctx.command.qualified_name}'.\n\n", exc_info=e
+                )
+                self.sentry.enable_stdout()  # re-enable console output for warnings
+                self._set_context({})  # remove context for future logs
                 return
             await ctx.send("The settings table has been updated.  Commit to database? (y/n)")
             def check2(m):

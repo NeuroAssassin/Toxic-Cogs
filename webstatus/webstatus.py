@@ -1,6 +1,7 @@
 from redbot.core import commands
 import aiohttp
 from bs4 import BeautifulSoup
+import discord
 
 BaseCog = getattr(commands, "Cog", object)
 
@@ -61,9 +62,13 @@ class Webstatus(BaseCog):
                 soup = BeautifulSoup(webpage, 'html.parser')
                 results = soup.find_all('div', attrs={'class': 'Alert__Div-s1eb33n4-0'})
                 if len(results) == 0:
-                    await ctx.send("https://outage.report has not reported any problems.")
+                    embed = discord.Embed(title="Results", description="Results from outage.report", color=0x00ff00)
+                    embed.add_field(name="Status:", value="No reported problems on outage.report", inline=True)
+                    await ctx.send(embed=embed)
                 else:
-                    await ctx.send(f"https://outage.report/ has reported: {results[0].string}")
+                    embed = discord.Embed(title="Results", description="Results from outage.report", color=0xff0000)
+                    embed.add_field(name="Status:", value=results[0].string, inline=True)
+                    #await ctx.send(f"https://outage.report/ has reported: {results[0].string}")
                     reports = soup.find_all('text', attrs={'class': 'Gauge__Count-cx9u1z-5'})
-                    await ctx.send(f"{reports[0].string} people have reported problems in the last 20 minutes.")
-                    return
+                    embed.add_field(name="Reports:", value=f"Within the last 20 minutes, {reports[0].string} people reported problems")
+                    await ctx.send(embed=embed)

@@ -19,7 +19,7 @@ class Webstatus(BaseCog):
 
     @commands.command(hidden=True)
     async def webstatus(self, ctx, *, company):
-        """Uses https://outage.report/ to see if the company/website is down"""
+        """Uses https://outage.report/ to see if the company/website is down.  However, some pages on outage.report use different classes, so it may not always catch it."""
         # Filter out https's and www's
         if company.startswith("https://www."):
             company = company[12:]
@@ -62,13 +62,25 @@ class Webstatus(BaseCog):
                 soup = BeautifulSoup(webpage, 'html.parser')
                 results = soup.find_all('div', attrs={'class': 'Alert__Div-s1eb33n4-0'})
                 if len(results) == 0:
-                    embed = discord.Embed(title="Results", description="Results from outage.report", color=0x00ff00)
-                    embed.add_field(name="Status:", value="No reported problems on outage.report", inline=True)
-                    await ctx.send(embed=embed)
+                    # Double-check
+                    results = soup.find_all('div', attrs={'class': 'Alert__Div-l7woft-0'})
+                    if len(results) == 0:
+                        embed = discord.Embed(title="Results", description="Results from outage.report", color=0x00ff00)
+                        embed.add_field(name="Status:", value="No reported problems on outage.report", inline=True)
+                        await ctx.send(embed=embed)
+                        return
+                    else:
+                        pass
+                embed = discord.Embed(title="Results", description="Results from outage.report", color=0xff0000)
+                embed.add_field(name="Status:", value=results[0].string, inline=True)
+                #await ctx.send(f"https://outage.report/ has reported: {results[0].string}")
+                reports = soup.find_all('text', attrs={'class': 'Gauge__Count-cx9u1z-5'})
+                if len(reports) == 0:
+                    reports = soup.find_all('text', attrs={'class': 'Gauge__Count-s1qahqgd'})
+                    if len(reports) == 0:
+                        pass
+                    else:
+                        embed.add_field(name="Reports:", value=f"Within the last 20 minutes, {reports[0].string} people reported problems")
                 else:
-                    embed = discord.Embed(title="Results", description="Results from outage.report", color=0xff0000)
-                    embed.add_field(name="Status:", value=results[0].string, inline=True)
-                    #await ctx.send(f"https://outage.report/ has reported: {results[0].string}")
-                    reports = soup.find_all('text', attrs={'class': 'Gauge__Count-cx9u1z-5'})
                     embed.add_field(name="Reports:", value=f"Within the last 20 minutes, {reports[0].string} people reported problems")
-                    await ctx.send(embed=embed)
+                await ctx.send(embed=embed)

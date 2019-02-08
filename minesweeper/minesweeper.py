@@ -284,27 +284,6 @@ class Minesweeper(commands.Cog):
         cd = [":black_large_square:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":keycap_ten:"]
         nb.insert(0, cd)
         return nb
-    '''
-    def discover(self, answer_board, rn, cn):
-        if answer_board[rn][cn] == ":bomb:":
-            return "lost"
-            #await ctx.send(f"Uh oh!  {ctx.author.mention} looks like you stumbled across a bomb.  The answer board has been posted above.")
-            #answer_board = self.print_board(answer_board)
-            #await bm.edit(content=answer_board)
-        elif answer_board[rn][cn] == ":zero:":
-            # Try to guess all the ones around it
-            if not (rn in [0, 9]) and not (cn in [0, 9]):
-                self.discover(answer_board, rn, cn-1) # Left
-                self.discover(answer_board, rn+1, cn) # Right
-                self.discover(answer_board, rn-1, cn-1) # Top-left
-                self.discover(answer_board, rn-1, cn) # Top
-                self.discover(answer_board)
-        else:
-            pass
-            #showing_board[rn][cn] = answer_board[rn][cn-1]
-            #sending_board = self.print_board(self.add_desc(showing_board))
-            #await bm.edit(content=sending_board)
-    '''
 
     @commands.command(aliases=["ms"])
     async def minesweeper(self, ctx, bombs: int="Random bomb amount"):
@@ -313,7 +292,7 @@ class Minesweeper(commands.Cog):
         Must be between 10 bombs and 99 bombs.  Defaults to random between 20 to 30"""
         if isinstance(bombs, str):
             bombs = random.randint(15, 25)
-        if bombs < 10:
+        if bombs < 10 or bombs > 99:
             await ctx.send("Amount of bombs must be between 10 and 99.")
             return
         answer_board = self.generate_map(bombs)
@@ -388,3 +367,20 @@ class Minesweeper(commands.Cog):
                                     showing_board[rn][cn] = answer_board[rn][cn]
                                     sending_board = self.print_board(self.add_desc(showing_board))
                                     await bm.edit(content=sending_board)
+
+    @commands.command()
+    async def spoilerms(self, ctx, bombs: int="Random bomb amount"):
+        """Starts a game of minesweeper, with allowing you to choose the number of bombs in it.
+        Does not interact with the user, instead just places spoilers around each entry for the user to find it out.
+        Must be between 10 bombs and 99 bombs.  Defaults to random between 20 to 30"""
+        if isinstance(bombs, str):
+            bombs = random.randint(15, 25)
+        if bombs < 10 or bombs > 99:
+            await ctx.send("Amount of bombs must be between 10 and 99.")
+            return
+        answer_board = self.generate_map(bombs)
+        for row in range(len(answer_board)):
+            for column in range(len(answer_board[row])):
+                answer_board[row][column] = "||" + answer_board[row][column] + "||"
+        answer_board = self.print_board(answer_board)
+        await ctx.send(answer_board)

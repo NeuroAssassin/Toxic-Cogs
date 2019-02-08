@@ -42,7 +42,7 @@ class Sql(commands.Cog):
         def_global = {"enable_sentry": None}
         self.data.register_global(**def_global)
 
-    __version__ = "1.1.0"
+    __version__ = "1.1.1"
 
     def __unload(self):
         print("In __unload")
@@ -1043,7 +1043,6 @@ class Sql(commands.Cog):
                 return
             await ctx.send("The CREATE TABLE command has been run.  Updating settings table...")
             try:
-                testing_this()
                 self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
                 self.memsetc.execute(f'INSERT INTO settings{str(ctx.guild.id)}(name, edit, view) VALUES(?,?,?)', (name, edit, select))
             except Exception as e:

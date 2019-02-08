@@ -53,7 +53,7 @@ class Webstatus(BaseCog):
             else:
                 if type(webpage) == int:
                     if webpage != 200:
-                        if webpage == 400:
+                        if webpage == 404:
                             await ctx.send("It looks like either one of the following scenarios has happened:\n**1.** outage.report doesn't follow that site\n**2.** This cog didn't parse your input well\n**3.** You entered an incorrect site.")
                         else:
                             await ctx.send(f"An error occurred within outage.report.  The site responded with status code {webpage}")

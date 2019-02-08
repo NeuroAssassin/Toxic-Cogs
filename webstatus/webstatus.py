@@ -16,7 +16,7 @@ class Webstatus(BaseCog):
                 return int(response.status)
             return await response.text()
 
-    @commands.command(hidden=true)
+    @commands.command(hidden=True)
     async def webstatus(self, ctx, *, company):
         """Uses https://outage.report/ to see if the company/website is down"""
         # Filter out https's and www's

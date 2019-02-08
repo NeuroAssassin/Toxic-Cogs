@@ -16,7 +16,7 @@ class Webstatus(BaseCog):
                 return int(response.status)
             return await response.text()
 
-    @commands.command()
+    @commands.command(hidden=true)
     async def webstatus(self, ctx, *, company):
         """Uses https://outage.report/ to see if the company/website is down"""
         # Filter out https's and www's
@@ -53,7 +53,10 @@ class Webstatus(BaseCog):
             else:
                 if type(webpage) == int:
                     if webpage != 200:
-                        await ctx.send(f"An error occurred within outage.report.  The site responded with status code {webpage}")
+                        if webpage == 400:
+                            await ctx.send("It looks like either one of the following scenarios has happened:\n**1.** outage.report doesn't follow that site\n**2.** This cog didn't parse your input well\n**3.** You entered an incorrect site.")
+                        else:
+                            await ctx.send(f"An error occurred within outage.report.  The site responded with status code {webpage}")
                         return
                 soup = BeautifulSoup(webpage, 'html.parser')
                 results = soup.find_all('div', attrs={'class': 'Alert__Div-s1eb33n4-0'})

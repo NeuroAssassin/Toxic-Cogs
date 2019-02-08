@@ -379,6 +379,7 @@ class Minesweeper(commands.Cog):
             await ctx.send("Amount of bombs must be between 10 and 99.")
             return
         answer_board = self.generate_map(bombs)
+        answer_board = self.add_hints(answer_board)
         for row in range(len(answer_board)):
             for column in range(len(answer_board[row])):
                 answer_board[row][column] = "||" + answer_board[row][column] + "||"

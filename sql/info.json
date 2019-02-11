@@ -5,6 +5,6 @@
     "short" : "Allows you to run sql commands in Discord",
     "description" : "This cog allows a Discord User (with certain permissions) to store data using sql in either the bot's memory (effective until reboot) or in a file (permanent).",
     "tags" : ["tools"],
-    "requirements" : ["raven"],
+    "requirements" : [],
     "hidden" : false
 }

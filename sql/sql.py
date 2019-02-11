@@ -42,7 +42,7 @@ class Sql(commands.Cog):
         def_global = {"enable_sentry": None}
         self.data.register_global(**def_global)
 
-    __version__ = "1.1.1"
+    __version__ = "1.1.2"
 
     def __unload(self):
         print("In __unload")
@@ -276,7 +276,7 @@ class Sql(commands.Cog):
             Table: name of the table you are creating settings for
             Edit: id of the role that is required for editing the table
             Select: id of the role that is required for viewing/selecting the table"""
-        filedb = sqlite3.connect(str(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")))
+        filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
         filec = filedb.cursor()
         filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
         tables = filec.fetchall()
@@ -520,7 +520,7 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")))
+            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name TEXT, edit INTEGER, view INTEGER)")
@@ -1070,7 +1070,7 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(self.cog_path / f"{ctx.guild.id}db.sqlite")
+            filedb = sqlite3.connect(str(self.cog_path / f"{ctx.guild.id}db.sqlite"))
             filec = filedb.cursor()
             try:
                 filec.execute(command)
@@ -1167,7 +1167,7 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
-            filedb = sqlite3.connect(self.cog_path / f"{ctx.guild.id}db.sqlite")
+            filedb = sqlite3.connect(str(self.cog_path / f"{ctx.guild.id}db.sqlite"))
             filec = filedb.cursor()
             if ret.startswith("y"):
                 try:

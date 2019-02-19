@@ -360,7 +360,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[1]) in roles:
                     await ctx.send("Permissions confirmed.  Deleting row from table table...")
                 else:
                     await ctx.send("You do not have permission to delete data from this table.  Please contact someone who has the appropriate edit role in order to delete data from this table.")
@@ -418,7 +420,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[1]) in roles:
                     await ctx.send("Permissions confirmed.  Deleting row from table...")
                 else:
                     await ctx.send("You do not have permission to delete data from this table.  Please contact someone who has the appropriate edit role in order to delete data from this table.")
@@ -486,7 +490,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[1]) in roles:
                     await ctx.send("Permissions confirmed.  Updating data...")
                 else:
                     await ctx.send("You do not have permission to update data in this table.  Please contact someone who has the appropriate edit role in order to update data in this table.")
@@ -554,7 +560,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[1]) in roles:
                     await ctx.send("Permissions confirmed.  Updating data...")
                 else:
                     await ctx.send("You do not have permission to update data in this table.  Please contact someone who has the appropriate edit role in order to update data in this table.")
@@ -651,7 +659,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[1]) in roles:
                     await ctx.send("Permissions confirmed.  Inserting data...")
                 else:
                     await ctx.send("You do not have permission to insert data into this table.  Please contact someone who has the appropriate edit role in order to insert data into this table.")
@@ -713,7 +723,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[1]) in roles:
                     await ctx.send("Permissions confirmed.  Inserting data...")
                 else:
                     await ctx.send("You do not have permission to insert data into this table.  Please contact someone who has the appropriate edit role in order to insert data into this table.")
@@ -787,7 +799,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[2]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[2]) in roles:
                     await ctx.send("Permissions confirmed")
                 else:
                     await ctx.send("You do not have permission to view data from this table.  Please contact someone who has the appropriate edit role in order to view this table.")
@@ -838,7 +852,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[2]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[2]) in roles:
                     await ctx.send("Permissions confirmed")
                 else:
                     await ctx.send("You do not have permission to view data from this table.  Please contact someone who has the appropriate edit role in order to view this table.")
@@ -898,7 +914,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[1]) in roles:
                     await ctx.send("Permissions confirmed.  Deleting table...")
                 else:
                     await ctx.send("You do not have permission to delete this table.  Please contact someone who has the appropriate edit role in order to delete this table.")
@@ -969,7 +987,9 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
+                roles = [role.id for role in ctx.author.roles]
+                roles.append(0)
+                if int(table_settings[1]) in roles:
                     await ctx.send("Permissions confirmed.  Deleting table...")
                 else:
                     await ctx.send("You do not have permission to delete this table.  Please contact someone who has the appropriate edit role in order to delete this table.")

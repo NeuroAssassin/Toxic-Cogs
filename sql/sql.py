@@ -42,7 +42,7 @@ class Sql(commands.Cog):
         def_global = {"enable_sentry": None}
         self.data.register_global(**def_global)
 
-    __version__ = "1.1.2"
+    __version__ = "1.2.0"
 
     def __unload(self):
         print("In __unload")
@@ -174,14 +174,17 @@ class Sql(commands.Cog):
         Arguments:
             Space: mem |or| file
             Table: name of the table that you are editing the settings for
-            Edit: the id of the new role that will be required for editing the table
-            Select: the id of the new role that will be required for view data from the table"""
+            Edit: the id of the new role that will be required for editing the table.  Can be 0 if you want anyone to edit data
+            Select: the id of the new role that will be required for view data from the table.  Can be 0 if you want anyone to select data"""
         if space == "mem":
-            editrole = ctx.guild.get_role(edit)
-            selectrole = ctx.guild.get_role(select)
-            if not (editrole and selectrole):
-                await ctx.send("Cannot perform settings update command, invalid role ids.")
-                return
+            if edit != 0:
+                editrole = ctx.guild.get_role(edit)
+                if not editrole:
+                    return await ctx.send("Invalid edit id.")
+            if select != 0:
+                selectrole = ctx.guild.get_role(select)
+                if not selectrole:
+                    return await ctx.send("Invalid select id.")
             try:
                 self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
                 self.memsetc.execute(f"UPDATE settings{str(ctx.guild.id)} SET edit=?, view=? WHERE name=?", (edit, select, table))
@@ -209,11 +212,14 @@ class Sql(commands.Cog):
             else:
                 await ctx.send("Not commiting to database.")
         elif space == "file":
-            editrole = ctx.guild.get_role(edit)
-            selectrole = ctx.guild.get_role(select)
-            if not (editrole and selectrole):
-                await ctx.send("Cannot perform settings update command, invalid role ids.")
-                return
+            if edit != 0:
+                editrole = ctx.guild.get_role(edit)
+                if not editrole:
+                    return await ctx.send("Invalid edit id.")
+            if select != 0:
+                selectrole = ctx.guild.get_role(select)
+                if not selectrole:
+                    return await ctx.send("Invalid select id.")
             try:
                 self.filesetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
                 self.filesetc.execute(f"UPDATE settings{str(ctx.guild.id)} SET edit=?, view=? WHERE name=?", (edit, select, table))
@@ -274,8 +280,8 @@ class Sql(commands.Cog):
 
         Arguments:
             Table: name of the table you are creating settings for
-            Edit: id of the role that is required for editing the table
-            Select: id of the role that is required for viewing/selecting the table"""
+            Edit: id of the role that is required for editing the table.  Can be 0 if you want anyone to edit data
+            Select: id of the role that is required for viewing/selecting the table.  Can be 0 if you want anyone to select data"""
         filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
         filec = filedb.cursor()
         filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
@@ -284,11 +290,14 @@ class Sql(commands.Cog):
         if not (table in tables):
             await ctx.send("That table is not registered in your server's database file.")
             return
-        editrole = ctx.guild.get_role(edit)
-        selectrole = ctx.guild.get_role(select)
-        if not (editrole and selectrole):
-            await ctx.send("Invalid role IDs")
-            return
+        if edit != 0:
+            editrole = ctx.guild.get_role(edit)
+            if not editrole:
+                return await ctx.send("Invalid edit id.")
+        if select != 0:
+            selectrole = ctx.guild.get_role(select)
+            if not selectrole:
+                return await ctx.send("Invalud select id.")
         try:
             self.filesetc.execute(f"INSERT INTO settings{str(ctx.guild.id)} VALUES (?,?,?)", (table, edit, select))
         except Exception as e:
@@ -351,7 +360,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed.  Deleting row from table table...")
                 else:
                     await ctx.send("You do not have permission to delete data from this table.  Please contact someone who has the appropriate edit role in order to delete data from this table.")
@@ -409,7 +418,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed.  Deleting row from table...")
                 else:
                     await ctx.send("You do not have permission to delete data from this table.  Please contact someone who has the appropriate edit role in order to delete data from this table.")
@@ -477,7 +486,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed.  Updating data...")
                 else:
                     await ctx.send("You do not have permission to update data in this table.  Please contact someone who has the appropriate edit role in order to update data in this table.")
@@ -545,7 +554,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed.  Updating data...")
                 else:
                     await ctx.send("You do not have permission to update data in this table.  Please contact someone who has the appropriate edit role in order to update data in this table.")
@@ -642,7 +651,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed.  Inserting data...")
                 else:
                     await ctx.send("You do not have permission to insert data into this table.  Please contact someone who has the appropriate edit role in order to insert data into this table.")
@@ -704,7 +713,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed.  Inserting data...")
                 else:
                     await ctx.send("You do not have permission to insert data into this table.  Please contact someone who has the appropriate edit role in order to insert data into this table.")
@@ -778,7 +787,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[2]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[2]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed")
                 else:
                     await ctx.send("You do not have permission to view data from this table.  Please contact someone who has the appropriate edit role in order to view this table.")
@@ -829,7 +838,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[2]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[2]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed")
                 else:
                     await ctx.send("You do not have permission to view data from this table.  Please contact someone who has the appropriate edit role in order to view this table.")
@@ -889,7 +898,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed.  Deleting table...")
                 else:
                     await ctx.send("You do not have permission to delete this table.  Please contact someone who has the appropriate edit role in order to delete this table.")
@@ -960,7 +969,7 @@ class Sql(commands.Cog):
                 if table_settings == None:
                     await ctx.send("That table does not exist.")
                     return
-                if int(table_settings[1]) in [role.id for role in ctx.author.roles]:
+                if int(table_settings[1]) in [role.id for role in ctx.author.roles].append(0):
                     await ctx.send("Permissions confirmed.  Deleting table...")
                 else:
                     await ctx.send("You do not have permission to delete this table.  Please contact someone who has the appropriate edit role in order to delete this table.")
@@ -1014,8 +1023,8 @@ class Sql(commands.Cog):
 
         Arguments:
             Space: mem |or| file
-            Edit: id of the role that is required to edit data from this table
-            Select: id of the role that is required to select/view data from this table
+            Edit: id of the role that is required to edit data from this table.  Can be 0 if you wish for anyone to edit it
+            Select: id of the role that is required to select/view data from this table.  Can be 0 if you wish for anyone to select it
             Name: name of the table of which you'd like to create"""
         await ctx.send("Entering Interactive Mode for Creating Table...")
         await ctx.send("For every category in you want in the server, type the name of the category and then the type.  For example, 'string text' or 'id integer'.  Type 'exit' to exit interactive mode.")
@@ -1030,11 +1039,14 @@ class Sql(commands.Cog):
                 categories.append(nex)
                 await ctx.send("Category noted.  Type your next category or type 'exit'")
         command = "CREATE TABLE " + name + "(" + ", ".join(categories) + ")"
-        editrole = ctx.guild.get_role(edit)
-        selectrole = ctx.guild.get_role(select)
-        if not (editrole and selectrole):
-            await ctx.send("Cannot perform create table command, invalid role ids.")
-            return
+        if edit != 0:
+            editrole = ctx.guild.get_role(edit)
+            if not editrole:
+                return await ctx.send("Invalid edit role.")
+        if select != 0:
+            selectrole = ctx.guild.get_role(select)
+            if not selectrole:
+                return await ctx.send("Invalid select role.")
         if space == "mem":
             try:
                 self.memc.execute(command)

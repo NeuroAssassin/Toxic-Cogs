@@ -1,5 +1,5 @@
 {
-    "author" : "Neuro Assassin",
+    "author" : ["Neuro Assassin"],
     "install_msg" : "Thank you for downloading this cog.",
     "name" : "twenty",
     "short" : "Allows you to play 2048 inside of Discord!",

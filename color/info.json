@@ -1,5 +1,5 @@
 {
-    "author" : "Neuro Assassin",
+    "author" : ["Neuro Assassin"],
     "install_msg" : "Thank you for downloading this cog.",
     "name" : "color",
     "short" : "Tells you the hexadecimal values, rgb values and names of colors",

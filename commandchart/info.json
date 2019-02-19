@@ -1,5 +1,5 @@
 {
-    "author" : "Neuro Assassin",
+    "author" : ["Neuro Assassin"],
     "install_msg" : "Thank you for downloading this cog.",
     "name" : "commandchart",
     "short" : "Tells the used and usages of commands!",

@@ -9,6 +9,8 @@ class Twenty(BaseCog):
 	def __init__(self, bot):
 		self.bot = bot
 
+	__author__ = "Neuro Assassin#4227 <@473541068378341376>"
+
 	@commands.group()
 	async def twenty(self, ctx):
 		"""Group command for starting a 2048 game"""

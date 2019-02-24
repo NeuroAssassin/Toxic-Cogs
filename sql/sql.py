@@ -43,6 +43,7 @@ class Sql(commands.Cog):
         self.data.register_global(**def_global)
 
     __version__ = "1.2.0"
+    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
 
     def __unload(self):
         print("In __unload")

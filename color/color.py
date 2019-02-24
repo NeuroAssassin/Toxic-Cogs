@@ -7,6 +7,8 @@ class Color(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+
     @commands.group(aliases=["colour"])
     async def color(self, ctx):
         """Group command for color commands"""

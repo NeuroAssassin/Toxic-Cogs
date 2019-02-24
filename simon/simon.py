@@ -13,6 +13,8 @@ class Simon(BaseCog):
     def __init__(self, bot):
         self.bot = bot
 
+    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+
     @commands.group()
     async def simon(self, ctx):
         """Group command for playing Simon"""

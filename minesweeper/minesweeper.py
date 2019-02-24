@@ -7,6 +7,8 @@ class Minesweeper(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+
     def generate_map(self, max_counter):
         board = [
             ["", "", "", "", "", "", "", "", "", ""],

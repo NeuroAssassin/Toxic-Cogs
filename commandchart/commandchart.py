@@ -23,6 +23,8 @@ class CommandChart(BaseCog):
     def __init__(self, bot):
         self.bot = bot
 
+    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+
     async def command_from_message(self, m: discord.Message):
         message_context = await self.bot.get_context(m)
         if not message_context.valid:

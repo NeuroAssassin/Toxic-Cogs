@@ -15,15 +15,14 @@ These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot)
 
 ## Credits
 
-Credit to https://outage.report/ which allows me to figure out whether websites/companies are down.
 Credit to Aikaterna's chatchart cog, which I based my commandchart cog off of (which was also a requested cog on cogboard.red.  Want a cog made for you?  Submit a request on there.).  You can find that cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart
 
 ## Bugs and Help
 For bugs, contact me at Neuro Assassin#4779 <@473541068378341376>.  It would be best though to join my support server, where other people could help you too.  You can find the invite button at the top of this file.
 
 ## Required Libraries
-[Beautiful Soup](https://pypi.org/project/beautifulsoup4/) is required for the webstatus cog.
-
 [Matplotlib](https://pypi.org/project/matplotlib/) and [pytz](https://pypi.org/project/pytz/) are required for the commandchart cog.
 
 [Colour](https://pypi.org/project/colour/) is required for the color cog.
+
+[PrettyTable](https://pypi.org/project/PrettyTable/) and [FuzzyWuzzy](https://pypi.org/project/fuzzywuzzy/) are required for the listpermissions cog.

@@ -4,3 +4,6 @@ discord.py==1.0.0a0
 bs4
 matplotlib
 pytz
+colour
+prettytable
+fuzzywuzzy

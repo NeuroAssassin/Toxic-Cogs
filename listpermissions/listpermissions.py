@@ -8,7 +8,7 @@ class ListPermissions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group()
+    @commands.group(aliases=["lp"])
     async def listpermissions(self, ctx):
         """Generates the permissions of a certain object and puts them in a nice table for you"""
         pass
@@ -97,7 +97,7 @@ class ListPermissions(commands.Cog):
         await ctx.send(f"```ini\n[Permissions for role {results[0][0]} in channel {channel.name}]```")
         await ctx.send("```py\n" + str(t) + "```")
 
-    @commands.group()
+    @commands.group(aliases=["ap"])
     async def availablepermissions(self, ctx):
         """Generates the permissions of a certain object and puts them in a nice table for you.  Only shows the available permissions"""
         pass
@@ -194,7 +194,7 @@ class ListPermissions(commands.Cog):
         await ctx.send(f"```ini\n[Available permissions for role {results[0][0]} in channel {channel.name}]```")
         await ctx.send("```py\n" + str(t) + "```")
 
-    @commands.group()
+    @commands.group(aliases=["dp"])
     async def deniedpermissions(self, ctx):
         """Generates the permissions of a certain object and puts them in a nice table for you.  Only shows the denied permissions"""
         pass

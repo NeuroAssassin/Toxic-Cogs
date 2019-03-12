@@ -46,7 +46,7 @@ class Cooldown(commands.Cog):
         Do note however that this will NOT change any cooldowns set in cog's code"""
         pass
 
-    @checks.guildowner()
+    @checks.is_owner()
     @cooldown.command(alises=["update", "change"])
     async def add(self, ctx, rate: int, per, btype, *, command):
         """Sets a cooldown for a command, allowing a certain amount of times in a certain amount of time for a certain type.

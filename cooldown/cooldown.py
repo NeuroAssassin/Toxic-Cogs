@@ -155,7 +155,7 @@ class Cooldown(commands.Cog):
 
         await ctx.send("Your cooldown has been established")
 
-    @checks.guildowner()
+    @checks.is_owner()
     @cooldown.command()
     async def remove(self, ctx, btype, *, command):
         """Removes the cooldown from a command, under a specific bucket.

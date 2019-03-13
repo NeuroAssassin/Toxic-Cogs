@@ -15,7 +15,11 @@ These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot)
 
 ## Credits
 
-Credit to Aikaterna's chatchart cog, which I based my commandchart cog off of (which was also a requested cog on cogboard.red.  Want a cog made for you?  Submit a request on there.).  You can find that cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart
+Credit to Aikaterna's chatchart cog, which I based my commandchart cog off of (which was also a requested cog on cogboard.red.  Want a cog made for you?  Submit a request on there.).  You can find that cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart.
+
+Thanks to:
+    Yukirin for suggesting/asking for the commandchart cog.
+    Other people in Red for helping me with coming up with ideas and helping me find shortcuts to some things
 
 ## Bugs and Help
 For bugs, contact me at Neuro Assassin#4779 <@473541068378341376>.  It would be best though to join my support server, where other people could help you too.  You can find the invite button at the top of this file.

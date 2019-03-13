@@ -104,7 +104,12 @@ class UpdateChecker(commands.Cog):
     @checks.is_owner()
     @update.command(name="all")
     async def _update_all(self, ctx):
-        """Runs `[p]cog update`, then saves all of the commits"""
+        """Runs `[p]cog update`, then saves all of the commits.
+        
+        You should only run this once, when first loading the cog.  After that, you can just use `[p]cog update`."""
+        updated = await self.conf.updated()
+        if updated:
+            return await ctx.send("You have already run this command once, you do not need to again.  Please use `[p]cog update` to update your repos.")
         await self.conf.updated.set(True)
         cog = self.bot.get_cog("Downloader")
         await ctx.invoke(cog._cog_update)

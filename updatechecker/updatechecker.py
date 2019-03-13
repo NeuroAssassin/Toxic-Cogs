@@ -2,7 +2,7 @@
 
 # Also, the code I use for updating repos I took directly from Red, and just took out the message interactions
 
-from redbot.core import commands, Config
+from redbot.core import commands, Config, checks
 from redbot.core.utils.chat_formatting import humanize_list, inline
 import asyncio
 import aiohttp
@@ -101,6 +101,7 @@ class UpdateChecker(commands.Cog):
         """Group command for controlling the update checker cog"""
         pass
 
+    @checks.is_owner()
     @update.command(name="all")
     async def _update_all(self, ctx):
         """Runs `[p]cog update`, then saves all of the commits"""
@@ -122,6 +123,7 @@ class UpdateChecker(commands.Cog):
         await self.conf.repos.set(data)
         await ctx.send("The latest commits for all of your repos have been saved.  You will be notified when an update is available.")
 
+    @checks.is_owner()
     @update.command()
     async def auto(self, ctx):
         """Changes automatic cog updates to the opposite setting."""

@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.  Please note that when using this cog, you should not use the command `[p]cog update`, but instead use `[p]update all`, which runs that same command and then tracks down the latest commits from repositories.",
+    "name" : "updatechecker",
+    "short" : "Notifies you when an update for a repo is available.",
+    "description" : "This cog will tell when there is an update available for a repository you have added for your bot, and, depending on settings, will auto update or will just notify you.",
+    "tags" : ["tools"],
+    "requirements" : ["feedparser"],
+    "hidden" : false
+}

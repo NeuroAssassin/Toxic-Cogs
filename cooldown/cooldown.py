@@ -169,6 +169,7 @@ class Cooldown(commands.Cog):
         for entry in data:
             if (entry[0] == command):
                 data.remove(entry)
+                break
         await self.conf.data.set(data)
 
         await ctx.send("Your cooldown has been removed.")

@@ -1,15 +1,15 @@
 from redbot.core import commands, checks
-from redbot.core.data_manager import bundled_data_path
 from redbot.core.data_manager import cog_data_path
 import sqlite3
 import traceback
 import asyncio
 import discord
 
-import textwrap
-
-from redbot.core.utils.predicates import MessagePredicate
-from redbot.core.utils.chat_formatting import pagify
+try:
+    from prettytable import PrettyTable
+    tableAvailable = True
+except ModuleNotFoundError:
+    tableAvailable = False
 
 class Sql(commands.Cog):
     def __init__(self, bot):
@@ -72,17 +72,31 @@ class Sql(commands.Cog):
         try:
             self.memsetc.execute(f'SELECT * FROM settings{str(ctx.guild.id)}')
             tables = self.memsetc.fetchall()
+            if tableAvailable:
+                t = PrettyTable(["Table", "Edit Role", "View Role"])
+                for table_data in tables:
+                    t.add_row(table_data)
+                await ctx.send("**Memory:**\n```py\n" + str(t) + "```")
+            else:
+                await ctx.send("**Memory:**\n```py\n" + str(tables) + "```")
         except:
             # Hasn't created settings for memory yet
             tables = "ERROR: No tables!"
-        await ctx.send("**Memory:**\n```py\n" + str(tables) + "```")
+            await ctx.send("**Memory:**\n```py\n" + str(tables) + "```")
         try:
             self.filesetc.execute(f'SELECT * FROM settings{str(ctx.guild.id)}')
             tables = self.filesetc.fetchall()
+            if tableAvailable:
+                t = PrettyTable(["Table", "Edit Role", "View Role"])
+                for table_data in tables:
+                    t.add_row(table_data)
+                await ctx.send("**File:**\n```py\n" + str(t) + "```")
+            else:
+                await ctx.send("**File:**\n```py\n" + str(tables) + "```")
         except:
             # Hasn't created settings for file yet
             tables = "ERROR: No tables!"
-        await ctx.send("**File:**\n```py\n" + str(tables) + "```")
+            await ctx.send("**File:**\n```py\n" + str(tables) + "```")
 
     @checks.guildowner()
     @settings.command(aliases=["wipe"])
@@ -487,12 +501,22 @@ class Sql(commands.Cog):
             self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
             self.memsetc.execute(f"SELECT name FROM settings{str(ctx.guild.id)}")
             tables = self.memsetc.fetchall()
+            if tableAvailable:
+                t = PrettyTable(["Table"])
+                for table_data in tables:
+                    t.add_row(table_data)
+                await ctx.send("All tables in memory:```python\n" + str(t) + "```")
             await ctx.send("All tables in memory:```python\n" + str(tables) + "```")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
             filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
             tables = filec.fetchall()
+            if tableAvailable:
+                t = PrettyTable(["Table"])
+                for table_data in tables:
+                    t.add_row(table_data)
+                await ctx.send("All tables in server file:```python\n" + str(t) + "```")
             await ctx.send("All tables in server file:```python\n" + str(tables) + "```")
             filedb.close()
 
@@ -665,6 +689,38 @@ class Sql(commands.Cog):
                     await ctx.send("Failed to fetch data from the table.  Please make sure you put in a correct category.")
                     return
                 data = self.memc.fetchall()
+                if tableAvailable:
+                    # A bit long
+                    self.memc.execute("SELECT * FROM sqlite_master")
+                    master = self.memc.fetchall()
+                    theNumber = 0
+                    for number, x in enumerate(master):
+                        if x[1] == table:
+                            theNumber = number
+                            break
+                    create_command = master[theNumber][len(master[theNumber])-1]
+                    splitted = create_command.split("(")
+                    columns = splitted[1]
+                    columns = columns[:(len(columns)-1)]
+                    columns = columns.split(", ")
+                    setting_columns = ["Row Number"]
+                    for entry in columns:
+                        entry = entry.split(" ")
+                        setting_columns.append(entry[1])
+                    t = PrettyTable(setting_columns)
+                    counter = 1
+                    new_data = []
+                    for x in data:
+                        stuff = []
+                        for y in x:
+                            stuff.append(y)
+                        new_data.append(stuff)
+                    for row_data in new_data:
+                        row_data.insert(0, counter)
+                        t.add_row(row_data)
+                        counter += 1
+                    await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(t) + "```")
+                    return
                 await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
@@ -712,6 +768,39 @@ class Sql(commands.Cog):
                     await ctx.send("Failed to fetch data from the table.  Please make sure you put in a correct category.")
                     return
                 data = filec.fetchall()
+                if tableAvailable:
+                    # A bit long
+                    filec.execute("SELECT * FROM sqlite_master")
+                    master = filec.fetchall()
+                    theNumber = 0
+                    for number, x in enumerate(master):
+                        if x[1] == table:
+                            theNumber = number
+                            break
+                    create_command = master[theNumber][len(master[theNumber])-1]
+                    splitted = create_command.split("(")
+                    columns = splitted[1]
+                    columns = columns[:(len(columns)-1)]
+                    columns = columns.split(", ")
+                    setting_columns = ["Row Number"]
+                    for entry in columns:
+                        entry = entry.split(" ")
+                        setting_columns.append(entry[1])
+                    t = PrettyTable(setting_columns)
+                    counter = 1
+                    new_data = []
+                    for x in data:
+                        stuff = []
+                        for y in x:
+                            stuff.append(y)
+                        new_data.append(stuff)
+                    for row_data in new_data:
+                        row_data.insert(0, counter)
+                        t.add_row(row_data)
+                        counter += 1
+                    await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(t) + "```")
+                    filedb.close()
+                    return
                 filedb.close()
                 await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
     

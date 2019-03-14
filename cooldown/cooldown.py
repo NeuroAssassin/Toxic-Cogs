@@ -43,7 +43,7 @@ class Cooldown(commands.Cog):
     async def add(self, ctx, rate: int, per, btype, *, command):
         """Sets a cooldown for a command, allowing a certain amount of times in a certain amount of time for a certain type.
 
-        The command argument does not require quotes, as it consumes the rest in order to making cooldowns for subcommands easier.
+        The command argument does not require quotes, as it consumes the rest in order to make cooldowns for subcommands easier.
 
         Example: `[p]cooldown add 1 5s user ping`
 
@@ -137,7 +137,7 @@ class Cooldown(commands.Cog):
 
         The cooldown can be one set from this cog or from inside the cog's code.
 
-        The command argument does not require quotes, as it consumes the rest in order to making cooldowns for subcommands easier.
+        The command argument does not require quotes, as it consumes the rest in order to make cooldowns for subcommands easier.
 
         Please do note however: some commands are meant to have cooldowns.  They may prevent something malicious from happening, or maybe your device from breaking or from being used too much.  I (Neuro Assassin <@473541068378341376>) take no responsibility for any complications that may result because of this.  Use at your own risk.
 

@@ -24,6 +24,9 @@ Thanks to:
 ## Bugs and Help
 For bugs, contact me at Neuro Assassin#4779 <@473541068378341376>.  It would be best though to join my support server, where other people could help you too.  You can find the invite button at the top of this file.
 
+## Helpful Libraries
+[PrettyTable](https://pypi.org/project/PrettyTable/) is helpful for the SQL cog.  It makes the showing of the data much nicer, neater and more comprehendable.
+
 ## Required Libraries
 [Matplotlib](https://pypi.org/project/matplotlib/) and [pytz](https://pypi.org/project/pytz/) are required for the commandchart cog.
 

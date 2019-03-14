@@ -10,13 +10,14 @@ import feedparser
 import discord
 import traceback
 from typing import Optional
+from datetime import datetime
 
 class UpdateChecker(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
         self.conf = Config.get_conf(self, identifier=473541068378341376)
-        default_global = {"updated": False, "repos": {}, "auto": False}
+        default_global = {"updated": False, "repos": {}, "auto": False, "channel": 0, "embed": False}
         self.conf.register_global(**default_global)
         self.task = self.bot.loop.create_task(self.bg_task())
 
@@ -35,7 +36,12 @@ class UpdateChecker(commands.Cog):
                 if cog != None:
                     repos = await self.conf.repos()
                     auto  = await self.conf.auto()
-                    owner = self.bot.get_user(self.bot.owner_id)
+                    channel = await self.conf.gochannel()
+                    use_embed = await self.conf.embed()
+                    if channel == 0:
+                        channel = (await self.bot.application_info()).owner
+                    else:
+                        channel = self.bot.get_channel(channel)
                     for repo_name, commit_saved in repos.items():
                         repo = cog._repo_manager.get_repo(repo_name)
                         url = repo.url + r"/commits/" + repo.branch + ".atom"
@@ -43,15 +49,50 @@ class UpdateChecker(commands.Cog):
                         commit = response.entries[0]['title']
                         if commit != commit_saved:
                             if not auto:
+                                if use_embed:
+                                    e = discord.Embed(title="[Update Checker]", description=f"Update available for repo: {repo.name}", timestamp=datetime.utcnow(), color=0x00ff00)
+                                    e.add_field(name="URL", value=repo.url)
+                                    e.add_field(name="Branch", value=repo.branch)
+                                    e.add_field(name="Commit", value=commit)
+                                else:
+                                    message = (
+                                        "```css\n"
+                                        "[Update Checker]"
+                                        "``````css\n"
+                                        f"    Repo: {repo.name}\n"
+                                        f"     URL: {repo.url}\n"
+                                        f"  Commit: {commit}\n"
+                                        f"    Time: {datetime.utcnow()}"
+                                        "```"
+                                    )
                                 try:
-                                    await owner.send(f"[Update Checker]: Update available for repo: {repo.name}")
+                                    if use_embed:
+                                        await channel.send(embed=e)
+                                    else:
+                                        await channel.send(message)
+                                except AttributeError:
+                                    owner = (await self.bot.application_info()).owner
+                                    await owner.send("[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you.")
+                                    channel = owner
+                                    await self.conf.gochannel.set(0)
                                 except discord.errors.Forbidden:
-                                    pass
+                                    owner = (await self.bot.application_info()).owner
+                                    await owner.send("[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you.")
+                                    channel = owner
+                                    await self.conf.gochannel.set(0)
                             else:
                                 try:
-                                    await owner.send(f"[Update Checker] Update found for repo: {repo.name}.  Updating repos...")
+                                    await channel.send(f"[Update Checker] Update found for repo: {repo.name}.  Updating repos...")
+                                except AttributeError:
+                                    owner = (await self.bot.application_info()).owner
+                                    await owner.send("[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you.")
+                                    channel = owner
+                                    await self.conf.gochannel.set(0)
                                 except discord.errors.Forbidden:
-                                    pass
+                                    owner = (await self.bot.application_info()).owner
+                                    await owner.send("[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you.")
+                                    channel = owner
+                                    await self.conf.gochannel.set(0)
                                 # Just a copy of `[p]cog update`, but without using ctx things
                                 try:
                                     installed_cogs = set(await cog.installed_cogs())
@@ -70,12 +111,12 @@ class UpdateChecker(commands.Cog):
                                         traceback.format_exception(type(error), error, error.__traceback__)
                                     )
                                     try:
-                                        await owner.send(f"[Update Checker]: Error while updating repos.\n\n{exception_log}")
+                                        await channel.send(f"[Update Checker]: Error while updating repos.\n\n{exception_log}")
                                     except discord.errors.Forbidden:
                                         pass
                                 else:
                                     try:
-                                        await owner.send(f"[Update Checker]: Ran cog update.  Updated cogs: {message}")
+                                        await channel.send(f"[Update Checker]: Ran cog update.  Updated cogs: {message}")
                                     except discord.errors.Forbidden:
                                         pass
                             repos[repo.name] = commit
@@ -136,3 +177,58 @@ class UpdateChecker(commands.Cog):
         await self.conf.auto.set(not auto)
         status = "disabled" if auto else "enabled"
         await ctx.send(f"Auto cog updates are now {status}")
+
+    @checks.is_owner()
+    @update.command()
+    async def channel(self, ctx, channel: discord.TextChannel=None):
+        """Sets a channel for update messages to go to.
+
+        If argument is not supplied, it will be sent to the bot owner's DMs.  By default, goes to owner DMs"""
+        if channel:
+            await self.conf.gochannel.set(channel.id)
+            await ctx.send(f"Update messages will now be sent to {channel.mention}")
+        else:
+            await self.conf.gochannel.set(0)
+            await ctx.send("Update messages will now be DMed to you.")
+
+    @checks.is_owner()
+    @update.command()
+    async def settings(self, ctx):
+        """See settings for the Update Checker cog
+
+        Right now, this shows whether the bot updates cogs automatically and what channel logs are sent to"""
+        auto = await self.conf.auto()
+        channel = await self.conf.gochannel()
+        embed = await self.conf.embed()
+        if embed:
+            e = discord.Embed(title="Update Checker settings", color=0x00ff00)
+            e.add_field(name="Automatic Cog Updates", value=str(auto))
+            if channel == 0:
+                channel = "Direct Messages"
+            else:
+                channel = self.bot.get_channel(channel).name
+            e.add_field(name="Update Channel", value=channel)
+            await ctx.send(embed=e)
+        else:
+            if channel == 0:
+                channel = "Direct Messages"
+            else:
+                channel = self.bot.get_channel(channel).name
+            message = (
+                "```css\n"
+                "[Update Checker settings]"
+                "``````css\n"
+                f"[Automatic Cog Updates]: {str(auto)}\n"
+                f"       [Update Channel]: {channel}"
+                "```"
+            )
+            await ctx.send(message)
+
+    @checks.is_owner()
+    @update.command()
+    async def embed(self, ctx):
+        """Toggles whether to use embeds or colorful codeblock messages when sending an update"""
+        c = await self.conf.embed()
+        await self.conf.embed.set(not c)
+        word = "disabled" if c else "enabled"
+        await ctx.send(f"Embeds are now {word}")

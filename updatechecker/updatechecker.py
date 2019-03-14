@@ -17,7 +17,7 @@ class UpdateChecker(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
         self.conf = Config.get_conf(self, identifier=473541068378341376)
-        default_global = {"updated": False, "repos": {}, "auto": False, "channel": 0, "embed": False}
+        default_global = {"updated": False, "repos": {}, "auto": False, "gochannel": 0, "embed": False}
         self.conf.register_global(**default_global)
         self.task = self.bot.loop.create_task(self.bg_task())
 

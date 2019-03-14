@@ -63,7 +63,7 @@ class Cooldown(commands.Cog):
         -   User
         -   Channel
         -   Guild
-        -   Global (owner only)
+        -   Global
 
         Arguments:
         -   Rate:      how many times
@@ -145,7 +145,7 @@ class Cooldown(commands.Cog):
         -   User
         -   Channel
         -   Guild
-        -   Global (owner only)
+        -   Global
         
         Note: Does not actually remove the command cooldown (undocumented), so instead it allows for the command to be run 100000 times every 1 second until the next boot up, where it will not be added."""
         cmd = self.bot.get_command(command)

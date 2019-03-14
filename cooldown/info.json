@@ -3,7 +3,7 @@
     "install_msg" : "Thank you for downloading this cog.",
     "name" : "cooldown",
     "short" : "Allows bot owner to set cooldowns for commands",
-    "description" : "Allows a bot owner to set cooldowns for commands.",
+    "description" : "Allows a bot owner to set cooldowns for commands",
     "tags" : ["tools"],
     "hidden" : false
 }

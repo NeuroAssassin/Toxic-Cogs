@@ -19,6 +19,7 @@ class Twenty(commands.Cog):
 	@twenty.command()
 	async def start(self, ctx):
 		"""Starts a 2048 game inside of Discord."""
+		last = ""
 		board = [
 			["_", "_", "_", "_"],
 			["_", "_", "_", "_"],

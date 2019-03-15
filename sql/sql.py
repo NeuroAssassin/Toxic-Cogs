@@ -55,6 +55,7 @@ class Sql(commands.Cog):
 
         self.fileset.close()
 
+    @commands.guild_only()
     @commands.group()
     async def sql(self, ctx):
         """Group command for SQL cog.  Warning: due to the input of values, SQL commands are not always sanitized and can result in the destruction of tables on accident.  Run at your own risk."""

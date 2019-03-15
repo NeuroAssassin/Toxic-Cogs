@@ -263,26 +263,20 @@ class Minesweeper(commands.Cog):
                     7: "seven",
                     8: "eight"
                 }
-                hint = switches[hint]
-                board[row][column] = ":" + str(hint) + ":"
+                board[row][column] = ":" + str(switches[hint]) + ":"
         return board
 
     def print_board(self, board):
         whole_thing = ""
         for row in board:
-            whole_thing += " ".join(row)
-            whole_thing += "\n"
+            whole_thing += " ".join(row) + "\n"
         return whole_thing
 
     def add_desc(self, board):
         nb = copy.deepcopy(board)
         letters = [':regional_indicator_a:', ':regional_indicator_b:', ':regional_indicator_c:', ':regional_indicator_d:', ':regional_indicator_e:', ':regional_indicator_f:', ':regional_indicator_g:', ':regional_indicator_h:', ':regional_indicator_i:', ':regional_indicator_j:']
         for row in range(len(nb)):
-            nb[row]
-            letters[row]
             nb[row].insert(0, letters[row])
-            #nr = list(letters[row]) + board[row]
-            #board[row] = nr
         cd = [":black_large_square:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":keycap_ten:"]
         nb.insert(0, cd)
         return nb
@@ -291,28 +285,17 @@ class Minesweeper(commands.Cog):
     async def minesweeper(self, ctx, bombs: int="Random bomb amount"):
         """Starts a game of minesweeper, with allowing you to choose the number of bombs in it.
         
-        Must be between 10 bombs and 99 bombs.  Defaults to random between 20 to 30"""
+        Must be between 10 bombs and 99 bombs.  Defaults to random between 15 to 25."""
         if isinstance(bombs, str):
             bombs = random.randint(15, 25)
         if bombs < 10 or bombs > 99:
             await ctx.send("Amount of bombs must be between 10 and 99.")
             return
         answer_board = self.generate_map(bombs)
-        showing_board = [
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"],
-            ["\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B", "\u2B1B"]
-        ]
-        #showing_board = self.print_board(showing_board)
+        showing_board = []
+        for x in range(10):
+            showing_board.append(["\u2B1B"]*10)
         answer_board = self.add_hints(answer_board)
-        #await ctx.author.send(self.print_board(self.add_desc(answer_board)))
         sending_board = self.add_desc(showing_board)
         sending_board = self.print_board(sending_board)
         bm = await ctx.send(str(sending_board))
@@ -358,7 +341,6 @@ class Minesweeper(commands.Cog):
                             if cn > 10 or cn <= 0:
                                 await ctx.send("Column number is too high or too low.")
                             else:
-                                #state = self.discover(answer_board, rn, cn)
                                 cn -= 1
                                 if answer_board[rn][cn] == ":bomb:":
                                     await ctx.send(f"Uh oh!  {ctx.author.mention} looks like you stumbled across a bomb.  The answer board has been posted above.")
@@ -374,7 +356,7 @@ class Minesweeper(commands.Cog):
     async def spoilerms(self, ctx, bombs: int="Random bomb amount"):
         """Starts a game of minesweeper, with allowing you to choose the number of bombs in it.
         Does not interact with the user, instead just places spoilers around each entry for the user to find it out.
-        Must be between 10 bombs and 99 bombs.  Defaults to random between 20 to 30"""
+        Must be between 10 bombs and 99 bombs.  Defaults to random between 15 to 25."""
         if isinstance(bombs, str):
             bombs = random.randint(15, 25)
         if bombs < 10 or bombs > 99:

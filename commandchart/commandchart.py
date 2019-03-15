@@ -1,4 +1,4 @@
-"""This cog is mostly derived from Aikaterna"s cog "chatchart"
+"""This cog is mostly derived from Aikaterna's cog "chatchart"
 You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart
 
 This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""

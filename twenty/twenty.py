@@ -1,10 +1,9 @@
-import random
 from redbot.core import commands, checks
+import discord
 import asyncio
+import random
 
-BaseCog = getattr(commands, "Cog", object)
-
-class Twenty(BaseCog):
+class Twenty(commands.Cog):
 	"""Cog for playing 2048 inside of Discord!"""
 	def __init__(self, bot):
 		self.bot = bot
@@ -13,12 +12,13 @@ class Twenty(BaseCog):
 
 	@commands.group()
 	async def twenty(self, ctx):
-		"""Group command for starting a 2048 game"""
+		"""Group command for starting a 2048 game."""
 		pass
 
+	@checks.bot_has_permissions(add_reactions=True)
 	@twenty.command()
 	async def start(self, ctx):
-		"""Starts a 2048 game inside of Discord"""
+		"""Starts a 2048 game inside of Discord."""
 		board = [
 			["_", "_", "_", "_"],
 			["_", "_", "_", "_"],
@@ -34,7 +34,7 @@ class Twenty(BaseCog):
 		await message.add_reaction("\u274C")
 
 		def check(reaction, user):
-			return (user == ctx.author) and (str(reaction.emoji) in ["\u2B06", "\u2B07", "\u2B05", "\u27A1", "\u274C"]) and (reaction.message.id == message.id)
+			return (user.id == ctx.author.id) and (str(reaction.emoji) in ["\u2B06", "\u2B07", "\u2B05", "\u27A1", "\u274C"]) and (reaction.message.id == message.id) and (not (str(reaction.emoji) == last))
 		while True:
 			try:
 				reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=300.0)
@@ -43,22 +43,23 @@ class Twenty(BaseCog):
 				await message.delete()
 				return
 			else:
+				try:
+					await message.remove_reaction(str(reaction.emoji), ctx.author)
+				except discord.errors.Forbidden:
+					pass
 				if str(reaction.emoji) == "\u2B06":
-					await message.remove_reaction("\u2B06", ctx.author)
 					msg, nb = self.execute_move("up", board)
 				elif str(reaction.emoji) == "\u2B07":
-					await message.remove_reaction("\u2B07", ctx.author)
 					msg, nb = self.execute_move("down", board)
 				elif str(reaction.emoji) == "\u2B05":
-					await message.remove_reaction("\u2B05", ctx.author)
 					msg, nb = self.execute_move("left", board)
 				elif str(reaction.emoji) == "\u27A1":
-					await message.remove_reaction("\u27A1", ctx.author)
 					msg, nb = self.execute_move('right', board)
 				elif str(reaction.emoji) == "\u274C":
 					await ctx.send("Ending game")
 					await message.delete()
 					return
+				last = str(reaction.emoji)
 				if msg == "Lost":
 					await ctx.send(f"On no!  It appears you have lost {ctx.author.mention}")
 					await asyncio.sleep(5)
@@ -162,7 +163,7 @@ class Twenty(BaseCog):
 			result, board = self.add_number(board)
 			return result, board
 		joining = random.randint(0, 100)
-		if joining < 75:
+		if joining < 85:
 			joining = 2
 		else:
 			joining = 4
@@ -196,7 +197,6 @@ class Twenty(BaseCog):
 		new_board[3].append(board[2][3])
 		new_board[3].append(board[1][3])
 		new_board[3].append(board[0][3])
-		#Columns are saved as the new_board[0] is the left-most column, and new_board[0][0] is the bottom-right hand corner number
 		board = new_board
 		return board
 	def rowize(self, board):
@@ -231,80 +231,104 @@ class Twenty(BaseCog):
 
 	def check_left(self, board):
 		for x in range(len(board)):
+			moved = False
 			for y in range(len(board[x])):
 				try:
 					if board[x][y+1] != '_':
 						if board[x][y] == board[x][y+1]:
 							board[x][y] = board[x][y] + board[x][y+1]
 							board[x][y+1] = '_'
+							moved = True
 					elif board[x][y+2] != '_':
 						if board[x][y] == board[x][y+2]:
 							board[x][y] = board[x][y] + board[x][y+2]
 							board[x][y+2] = '_'
+							moved = True
 					elif board[x][y+3] != '_':
 						if board[x][y] == board[x][y+3]:
 							board[x][y] = board[x][y] + board[x][y+3]
 							board[x][y+3] = '_'
-				except IndexError as e:
+							moved = True
+				except IndexError:
 					pass
+				if moved:
+					break
 		return board
 
 	def check_right(self, board):
 		for x in range(len(board)):
+			moved = False
 			for y in range(len(board[x])):
 				try:
 					if board[x][y-1] != '_' and y - 1 >= 0:
 						if board[x][y] == board[x][y-1]:
 							board[x][y] = board[x][y] + board[x][y-1]
 							board[x][y-1] = '_'
+							moved = True
 					elif board[x][y-2] != '_' and y - 2 >= 0:
 						if board[x][y] == board[x][y-2]:
 							board[x][y] = board[x][y] + board[x][y-2]
 							board[x][y-2] = '_'
+							moved = True
 					elif board[x][y-3] != '_' and y - 3 >= 0:
 						if board[x][y] == board[x][y-3]:
 							board[x][y] = board[x][y] + board[x][y-3]
 							board[x][y-3] = '_'
-				except IndexError as e:
+							moved = True
+				except IndexError:
 					pass
+				if moved:
+					break
 		return board
 
 	def check_up(self, board):
 		for x in range(len(board)):
+			moved = False
 			for y in range(len(board[x])):
 				try:
 					if board[x][y-1] != '_' and y - 1 >= 0:
 						if board[x][y] == board[x][y-1]:
 							board[x][y] = board[x][y] + board[x][y-1]
 							board[x][y-1] = '_'
+							moved = True
 					elif board[x][y-2] != '_' and y - 2 >= 0:
 						if board[x][y] == board[x][y-2]:
 							board[x][y] = board[x][y] + board[x][y-2]
 							board[x][y-2] = '_'
+							moved = True
 					elif board[x][y-3] != '_' and y - 3 >= 0:
 						if board[x][y] == board[x][y-3]:
 							board[x][y] = board[x][y] + board[x][y-3]
 							board[x][y-3] = '_'
-				except IndexError as e:
+							moved = True
+				except IndexError:
 					pass
+				if moved:
+					break
 		return board
 			
 	def check_down(self, board):
 		for x in range(len(board)):
+			moved = False
 			for y in range(len(board[x])):
 				try:
 					if board[x][y+1] != '_':
 						if board[x][y] == board[x][y+1]:
 							board[x][y] = board[x][y] + board[x][y+1]
 							board[x][y+1] = '_'
+							moved = True
 					elif board[x][y+2] != '_':
 						if board[x][y] == board[x][y+2]:
 							board[x][y] = board[x][y] + board[x][y+2]
 							board[x][y+2] = '_'
+							moved = True
 					elif board[x][y+3] != '_':
 						if board[x][y] == board[x][y+3]:
 							board[x][y] = board[x][y] + board[x][y+3]
 							board[x][y+3] = '_'
-				except IndexError as e:
+							moved = True
+				except IndexError:
 					pass
+				if moved:
+					break
 		return board

@@ -17,7 +17,7 @@ class UpdateChecker(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
         self.conf = Config.get_conf(self, identifier=473541068378341376)
-        default_global = {"updated": False, "repos": {}, "auto": False, "gochannel": 0, "embed": False}
+        default_global = {"updated": False, "repos": {}, "auto": False, "gochannel": 0, "embed": True}
         self.conf.register_global(**default_global)
         self.task = self.bot.loop.create_task(self.bg_task())
 
@@ -27,7 +27,7 @@ class UpdateChecker(commands.Cog):
 
     async def bg_task(self):
         await self.bot.wait_until_ready()
-        # To make owner gets set
+        # To make sure owner gets set
         await asyncio.sleep(10)
         while True:
             updated = await self.conf.updated()
@@ -139,7 +139,7 @@ class UpdateChecker(commands.Cog):
 
     @commands.group()
     async def update(self, ctx):
-        """Group command for controlling the update checker cog"""
+        """Group command for controlling the update checker cog."""
         pass
 
     @checks.is_owner()
@@ -156,12 +156,9 @@ class UpdateChecker(commands.Cog):
         await ctx.invoke(cog._cog_update)
         await ctx.send("Done invoking cog update command.  Getting latest commits and storing them...")
         repos = cog._repo_manager.get_all_repo_names()
-        real_repos = []
+        data = await self.conf.repos()
         for repo_name in repos:
             repo = cog._repo_manager.get_repo(repo_name)
-            real_repos.append(repo)
-        data = await self.conf.repos()
-        for repo in real_repos:
             url = repo.url + r"/commits/" + repo.branch + ".atom"
             response = await self.fetch_feed(url)
             commit = response.entries[0]['title']
@@ -183,7 +180,7 @@ class UpdateChecker(commands.Cog):
     async def channel(self, ctx, channel: discord.TextChannel=None):
         """Sets a channel for update messages to go to.
 
-        If argument is not supplied, it will be sent to the bot owner's DMs.  By default, goes to owner DMs"""
+        If argument is not supplied, it will be sent to the bot owner's DMs.  By default, goes to owner DMs."""
         if channel:
             await self.conf.gochannel.set(channel.id)
             await ctx.send(f"Update messages will now be sent to {channel.mention}")
@@ -194,9 +191,9 @@ class UpdateChecker(commands.Cog):
     @checks.is_owner()
     @update.command()
     async def settings(self, ctx):
-        """See settings for the Update Checker cog
+        """See settings for the Update Checker cog.
 
-        Right now, this shows whether the bot updates cogs automatically and what channel logs are sent to"""
+        Right now, this shows whether the bot updates cogs automatically and what channel logs are sent to."""
         auto = await self.conf.auto()
         channel = await self.conf.gochannel()
         embed = await self.conf.embed()
@@ -206,14 +203,20 @@ class UpdateChecker(commands.Cog):
             if channel == 0:
                 channel = "Direct Messages"
             else:
-                channel = self.bot.get_channel(channel).name
+                try:
+                    channel = self.bot.get_channel(channel).name
+                except:
+                    channel = "Unknown"
             e.add_field(name="Update Channel", value=channel)
             await ctx.send(embed=e)
         else:
             if channel == 0:
                 channel = "Direct Messages"
             else:
-                channel = self.bot.get_channel(channel).name
+                try:
+                    channel = self.bot.get_channel(channel).name
+                except:
+                    channel = "Unknown"
             message = (
                 "```css\n"
                 "[Update Checker settings]"
@@ -227,7 +230,7 @@ class UpdateChecker(commands.Cog):
     @checks.is_owner()
     @update.command()
     async def embed(self, ctx):
-        """Toggles whether to use embeds or colorful codeblock messages when sending an update"""
+        """Toggles whether to use embeds or colorful codeblock messages when sending an update."""
         c = await self.conf.embed()
         await self.conf.embed.set(not c)
         word = "disabled" if c else "enabled"

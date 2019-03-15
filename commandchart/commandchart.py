@@ -17,9 +17,7 @@ plt.switch_backend('agg')
 
 from redbot.core import commands
 
-BaseCog = getattr(commands, "Cog", object)
-
-class CommandChart(BaseCog):
+class CommandChart(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -98,15 +96,9 @@ class CommandChart(BaseCog):
     @commands.guild_only()
     @commands.command()
     async def commandchart(self, ctx, channel: discord.TextChannel = None, number: int=5000):
-        """See the used commands in a certain channel with a certain amount of messages."""
-
-        # Mon_int int_date year h minute
-        # 12 1 2008 1 33  -- (Dec)
-        # 6 13 2017 13 45 -- (June)
+        """See the used commands in a certain channel within a certain amount of messages."""
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk.gif")
-        #time = time.split(" ")
-        #datetime_object = datetime(int(time[2]), int(time[0]), int(time[1]), int(time[3]), int(time[4]))
         em = await ctx.send(embed=e)
 
         if channel is None:
@@ -116,9 +108,6 @@ class CommandChart(BaseCog):
             return await ctx.send("You do not have the proper permissions to access that channel.")
 
         message_list = []
-        command_list = []
-        for x in self.bot.commands:
-            command_list.append(x)
         try:
             async for msg in channel.history(limit=number):
                 # Thanks Sinbad
@@ -163,4 +152,4 @@ class CommandChart(BaseCog):
         others = 100 - sum(x[1] for x in top_ten)
         img = self.create_chart(top_ten, others, channel)
         await em.delete()
-        await ctx.message.channel.send(file=discord.File(img, "chart.png"))
+        await ctx.channel.send(file=discord.File(img, "chart.png"))

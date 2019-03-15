@@ -2,8 +2,8 @@
     "author" : ["Neuro Assassin"],
     "install_msg" : "Thank you for downloading this cog.",
     "name" : "commandchart",
-    "short" : "Tells the used and usages of commands!",
-    "description" : "This cog tells a Discord User the commands used, and the usage of them, in the last so and so messages.",
+    "short" : "Tells the used and usages of commands!  Based off of aikaterna's chatchart cog.",
+    "description" : "This cog tells a Discord User the commands used, and the usage of them, in the last so and so messages.  Based off of aikaterna's chatchart cog.",
     "tags" : ["tools"],
     "requirements" : ["matplotlib", "pytz"],
     "hidden" : false

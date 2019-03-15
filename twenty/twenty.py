@@ -37,7 +37,7 @@ class Twenty(commands.Cog):
 			return (user.id == ctx.author.id) and (str(reaction.emoji) in ["\u2B06", "\u2B07", "\u2B05", "\u27A1", "\u274C"]) and (reaction.message.id == message.id) and (not (str(reaction.emoji) == last))
 		while True:
 			try:
-				reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=300.0)
+				reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=300.0)
 			except asyncio.TimeoutError:
 				await ctx.send("Ending game")
 				await message.delete()
@@ -54,7 +54,7 @@ class Twenty(commands.Cog):
 				elif str(reaction.emoji) == "\u2B05":
 					msg, nb = self.execute_move("left", board)
 				elif str(reaction.emoji) == "\u27A1":
-					msg, nb = self.execute_move('right', board)
+					msg, nb = self.execute_move("right", board)
 				elif str(reaction.emoji) == "\u274C":
 					await ctx.send("Ending game")
 					await message.delete()
@@ -73,72 +73,72 @@ class Twenty(commands.Cog):
 		col_width = max(len(str(word)) for row in board for word in row) + 2  # padding
 		whole_thing = ""
 		for row in board:
-			whole_thing += "".join(str(word).ljust(col_width) for word in row) + '\n'
+			whole_thing += "".join(str(word).ljust(col_width) for word in row) + "\n"
 		return whole_thing
 	def execute_move(self, move, board):
 		if move.lower() == "left":
 			nb = self.check_left(board)
 			for x in range(len(nb)):
-				while nb[x][0] == '_' and (nb[x][1] != '_' or nb[x][2] != '_' or nb[x][3] != '_'):
+				while nb[x][0] == "_" and (nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"):
 					nb[x][0] = nb[x][1]
 					nb[x][1] = nb[x][2]
 					nb[x][2] = nb[x][3]
-					nb[x][3] = '_'
-				while nb[x][1] == '_' and (nb[x][2] != '_' or nb[x][3] != '_'):
+					nb[x][3] = "_"
+				while nb[x][1] == "_" and (nb[x][2] != "_" or nb[x][3] != "_"):
 					nb[x][1] = nb[x][2]
 					nb[x][2] = nb[x][3]
-					nb[x][3] = '_'
-				while nb[x][2] == '_' and (nb[x][3] != '_'):
+					nb[x][3] = "_"
+				while nb[x][2] == "_" and (nb[x][3] != "_"):
 					nb[x][2] = nb[x][3]
-					nb[x][3] = '_'
-		if move.lower() == 'right':
+					nb[x][3] = "_"
+		if move.lower() == "right":
 			nb = self.check_right(board)
 			for x in range(len(nb)):
-				while nb[x][3] == '_' and (nb[x][2] != '_' or nb[x][1] != '_' or nb[x][0] != '_'):
+				while nb[x][3] == "_" and (nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"):
 					nb[x][3] = nb[x][2]
 					nb[x][2] = nb[x][1]
 					nb[x][1] = nb[x][0]
-					nb[x][0] = '_'
-				while nb[x][2] == '_' and (nb[x][1] != '_' or nb[x][0] != '_'):
+					nb[x][0] = "_"
+				while nb[x][2] == "_" and (nb[x][1] != "_" or nb[x][0] != "_"):
 					nb[x][2] = nb[x][1]
 					nb[x][1] = nb[x][0]
-					nb[x][0] = '_'
-				while nb[x][1] == '_' and (nb[x][0] != '_'):
+					nb[x][0] = "_"
+				while nb[x][1] == "_" and (nb[x][0] != "_"):
 					nb[x][1] = nb[x][0]
-					nb[x][0] = '_'
-		if move.lower() == 'down':
+					nb[x][0] = "_"
+		if move.lower() == "down":
 			nb = self.columize(board)
 			nb = self.check_down(nb)
 			for x in range(len(nb)):
-				while nb[x][0] == '_' and (nb[x][1] != '_' or nb[x][2] != '_' or nb[x][3] != '_'):
+				while nb[x][0] == "_" and (nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"):
 					nb[x][0] = nb[x][1]
 					nb[x][1] = nb[x][2]
 					nb[x][2] = nb[x][3]
-					nb[x][3] = '_'
-				while nb[x][1] == '_' and (nb[x][2] != '_' or nb[x][3] != '_'):
+					nb[x][3] = "_"
+				while nb[x][1] == "_" and (nb[x][2] != "_" or nb[x][3] != "_"):
 					nb[x][1] = nb[x][2]
 					nb[x][2] = nb[x][3]
-					nb[x][3] = '_'
-				while nb[x][2] == '_' and (nb[x][3] != '_'):
+					nb[x][3] = "_"
+				while nb[x][2] == "_" and (nb[x][3] != "_"):
 					nb[x][2] = nb[x][3]
-					nb[x][3] = '_'
+					nb[x][3] = "_"
 			nb = self.rowize(nb)
-		if move.lower() == 'up':
+		if move.lower() == "up":
 			nb = self.columize(board)
 			nb = self.check_up(nb)
 			for x in range(len(nb)):
-				while nb[x][3] == '_' and (nb[x][2] != '_' or nb[x][1] != '_' or nb[x][0] != '_'):
+				while nb[x][3] == "_" and (nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"):
 					nb[x][3] = nb[x][2]
 					nb[x][2] = nb[x][1]
 					nb[x][1] = nb[x][0]
-					nb[x][0] = '_'
-				while nb[x][2] == '_' and (nb[x][1] != '_' or nb[x][0] != '_'):
+					nb[x][0] = "_"
+				while nb[x][2] == "_" and (nb[x][1] != "_" or nb[x][0] != "_"):
 					nb[x][2] = nb[x][1]
 					nb[x][1] = nb[x][0]
-					nb[x][0] = '_'
-				while nb[x][1] == '_' and (nb[x][0] != '_'):
+					nb[x][0] = "_"
+				while nb[x][1] == "_" and (nb[x][0] != "_"):
 					nb[x][1] = nb[x][0]
-					nb[x][0] = '_'
+					nb[x][0] = "_"
 			nb = self.rowize(nb)
 		some_message, nb = self.add_number(nb)
 		if some_message.startswith("Lost"):
@@ -157,7 +157,7 @@ class Twenty(commands.Cog):
 				column = board[row].index("_")
 			else:
 				column = random.randint(0, 3)
-				while board[row][column] != '_':
+				while board[row][column] != "_":
 					column = random.randint(0, 3)
 		else:
 			result, board = self.add_number(board)
@@ -234,20 +234,20 @@ class Twenty(commands.Cog):
 			moved = False
 			for y in range(len(board[x])):
 				try:
-					if board[x][y+1] != '_':
+					if board[x][y+1] != "_":
 						if board[x][y] == board[x][y+1]:
 							board[x][y] = board[x][y] + board[x][y+1]
-							board[x][y+1] = '_'
+							board[x][y+1] = "_"
 							moved = True
-					elif board[x][y+2] != '_':
+					elif board[x][y+2] != "_":
 						if board[x][y] == board[x][y+2]:
 							board[x][y] = board[x][y] + board[x][y+2]
-							board[x][y+2] = '_'
+							board[x][y+2] = "_"
 							moved = True
-					elif board[x][y+3] != '_':
+					elif board[x][y+3] != "_":
 						if board[x][y] == board[x][y+3]:
 							board[x][y] = board[x][y] + board[x][y+3]
-							board[x][y+3] = '_'
+							board[x][y+3] = "_"
 							moved = True
 				except IndexError:
 					pass
@@ -260,20 +260,20 @@ class Twenty(commands.Cog):
 			moved = False
 			for y in range(len(board[x])):
 				try:
-					if board[x][y-1] != '_' and y - 1 >= 0:
+					if board[x][y-1] != "_" and y - 1 >= 0:
 						if board[x][y] == board[x][y-1]:
 							board[x][y] = board[x][y] + board[x][y-1]
-							board[x][y-1] = '_'
+							board[x][y-1] = "_"
 							moved = True
-					elif board[x][y-2] != '_' and y - 2 >= 0:
+					elif board[x][y-2] != "_" and y - 2 >= 0:
 						if board[x][y] == board[x][y-2]:
 							board[x][y] = board[x][y] + board[x][y-2]
-							board[x][y-2] = '_'
+							board[x][y-2] = "_"
 							moved = True
-					elif board[x][y-3] != '_' and y - 3 >= 0:
+					elif board[x][y-3] != "_" and y - 3 >= 0:
 						if board[x][y] == board[x][y-3]:
 							board[x][y] = board[x][y] + board[x][y-3]
-							board[x][y-3] = '_'
+							board[x][y-3] = "_"
 							moved = True
 				except IndexError:
 					pass
@@ -286,20 +286,20 @@ class Twenty(commands.Cog):
 			moved = False
 			for y in range(len(board[x])):
 				try:
-					if board[x][y-1] != '_' and y - 1 >= 0:
+					if board[x][y-1] != "_" and y - 1 >= 0:
 						if board[x][y] == board[x][y-1]:
 							board[x][y] = board[x][y] + board[x][y-1]
-							board[x][y-1] = '_'
+							board[x][y-1] = "_"
 							moved = True
-					elif board[x][y-2] != '_' and y - 2 >= 0:
+					elif board[x][y-2] != "_" and y - 2 >= 0:
 						if board[x][y] == board[x][y-2]:
 							board[x][y] = board[x][y] + board[x][y-2]
-							board[x][y-2] = '_'
+							board[x][y-2] = "_"
 							moved = True
-					elif board[x][y-3] != '_' and y - 3 >= 0:
+					elif board[x][y-3] != "_" and y - 3 >= 0:
 						if board[x][y] == board[x][y-3]:
 							board[x][y] = board[x][y] + board[x][y-3]
-							board[x][y-3] = '_'
+							board[x][y-3] = "_"
 							moved = True
 				except IndexError:
 					pass
@@ -312,20 +312,20 @@ class Twenty(commands.Cog):
 			moved = False
 			for y in range(len(board[x])):
 				try:
-					if board[x][y+1] != '_':
+					if board[x][y+1] != "_":
 						if board[x][y] == board[x][y+1]:
 							board[x][y] = board[x][y] + board[x][y+1]
-							board[x][y+1] = '_'
+							board[x][y+1] = "_"
 							moved = True
-					elif board[x][y+2] != '_':
+					elif board[x][y+2] != "_":
 						if board[x][y] == board[x][y+2]:
 							board[x][y] = board[x][y] + board[x][y+2]
-							board[x][y+2] = '_'
+							board[x][y+2] = "_"
 							moved = True
-					elif board[x][y+3] != '_':
+					elif board[x][y+3] != "_":
 						if board[x][y] == board[x][y+3]:
 							board[x][y] = board[x][y] + board[x][y+3]
-							board[x][y+3] = '_'
+							board[x][y+3] = "_"
 							moved = True
 				except IndexError:
 					pass

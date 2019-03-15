@@ -1,4 +1,4 @@
-"""This cog is mostly derived from Aikaterna's cog "chatchart"
+"""This cog is mostly derived from Aikaterna"s cog "chatchart"
 You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart
 
 This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""
@@ -10,10 +10,10 @@ from datetime import datetime, timezone
 import pytz
 
 import matplotlib
-matplotlib.use('agg')
+matplotlib.use("agg")
 
 import matplotlib.pyplot as plt
-plt.switch_backend('agg')
+plt.switch_backend("agg")
 
 from redbot.core import commands
 
@@ -124,28 +124,28 @@ class CommandChart(commands.Cog):
                 short_name = "{}...".format(msg[:20])
             else:
                 short_name = msg
-            if short_name in msg_data['commands']:
-                msg_data['commands'][short_name]['count'] += 1
-                msg_data['total count'] += 1
+            if short_name in msg_data["commands"]:
+                msg_data["commands"][short_name]["count"] += 1
+                msg_data["total count"] += 1
             else:
-                msg_data['commands'][short_name] = {}
-                msg_data['commands'][short_name]['count'] = 1
-                msg_data['total count'] += 1
+                msg_data["commands"][short_name] = {}
+                msg_data["commands"][short_name]["count"] = 1
+                msg_data["total count"] += 1
         
-        if msg_data['commands'] == {}:
+        if msg_data["commands"] == {}:
             await em.delete()
             return await ctx.send("No commands have been run in that channel.")
-        for command in msg_data['commands']:
-            pd = float(msg_data['commands'][command]['count']) / float(msg_data['total count'])
-            msg_data['commands'][command]['percent'] = round(pd * 100, 1)
+        for command in msg_data["commands"]:
+            pd = float(msg_data["commands"][command]["count"]) / float(msg_data["total count"])
+            msg_data["commands"][command]["percent"] = round(pd * 100, 1)
 
         top_ten = heapq.nlargest(
             20,
             [
-                (x, msg_data['commands'][x][y])
-                for x in msg_data['commands']
-                for y in msg_data['commands'][x]
-                if y == 'percent'
+                (x, msg_data["commands"][x][y])
+                for x in msg_data["commands"]
+                for y in msg_data["commands"][x]
+                if y == "percent"
             ],
             key=lambda x: x[1],
         )

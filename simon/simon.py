@@ -39,7 +39,7 @@ class Simon(commands.Cog):
 
         while True:
             try:
-                reaction, user = await self.bot.wait_for('reaction_add', check=check, timeout=300.0)
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=300.0)
             except asyncio.TimeoutError:
                 await message.delete()
                 await ctx.send("Game has ended due to no response for starting the next sequence.")
@@ -48,12 +48,12 @@ class Simon(commands.Cog):
                 if str(reaction.emoji) == "\u274C":
                     await message.delete()
                     return
-                await message.remove_reaction('\u2705', self.bot.user)
+                await message.remove_reaction("\u2705", self.bot.user)
                 try:
-                    await message.remove_reaction('\u2705', ctx.author)
+                    await message.remove_reaction("\u2705", ctx.author)
                 except discord.errors.Forbidden:
                     pass
-                await message.add_reaction('\u26A0')
+                await message.add_reaction("\u26A0")
                 randoms = []
                 for x in range(level[1]):
                     randoms.append(random.randint(1, 4))
@@ -79,14 +79,14 @@ class Simon(commands.Cog):
                         await asyncio.sleep(level[0])
                         board[1][1] = 4
                     await message.edit(content="```" + self.print_board(board) + "```")
-                await message.remove_reaction('\u26A0', self.bot.user)
+                await message.remove_reaction("\u26A0", self.bot.user)
                 answer = "".join(list(map(str, randoms)))
                 await message.add_reaction("\u23F1")
 
                 def check_t(m):
                     return (m.author.id == ctx.author.id) and (m.content.isdigit())
                 try:
-                    user_answer = await self.bot.wait_for('message', check=check_t, timeout=10.0)
+                    user_answer = await self.bot.wait_for("message", check=check_t, timeout=10.0)
                 except asyncio.TimeoutError:
                     await ctx.send(f"Sorry {ctx.author.mention}!  You took too long to answer.")
                     await message.remove_reaction("\u23F1", self.bot.user)
@@ -98,9 +98,9 @@ class Simon(commands.Cog):
                         pass
                     await message.remove_reaction("\u23F1", self.bot.user)
                     if str(user_answer.content) == str(answer):
-                        await message.add_reaction('\U0001F44D')
+                        await message.add_reaction("\U0001F44D")
                     else:
-                        await message.add_reaction('\U0001F6AB')
+                        await message.add_reaction("\U0001F6AB")
                         await ctx.send(f"Sorry, but that was the incorrect pattern.  The pattern was {answer}")
                         return
                     another_message = await ctx.send("Sequence was correct.")
@@ -116,5 +116,5 @@ class Simon(commands.Cog):
         col_width = max(len(str(word)) for row in board for word in row) + 2  # padding
         whole_thing = ""
         for row in board:
-            whole_thing += "".join(str(word).ljust(col_width) for word in row) + '\n'
+            whole_thing += "".join(str(word).ljust(col_width) for word in row) + "\n"
         return whole_thing

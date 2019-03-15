@@ -274,7 +274,7 @@ class Minesweeper(commands.Cog):
 
     def add_desc(self, board):
         nb = copy.deepcopy(board)
-        letters = [':regional_indicator_a:', ':regional_indicator_b:', ':regional_indicator_c:', ':regional_indicator_d:', ':regional_indicator_e:', ':regional_indicator_f:', ':regional_indicator_g:', ':regional_indicator_h:', ':regional_indicator_i:', ':regional_indicator_j:']
+        letters = [":regional_indicator_a:", ":regional_indicator_b:", ":regional_indicator_c:", ":regional_indicator_d:", ":regional_indicator_e:", ":regional_indicator_f:", ":regional_indicator_g:", ":regional_indicator_h:", ":regional_indicator_i:", ":regional_indicator_j:"]
         for row in range(len(nb)):
             nb[row].insert(0, letters[row])
         cd = [":black_large_square:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":keycap_ten:"]
@@ -304,7 +304,7 @@ class Minesweeper(commands.Cog):
             def check(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             try:
-                message = await self.bot.wait_for('message', check=check, timeout=60.0)
+                message = await self.bot.wait_for("message", check=check, timeout=60.0)
             except asyncio.TimeoutError:
                 await ctx.send("Canceling game due to inactivity.")
                 return
@@ -317,16 +317,16 @@ class Minesweeper(commands.Cog):
                     rl = x[0]
                     cn = x[1:]
                     switches = {
-                        'a': 0,
-                        'b': 1,
-                        'c': 2,
-                        'd': 3,
-                        'e': 4,
-                        'f': 5,
-                        'g': 6,
-                        'h': 7,
-                        'i': 8,
-                        'j': 9
+                        "a": 0,
+                        "b": 1,
+                        "c": 2,
+                        "d": 3,
+                        "e": 4,
+                        "f": 5,
+                        "g": 6,
+                        "h": 7,
+                        "i": 8,
+                        "j": 9
                     }
                     try:
                         rn = switches[rl.lower()]

@@ -16,7 +16,7 @@ class Color(commands.Cog):
 
     @color.command()
     async def name(self, ctx, name):
-        """Provides the hexadecimal value, RGB value and HSL value of a passed color.  For example, pass 'red' or 'blue' as the name argument."""
+        """Provides the hexadecimal value, RGB value and HSL value of a passed color.  For example, pass `red` or `blue` as the name argument."""
         name = name.lower()
         try:
             c = col(name)
@@ -31,7 +31,7 @@ class Color(commands.Cog):
 
     @color.command()
     async def hex(self, ctx, hexa: str):
-        """Provides the RGB value and HSL value of a passed hexadecimal value.  Hexadecimal value must in the format of something like '#ffffff' or '0xffffff' to be used."""
+        """Provides the RGB value and HSL value of a passed hexadecimal value.  Hexadecimal value must in the format of something like `#ffffff` or `0xffffff` to be used."""
         try:
             hexa = hexa.replace("0x", "#")
             c = col(hexa)

@@ -164,7 +164,10 @@ class UpdateChecker(commands.Cog):
             repo = cog._repo_manager.get_repo(repo_name)
             url = repo.url + r"/commits/" + repo.branch + ".atom"
             response = await self.fetch_feed(url)
-            commit = response.entries[0]["title"]
+            try:
+                commit = response.entries[0]["title"]
+            except AttributeError:
+                continue
             data[repo.name] = commit
         await self.conf.repos.set(data)
         await ctx.send("The latest commits for all of your repos have been saved.  You will be notified when an update is available.")

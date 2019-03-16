@@ -63,41 +63,46 @@ class Sql(commands.Cog):
 
     @sql.group()
     async def settings(self, ctx):
-        """Group command for settings management"""
+        """Group command for settings management."""
+        pass
 
     @checks.admin()
     @settings.command()
     async def show(self, ctx):
-        """Shows the settings of the tables that pertain to your server"""
+        """Shows the settings of the tables that pertain to your server."""
         await ctx.send("Fetching settings...")
+        sent = False
         try:
-            self.memsetc.execute(f'SELECT * FROM settings{str(ctx.guild.id)}')
+            self.memsetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
             tables = self.memsetc.fetchall()
             if tableAvailable:
                 t = PrettyTable(["Table", "Edit Role", "View Role"])
                 for table_data in tables:
                     t.add_row(table_data)
                 await ctx.send("**Memory:**\n```py\n" + str(t) + "```")
-            else:
-                await ctx.send("**Memory:**\n```py\n" + str(tables) + "```")
+                sent = True
         except:
             # Hasn't created settings for memory yet
             tables = "ERROR: No tables!"
-            await ctx.send("**Memory:**\n```py\n" + str(tables) + "```")
+        finally:
+            if not sent:
+                await ctx.send("**Memory:**\n```py\n" + str(tables) + "```")
+        sent = False
         try:
-            self.filesetc.execute(f'SELECT * FROM settings{str(ctx.guild.id)}')
+            self.filesetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
             tables = self.filesetc.fetchall()
             if tableAvailable:
                 t = PrettyTable(["Table", "Edit Role", "View Role"])
                 for table_data in tables:
                     t.add_row(table_data)
                 await ctx.send("**File:**\n```py\n" + str(t) + "```")
-            else:
-                await ctx.send("**File:**\n```py\n" + str(tables) + "```")
+                sent = True
         except:
             # Hasn't created settings for file yet
             tables = "ERROR: No tables!"
-            await ctx.send("**File:**\n```py\n" + str(tables) + "```")
+        finally:
+            if not sent:
+                await ctx.send("**File:**\n```py\n" + str(tables) + "```")
 
     @checks.guildowner()
     @settings.command(aliases=["wipe"])
@@ -106,10 +111,13 @@ class Sql(commands.Cog):
         
         Arguments:
             Space: mem |or| file"""
+        space = space.lower()
         if space == "mem":
             self.memsetc.execute(f"DROP TABLE IF EXISTS settings{str(ctx.guild.id)}")
         elif space == "file":
             self.filesetc.execute(f"DROP TABLE IF EXISTS settings{str(ctx.guild.id)}")
+        else:
+            return await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
         await ctx.send("Settings have been deleted.  Recreating tables...")
         if space == "mem":
             self.memsetc.execute(f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)")
@@ -127,6 +135,7 @@ class Sql(commands.Cog):
             Table: name of the table that you are editing the settings for
             Edit: the id of the new role that will be required for editing the table.  Can be 0 if you want anyone to edit data
             Select: the id of the new role that will be required for view data from the table.  Can be 0 if you want anyone to select data"""
+        space = space.lower()
         if space == "mem":
             if edit != 0:
                 editrole = ctx.guild.get_role(edit)
@@ -147,15 +156,14 @@ class Sql(commands.Cog):
             def check(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             try:
-                message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                message = await self.bot.wait_for("message", check=check, timeout=30.0)
             except asyncio.TimeoutError:
-                await ctx.send("Not commiting to database.")
-                return
-            if message.content.lower().startswith('y'):
+                return await ctx.send("Not committing to database.")
+            if message.content.lower().startswith("y"):
                 self.memset.commit()
-                await ctx.send("Commited to database.")
+                await ctx.send("Committed to database.")
             else:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
         elif space == "file":
             if edit != 0:
                 editrole = ctx.guild.get_role(edit)
@@ -176,15 +184,16 @@ class Sql(commands.Cog):
             def check(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             try:
-                message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                message = await self.bot.wait_for("message", check=check, timeout=30.0)
             except asyncio.TimeoutError:
-                await ctx.send("Not commiting to database.")
-                return
-            if message.content.lower().startswith('y'):
+                return await ctx.send("Not committing to database.")
+            if message.content.lower().startswith("y"):
                 self.fileset.commit()
-                await ctx.send("Commited to database.")
+                await ctx.send("Committed to database.")
             else:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
 
     @checks.admin()
     @settings.command()
@@ -193,11 +202,14 @@ class Sql(commands.Cog):
 
         Arguments:
             Space: mem |or| file"""
+        space = space.lower()
         if space == "mem":
             self.memset.commit()
         elif space == "file":
             self.fileset.commit()
-        await ctx.send("Your changes to the settings have been commited.")
+        else:
+            return await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
+        await ctx.send("Your changes to the settings have been committed.")
     
     @checks.guildowner()
     @settings.command()
@@ -210,6 +222,8 @@ class Sql(commands.Cog):
             self.memset.rollback()
         elif space == "file":
             self.fileset.rollback()
+        else:
+            return await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
         await ctx.send("Your changes to the settings have been attempted to have been rolled back, however, it is possible that they were not.")
 
     @checks.admin()
@@ -224,11 +238,9 @@ class Sql(commands.Cog):
         filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
         filec = filedb.cursor()
         filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
-        tables = filec.fetchall()
-        tables = tables[0]
+        tables = filec.fetchall()[0]
         if not (table in tables):
-            await ctx.send("That table is not registered in your server's database file.")
-            return
+            return await ctx.send("That table is not registered in your server's database file.")
         if edit != 0:
             editrole = ctx.guild.get_role(edit)
             if not editrole:
@@ -236,7 +248,7 @@ class Sql(commands.Cog):
         if select != 0:
             selectrole = ctx.guild.get_role(select)
             if not selectrole:
-                return await ctx.send("Invalud select id.")
+                return await ctx.send("Invalid select id.")
         try:
             self.filesetc.execute(f"INSERT INTO settings{str(ctx.guild.id)} VALUES (?,?,?)", (table, edit, select))
         except Exception as e:
@@ -247,15 +259,14 @@ class Sql(commands.Cog):
         def check(m):
             return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
         try:
-            message = await self.bot.wait_for('message', check=check, timeout=30.0)
+            message = await self.bot.wait_for("message", check=check, timeout=30.0)
         except asyncio.TimeoutError:
-            await ctx.send("Not commiting to database.")
-            return
-        if message.content.lower().startswith('y'):
+            return await ctx.send("Not committing to database.")
+        if message.content.lower().startswith("y"):
             self.fileset.commit()
-            await ctx.send("Commited to database.")
+            await ctx.send("Committed to database.")
         else:
-            await ctx.send("Not commiting to database.")
+            await ctx.send("Not committing to database.")
         filedb.close()
         
 
@@ -285,8 +296,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
@@ -295,26 +305,25 @@ class Sql(commands.Cog):
                     await ctx.send("You do not have permission to delete data from this table.  Please contact someone who has the appropriate edit role in order to delete data from this table.")
                     return
                 command = "DELETE FROM " + table + " WHERE " + category + "=?"
-                await ctx.send(command + "VALUE: " + str(value))
                 try:
                     self.memc.execute(command, value)
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your data failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
                 else:
-                    await ctx.send("The data with the value of `" + value[0] + "` in the `" + category + "` category in the `" + table + "` table has been deleted from your server's database.  Commit to database? (y/n)")
+                    await ctx.send(f"The data with the value of `{value[0]}` in the `{category}` category in the `{table}` table has been deleted from memory.  Commit to database? (y/n)")
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
                     try:
-                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                         return
-                    if message.content.lower().startswith('y'):
+                    if message.content.lower().startswith("y"):
                         self.memdb.commit()
-                        await ctx.send("Commited to database.")
+                        await ctx.send("Committed to database.")
                     else:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
@@ -333,8 +342,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
@@ -349,24 +357,26 @@ class Sql(commands.Cog):
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your data failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
                 else:
-                    await ctx.send("The data with the value of `" + value[0] + "` in the `" + category + "` category in the `" + table + "` table has been deleted from your server's database.  Commit to database? (y/n)")
+                    await ctx.send(f"The data with the value of `{value[0]}` in the `{category}` category in the `{table}` table has been deleted from your server's database.  Commit to database? (y/n)")
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
                     try:
-                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                         return
-                    if message.content.lower().startswith('y'):
+                    if message.content.lower().startswith("y"):
                         filedb.commit()
-                        await ctx.send("Commited to database.")
+                        await ctx.send("Committed to database.")
                     else:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                     filedb.close()
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
 
     @sql.command()
     async def update(self, ctx, space, table, category, value, *values):
-        """Updates an entry in a table either in the bot's memory or your server's file.  You must have the edit role that was specified in the making in the table to run this.  Does sanitize data inputs
+        """Updates an entry in a table either in the bot's memory or your server's file.  You must have the edit role that was specified in the making in the table to run this.  Does sanitize data inputs.
 
         Arguments:
             Space: mem |or| file
@@ -391,8 +401,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
@@ -418,19 +427,19 @@ class Sql(commands.Cog):
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your data failed to be updated into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
                 else:
-                    await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "` (updated a row).  Commit to database? (y/n)")
+                    await ctx.send(f"The data `{str(values)}` has been inserted into the table `{table}` (updated a row).  Commit to database? (y/n)")
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
                     try:
-                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                         return
-                    if message.content.lower().startswith('y'):
+                    if message.content.lower().startswith("y"):
                         self.memdb.commit()
-                        await ctx.send("Commited to database.")
+                        await ctx.send("Committed to database.")
                     else:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
@@ -449,8 +458,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
@@ -476,25 +484,27 @@ class Sql(commands.Cog):
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your data failed to be updated into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
                 else:
-                    await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "` (updated a row).  Commit to database? (y/n)")
+                    await ctx.send(f"The data `{str(values)}` has been inserted into the table `{table}` (updated a row).  Commit to database? (y/n)")
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
                     try:
-                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                         return
-                    if message.content.lower().startswith('y'):
+                    if message.content.lower().startswith("y"):
                         filedb.commit()
-                        await ctx.send("Commited to database.")
+                        await ctx.send("Committed to database.")
                     else:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                     filedb.close()
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
 
 
     @sql.command(name="all", aliases=['show'])
     async def allt(self, ctx, space):
-        """Returns all tables in either the bot's memory or your server's file.  However, the list of tables in memory is taken from the memory settings, so you can't see other server's tables in memory
+        """Returns all tables in either the bot's memory or your server's file.  However, the list of tables in memory is taken from the memory settings, so you can't see other server's tables in memory.
         
         Arguments:
             Space: mem |or| file"""
@@ -506,8 +516,9 @@ class Sql(commands.Cog):
                 t = PrettyTable(["Table"])
                 for table_data in tables:
                     t.add_row(table_data)
-                await ctx.send("All tables in memory:```python\n" + str(t) + "```")
-            await ctx.send("All tables in memory:```python\n" + str(tables) + "```")
+                await ctx.send(f"All tables in memory:```python\n{str(t)}```")
+            else:
+                await ctx.send(f"All tables in memory:```python\n{str(tables)}```")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
@@ -517,9 +528,12 @@ class Sql(commands.Cog):
                 t = PrettyTable(["Table"])
                 for table_data in tables:
                     t.add_row(table_data)
-                await ctx.send("All tables in server file:```python\n" + str(t) + "```")
-            await ctx.send("All tables in server file:```python\n" + str(tables) + "```")
+                await ctx.send(f"All tables in server file:```python\n{str(t)}```")
+            else:
+                await ctx.send(f"All tables in server file:```python\n{str(tables)}```")
             filedb.close()
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
 
     @sql.command()
     async def insert(self, ctx, space, table, *values):
@@ -546,8 +560,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
@@ -567,19 +580,19 @@ class Sql(commands.Cog):
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your data failed to be inserted into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
                 else:
-                    await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "`.  Commit to database? (y/n)")
+                    await ctx.send(f"The data `{str(values)}` has been inserted into the table `{table}`.  Commit to database? (y/n)")
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
                     try:
-                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                         return
-                    if message.content.lower().startswith('y'):
+                    if message.content.lower().startswith("y"):
                         self.memdb.commit()
-                        await ctx.send("Commited to database.")
+                        await ctx.send("Committed to database.")
                     else:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
@@ -598,8 +611,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
@@ -619,20 +631,22 @@ class Sql(commands.Cog):
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your data failed to be inserted into the table because of an error while inserting it.  Please notify the owner of the bot about this issue.")
                 else:
-                    await ctx.send("The data `" + str(values) + "` has been inserted into the table `" + table + "`.  Commit to database? (y/n)")
+                    await ctx.send(f"The data `{str(values)}` has been inserted into the table `{table}`.  Commit to database? (y/n)")
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
                     try:
-                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                         return
-                    if message.content.lower().startswith('y'):
+                    if message.content.lower().startswith("y"):
                         filedb.commit()
-                        await ctx.send("Commited to database.")
+                        await ctx.send("Committed to database.")
                     else:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                     filedb.close()
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
 
     @sql.command(name="view", aliases=["see", "select"])
     async def select(self, ctx, space, table, category="", value=""):
@@ -662,8 +676,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[2]) in roles:
@@ -691,23 +704,11 @@ class Sql(commands.Cog):
                     return
                 data = self.memc.fetchall()
                 if tableAvailable:
-                    # A bit long
-                    self.memc.execute("SELECT * FROM sqlite_master")
-                    master = self.memc.fetchall()
-                    theNumber = 0
-                    for number, x in enumerate(master):
-                        if x[1] == table:
-                            theNumber = number
-                            break
-                    create_command = master[theNumber][len(master[theNumber])-1]
-                    splitted = create_command.split("(")
-                    columns = splitted[1]
-                    columns = columns[:(len(columns)-1)]
-                    columns = columns.split(", ")
+                    self.memc.execute(f"PRAGMA table_info({table})")
+                    columns = self.memc.fetchall()
                     setting_columns = ["Row Number"]
-                    for entry in columns:
-                        entry = entry.split(" ")
-                        setting_columns.append(entry[1])
+                    for entry in range(len(columns)):
+                        setting_columns.append(columns[entry][1])
                     t = PrettyTable(setting_columns)
                     counter = 1
                     new_data = []
@@ -720,9 +721,9 @@ class Sql(commands.Cog):
                         row_data.insert(0, counter)
                         t.add_row(row_data)
                         counter += 1
-                    await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(t) + "```")
+                    await ctx.send(f"Command completed successfully.  Data returned from command: ```python\n{str(t)}```")
                     return
-                await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
+                await ctx.send(f"Command completed successfully.  Data returned from command: ```python\n{str(data)}```")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
@@ -741,8 +742,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[2]) in roles:
@@ -770,23 +770,11 @@ class Sql(commands.Cog):
                     return
                 data = filec.fetchall()
                 if tableAvailable:
-                    # A bit long
-                    filec.execute("SELECT * FROM sqlite_master")
-                    master = filec.fetchall()
-                    theNumber = 0
-                    for number, x in enumerate(master):
-                        if x[1] == table:
-                            theNumber = number
-                            break
-                    create_command = master[theNumber][len(master[theNumber])-1]
-                    splitted = create_command.split("(")
-                    columns = splitted[1]
-                    columns = columns[:(len(columns)-1)]
-                    columns = columns.split(", ")
+                    filec.execute(f"PRAGMA table_info({table})")
+                    columns = filec.fetchall()
                     setting_columns = ["Row Number"]
-                    for entry in columns:
-                        entry = entry.split(" ")
-                        setting_columns.append(entry[1])
+                    for entry in range(len(columns)):
+                        setting_columns.append(columns[entry][1])
                     t = PrettyTable(setting_columns)
                     counter = 1
                     new_data = []
@@ -799,11 +787,13 @@ class Sql(commands.Cog):
                         row_data.insert(0, counter)
                         t.add_row(row_data)
                         counter += 1
-                    await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(t) + "```")
+                    await ctx.send(f"Command completed successfully.  Data returned from command: ```python\n{str(t)}```")
                     filedb.close()
                     return
                 filedb.close()
-                await ctx.send("Command completed successfully.  Data returned from command: ```python\n" + str(data) + "```")
+                await ctx.send(f"Command completed successfully.  Data returned from command: ```python\n{str(data)}```")
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
     
 
     @sql.command(name="delete", aliases=["drop"])
@@ -830,8 +820,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
@@ -846,7 +835,7 @@ class Sql(commands.Cog):
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your table failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
                 else:
-                    await ctx.send("The `" + table + "` table has been deleted from your server's database.  Deleting table settings...")
+                    await ctx.send(f"The `{table}` table has been deleted from your server's database.  Deleting table settings...")
                     try:
                         self.memsetc.execute(f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?", (table,))
                     except Exception as e:
@@ -857,16 +846,16 @@ class Sql(commands.Cog):
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
                     try:
-                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                         return
-                    if message.content.lower().startswith('y'):
+                    if message.content.lower().startswith("y"):
                         self.memdb.commit()
                         self.memset.commit()
-                        await ctx.send("Commited to database.")
+                        await ctx.send("Committed to database.")
                     else:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
             filec = filedb.cursor()
@@ -885,8 +874,7 @@ class Sql(commands.Cog):
                         table_settings = entry
                         break
                 if table_settings == None:
-                    await ctx.send("That table does not exist.")
-                    return
+                    return await ctx.send("That table does not exist.")
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
@@ -901,7 +889,7 @@ class Sql(commands.Cog):
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     await ctx.send("Your table failed to be deleted because of an error while deleting it.  Please notify the owner of the bot about this issue.")
                 else:
-                    await ctx.send("The `" + table + "` table has been deleted from your server's database.  Deleting table settings...")
+                    await ctx.send(f"The `{table}` table has been deleted from your server's database.  Deleting table settings...")
                     try:
                         self.filesetc.execute(f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?", (table,))
                     except Exception as e:
@@ -912,17 +900,19 @@ class Sql(commands.Cog):
                     def check(m):
                         return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
                     try:
-                        message = await self.bot.wait_for('message', check=check, timeout=30.0)
+                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                         return
-                    if message.content.lower().startswith('y'):
+                    if message.content.lower().startswith("y"):
                         filedb.commit()
                         self.fileset.commit()
-                        await ctx.send("Commited to database.")
+                        await ctx.send("Committed to database.")
                     else:
-                        await ctx.send("Not commiting to database.")
+                        await ctx.send("Not committing to database.")
                     filedb.close()
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
 
     @checks.admin()
     @sql.command()
@@ -973,16 +963,16 @@ class Sql(commands.Cog):
             def check2(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             try:
-                message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+                message = await self.bot.wait_for("message", check=check2, timeout=30.0)
             except asyncio.TimeoutError:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
                 return
-            if message.content.lower().startswith('y'):
+            if message.content.lower().startswith("y"):
                 self.memdb.commit()
                 self.memset.commit()
-                await ctx.send("Commited to database.")
+                await ctx.send("Committed to database.")
             else:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{ctx.guild.id}db.sqlite"))
             filec = filedb.cursor()
@@ -1003,17 +993,19 @@ class Sql(commands.Cog):
             def check2(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             try:
-                message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+                message = await self.bot.wait_for("message", check=check2, timeout=30.0)
             except asyncio.TimeoutError:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
                 return
-            if message.content.lower().startswith('y'):
+            if message.content.lower().startswith("y"):
                 filedb.commit()
                 self.fileset.commit()
                 await ctx.send("Committed to database.")
             else:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
             filedb.close()
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
         
 
     @checks.guildowner()
@@ -1030,18 +1022,17 @@ class Sql(commands.Cog):
             Command: command to be run"""
         await ctx.send("**Warning!**  This command is discouraged from use.  It is recommended to use to prebuilt commands unless you have to use this.  When creating tables, settings are not registered.  That is heavily discouraged.\nWould you like to proceed?  (y/n)")
         def check(m):
-            return (m.author.id == ctx.author.id) and (m.content.lower().startswith('y') or m.content.lower().startswith('n')) and (m.channel.id == ctx.channel.id)
+            return (m.author.id == ctx.author.id) and (m.content.lower()[0] in ["y", "n"]) and (m.channel.id == ctx.channel.id)
         try:
-            message = await self.bot.wait_for('message', check=check, timeout=60.0)
+            message = await self.bot.wait_for("message", check=check, timeout=60.0)
         except asyncio.TimeoutError:
             await ctx.send("Canceling command due to lack of response.")
             return
         else:
-            if message.content.lower().startswith('y'):
+            if message.content.lower().startswith("y"):
                 await ctx.send("Continuing...")
             else:
-                await ctx.send("Canceling command due to improper response/declination of warning.")
-                return
+                return await ctx.send("Canceling command due to improper response/declination of warning.")
         if space == "mem":
             if ret.startswith("y"):
                 try:
@@ -1051,8 +1042,7 @@ class Sql(commands.Cog):
                     elif ret[1:] == "one":
                         value = self.memc.fetchone()
                     else:
-                        await ctx.send("Return value argument invalid.")
-                        return
+                        return await ctx.send("Return value argument invalid.")
                 except Exception as e:
                     await ctx.send("Error while running sql command:\n```py\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)) + "```")
                     return
@@ -1071,15 +1061,15 @@ class Sql(commands.Cog):
             def check2(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             try:
-                message = await self.bot.wait_for('message', check=check2, timeout=30.0)
+                message = await self.bot.wait_for("message", check=check2, timeout=30.0)
             except asyncio.TimeoutError:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
                 return
-            if message.content.lower().startswith('y'):
+            if message.content.lower().startswith("y"):
                 self.memdb.commit()
-                await ctx.send("Commited to database.")
+                await ctx.send("Committed to database.")
             else:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
         elif space == "file":
             filedb = sqlite3.connect(str(self.cog_path / f"{ctx.guild.id}db.sqlite"))
             filec = filedb.cursor()
@@ -1110,30 +1100,33 @@ class Sql(commands.Cog):
             def check3(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
             try:
-                message = await self.bot.wait_for('message', check=check3, timeout=30.0)
+                message = await self.bot.wait_for("message", check=check3, timeout=30.0)
             except asyncio.TimeoutError:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
                 return
-            if message.content.lower().startswith('y'):
+            if message.content.lower().startswith("y"):
                 filedb.commit()
-                await ctx.send("Commited to database.")
+                await ctx.send("Committed to database.")
             else:
-                await ctx.send("Not commiting to database.")
+                await ctx.send("Not committing to database.")
             filedb.close()
+        else:
+            await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
 
     @sql.command()
     async def help(self, ctx):
         """Provides information about the cog, because I know this cog seems confusing"""
-        message = "Hello there.  Thank you for downloading this cog.  Here are some tips on how to use it:\n\n"
-        message += "This cog is primarily for the storing of data in sql format.  You can store whatever you want in them.  For example, you can store your favorite singers, warnings for users and a bunch of other stuff!\n"
-        message += "**Now that we've said what it can do, here's some tips:**\n"
-        message += "    1. While there is a command to run straight up sql commands (only for guild owners), I strongly suggest not using it.  It is better to use the shortcut commands since they also create settings for tables and permission checks.\n"
-        message += "    2. When tables are created using `[p]sql create`, a settings entry is also registered for it on your server's database settings.  This allows you to control who can edit data from the table and who can view data in the table.\n"
-        message += "    3. It is recommended to create tables in your server's file database, instead of the bot's memory.  This is because tables created in the bot's memory can be affected by other guild owners by using `[p]sql execute`.  However, your server's file is completely safe.\n"
-        message += "    4. When a command asks for the 'space', you can reply with `mem` or `file.`  Entering `mem` puts/searches in the bot's memory, while `file` puts/searches in your server's database file.\n"
-        message += "    5. Right now, with tables, you can create them, delete them, insert data into them, update data in them, delete data from them and also view data from them.\n"
-        message += "    6. Right now, with settings, you can view them, delete them (strongly discouraged), insert setting entries and update setting entries.\n"
-        message += "    7. I mentioned above that it is recommended to use pre-built commands, mostly because of settings.  If you create a table without settings, no one access them through any commands.  The only way to access the table would be through `[p]sql execute`.\n"
-        message += "Well, I hope that makes you understand the SQL cog a bit more.  Hope it turns out to help!"
-        await ctx.send(message)
+        await ctx.send((
+            "Hello there.  Thank you for downloading this cog.  Here are some tips on how to use it:\n\n"
+            "This cog is primarily for the storing of data in sql format.  You can store whatever you want in them.  For example, you can store your favorite singers, warnings for users and a bunch of other stuff!\n"
+            "**Now that we've said what it can do, here's some tips:**\n"
+            "    1. While there is a command to run straight up sql commands (only for guild owners), I strongly suggest not using it.  It is better to use the shortcut commands since they also create settings for tables and permission checks.\n"
+            "    2. When tables are created using `[p]sql create`, a settings entry is also registered for it on your server's database settings.  This allows you to control who can edit data from the table and who can view data in the table.\n"
+            "    3. It is recommended to create tables in your server's file database, instead of the bot's memory.  This is because tables created in the bot's memory can be affected by other guild owners by using `[p]sql execute`.  However, your server's file is completely safe.\n"
+            "    4. When a command asks for the 'space', you can reply with `mem` or `file.`  Entering `mem` puts/searches in the bot's memory, while `file` puts/searches in your server's database file.\n"
+            "    5. Right now, with tables, you can create them, delete them, insert data into them, update data in them, delete data from them and also view data from them.\n"
+            "    6. Right now, with settings, you can view them, delete them (strongly discouraged), insert setting entries and update setting entries.\n"
+            "    7. I mentioned above that it is recommended to use pre-built commands, mostly because of settings.  If you create a table without settings, no one access them through any commands.  The only way to access the table would be through `[p]sql execute`.\n"
+            "Well, I hope that makes you understand the SQL cog a bit more.  Hope it turns out to help!"
+        ))
         await ctx.send("*If you need help, don't hesitate to join my support server here: https://discord.gg/vQZTdB9*")

@@ -238,3 +238,42 @@ class UpdateChecker(commands.Cog):
         await self.conf.embed.set(not c)
         word = "disabled" if c else "enabled"
         await ctx.send(f"Embeds are now {word}")
+
+    @checks.is_owner()
+    @update.group(name="task")
+    async def _group_update_task(self, ctx):
+        """View the status of the task (the one checking for updates)"""
+        pass
+
+    @_group_update_task.command()
+    async def status(self, ctx):
+        """Get the current status of the update task"""
+        message = "Task is currently "
+        cancelled = self.task.cancelled()
+        if cancelled:
+            message += "canceled."
+        else:
+            done = self.task.done()
+            if done:
+                message += "done."
+            else:
+                message += "running."
+        try:
+            self.task.exception()
+        except asyncio.base_futures.InvalidStateError:
+            message += "  No error has been encountered."
+        else:
+            message += "  An error has been encountered.  Please run `[p]update task error` and report it to Neuro Assassin on the help server."
+        await ctx.send(message)
+
+    @_group_update_task.command()
+    async def error(self, ctx):
+        """Gets the latest error of the update task"""
+        try:
+            e = self.task.exception()
+        except asyncio.base_futures.InvalidStateError:
+            message = "No error has been encountered."
+        else:
+            ex = traceback.format_exception(type(e), e, e.__traceback__)
+            message = "An error has been encountered: ```py\n" + "".join(ex) + "```"
+        await ctx.send(message)

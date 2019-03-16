@@ -242,12 +242,12 @@ class UpdateChecker(commands.Cog):
     @checks.is_owner()
     @update.group(name="task")
     async def _group_update_task(self, ctx):
-        """View the status of the task (the one checking for updates)"""
+        """View the status of the task (the one checking for updates)."""
         pass
 
     @_group_update_task.command()
     async def status(self, ctx):
-        """Get the current status of the update task"""
+        """Get the current status of the update task."""
         message = "Task is currently "
         cancelled = self.task.cancelled()
         if cancelled:
@@ -268,7 +268,7 @@ class UpdateChecker(commands.Cog):
 
     @_group_update_task.command()
     async def error(self, ctx):
-        """Gets the latest error of the update task"""
+        """Gets the latest error of the update task."""
         try:
             e = self.task.exception()
         except asyncio.base_futures.InvalidStateError:

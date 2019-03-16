@@ -46,7 +46,10 @@ class UpdateChecker(commands.Cog):
                         repo = cog._repo_manager.get_repo(repo_name)
                         url = repo.url + r"/commits/" + repo.branch + ".atom"
                         response = await self.fetch_feed(url)
-                        commit = response.entries[0]["title"]
+                        try:
+                            commit = response.entries[0]["title"]
+                        except AttributeError:
+                            continue
                         if commit != commit_saved:
                             if not auto:
                                 if use_embed:

@@ -4,8 +4,10 @@ import asyncio
 import time
 import traceback
 
+
 class CooldownFailure(dc.CommandError):
     pass
+
 
 class Cooldown(commands.Cog):
     def __init__(self, bot):
@@ -28,10 +30,9 @@ class Cooldown(commands.Cog):
                     "user": dc.BucketType.user,
                     "channel": dc.BucketType.channel,
                     "guild": dc.BucketType.guild,
-                    "global": dc.BucketType.default
+                    "global": dc.BucketType.default,
                 }
                 commands.cooldown(entry[1], entry[2], switch[entry[3]])(cmd)
-
 
     @commands.group()
     async def cooldown(self, ctx):
@@ -74,7 +75,9 @@ class Cooldown(commands.Cog):
         per = per.lower()
         np = per[:-1]
         if not np.isdigit():
-            return await ctx.send("Invalid amount of time.  There is a non-number in your `per` argument, not including the time type.")
+            return await ctx.send(
+                "Invalid amount of time.  There is a non-number in your `per` argument, not including the time type."
+            )
         np = int(np)
         if per.endswith("s"):
             ttype = "seconds"
@@ -97,11 +100,18 @@ class Cooldown(commands.Cog):
             return await ctx.send("Invalid command argument.")
 
         def check(m):
-            return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id) and (m.content[0].lower() in ["y", "n"])
-        await ctx.send((
-            "You are about to add a cooldown for a command using this cog.  "
-            "Are you sure you wish to set this cooldown?  Respond with 'y' or 'n' to this message."
-        ))
+            return (
+                (m.author.id == ctx.author.id)
+                and (m.channel.id == ctx.channel.id)
+                and (m.content[0].lower() in ["y", "n"])
+            )
+
+        await ctx.send(
+            (
+                "You are about to add a cooldown for a command using this cog.  "
+                "Are you sure you wish to set this cooldown?  Respond with 'y' or 'n' to this message."
+            )
+        )
         try:
             m = await self.bot.wait_for("message", check=check, timeout=30.0)
         except asyncio.TimeoutError:
@@ -111,7 +121,7 @@ class Cooldown(commands.Cog):
                 "user": dc.BucketType.user,
                 "channel": dc.BucketType.channel,
                 "guild": dc.BucketType.guild,
-                "global": dc.BucketType.default
+                "global": dc.BucketType.default,
             }
             commands.cooldown(rate, np, switch[btype])(cmd)
         else:
@@ -120,7 +130,7 @@ class Cooldown(commands.Cog):
         all_data = await self.conf.data()
         changed = False
         for position, entry in enumerate(all_data):
-            if (entry[0] == data[0]):
+            if entry[0] == data[0]:
                 all_data[position] = data
                 changed = True
                 break
@@ -151,12 +161,20 @@ class Cooldown(commands.Cog):
         cmd = self.bot.get_command(command)
         if cmd == None:
             return await ctx.send("Invalid command argument.")
+
         def check(m):
-            return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id) and (m.content[0].lower() in ['y', 'n'])
-        await ctx.send((
-            "You are about to remove a cooldown for a command.  "
-            "Are you sure you wish to remove it?  Respond with 'y' or 'n' to this message."
-        ))
+            return (
+                (m.author.id == ctx.author.id)
+                and (m.channel.id == ctx.channel.id)
+                and (m.content[0].lower() in ["y", "n"])
+            )
+
+        await ctx.send(
+            (
+                "You are about to remove a cooldown for a command.  "
+                "Are you sure you wish to remove it?  Respond with 'y' or 'n' to this message."
+            )
+        )
         try:
             m = await self.bot.wait_for("message", check=check, timeout=30.0)
         except asyncio.TimeoutError:
@@ -167,7 +185,7 @@ class Cooldown(commands.Cog):
             return await ctx.send("Not removing command cooldown.")
         data = await self.conf.data()
         for entry in data:
-            if (entry[0] == command):
+            if entry[0] == command:
                 data.remove(entry)
                 break
         await self.conf.data.set(data)

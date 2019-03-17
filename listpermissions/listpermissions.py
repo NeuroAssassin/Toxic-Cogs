@@ -4,6 +4,7 @@ from fuzzywuzzy import process
 import discord
 from typing import Union, Optional
 
+
 class ListPermissions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -39,7 +40,7 @@ class ListPermissions(commands.Cog):
         await ctx.send("```py\n" + str(t) + "```")
 
     @lp_guild.command(name="member")
-    async def guild_member(self, ctx, member: discord.Member=None):
+    async def guild_member(self, ctx, member: discord.Member = None):
         """Generates the guild wide permissions for a member.  This only takes into account their guild permissions, not any for specific channels."""
         if not member:
             member = ctx.author
@@ -48,7 +49,9 @@ class ListPermissions(commands.Cog):
         for perm, value in permissions:
             t.add_row([perm, value])
         # Send two messages in case the member name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Permissions for user {member.display_name} in guild {ctx.guild.name}]```")
+        await ctx.send(
+            f"```ini\n[Permissions for user {member.display_name} in guild {ctx.guild.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")
 
     @listpermissions.group(name="channel")
@@ -57,7 +60,12 @@ class ListPermissions(commands.Cog):
         pass
 
     @lp_channel.command(name="member")
-    async def channel_member(self, ctx, member: discord.Member=None, channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]=None):
+    async def channel_member(
+        self,
+        ctx,
+        member: discord.Member = None,
+        channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
+    ):
         """Generates the permissions for a member in a channel.
         
         Permissions Values:
@@ -67,17 +75,27 @@ class ListPermissions(commands.Cog):
             channel = ctx.channel
         if not member:
             member = ctx.author
-        
+
         permissions = channel.permissions_for(member)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
             t.add_row([perm, value])
         # Send two messages in case the member/channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Permissions for user {member.display_name} in channel {channel.name}]```")
+        await ctx.send(
+            f"```ini\n[Permissions for user {member.display_name} in channel {channel.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")
 
     @lp_channel.command(name="role")
-    async def channel_role(self, ctx, channel: Optional[Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]]=None, *, rolename):
+    async def channel_role(
+        self,
+        ctx,
+        channel: Optional[
+            Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]
+        ] = None,
+        *,
+        rolename,
+    ):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
         
         Permissions Values:
@@ -97,7 +115,9 @@ class ListPermissions(commands.Cog):
         for perm, value in permissions:
             t.add_row([perm, value])
         # Send two messages in case the rolename or channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Permissions for role {results[0][0]} in channel {channel.name}]```")
+        await ctx.send(
+            f"```ini\n[Permissions for role {results[0][0]} in channel {channel.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")
 
     @commands.guild_only()
@@ -133,7 +153,7 @@ class ListPermissions(commands.Cog):
         await ctx.send("```py\n" + str(t) + "```")
 
     @ap_guild.command(name="member")
-    async def ap_guild_member(self, ctx, member: discord.Member=None):
+    async def ap_guild_member(self, ctx, member: discord.Member = None):
         """Generates the guild wide permissions for a member.  This only takes into account their guild permissions, not any for specific channels."""
         if not member:
             member = ctx.author
@@ -144,7 +164,9 @@ class ListPermissions(commands.Cog):
                 continue
             t.add_row([perm, value])
         # Send two messages in case the member name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Available permissions for user {member.display_name} in guild {ctx.guild.name}]```")
+        await ctx.send(
+            f"```ini\n[Available permissions for user {member.display_name} in guild {ctx.guild.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")
 
     @availablepermissions.group(name="channel")
@@ -153,7 +175,12 @@ class ListPermissions(commands.Cog):
         pass
 
     @ap_channel.command(name="member")
-    async def ap_channel_member(self, ctx, member: discord.Member=None, channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]=None):
+    async def ap_channel_member(
+        self,
+        ctx,
+        member: discord.Member = None,
+        channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
+    ):
         """Generates the permissions for a member in a channel.
         
         Permissions Values:
@@ -163,7 +190,7 @@ class ListPermissions(commands.Cog):
             channel = ctx.channel
         if not member:
             member = ctx.author
-        
+
         permissions = channel.permissions_for(member)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
@@ -171,11 +198,21 @@ class ListPermissions(commands.Cog):
                 continue
             t.add_row([perm, value])
         # Send two messages in case the member/channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Available permissions for user {member.display_name} in channel {channel.name}]```")
+        await ctx.send(
+            f"```ini\n[Available permissions for user {member.display_name} in channel {channel.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")
 
     @ap_channel.command(name="role")
-    async def ap_channel_role(self, ctx, channel: Optional[Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]]=None, *, rolename):
+    async def ap_channel_role(
+        self,
+        ctx,
+        channel: Optional[
+            Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]
+        ] = None,
+        *,
+        rolename,
+    ):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
         
         Permissions Values:
@@ -197,7 +234,9 @@ class ListPermissions(commands.Cog):
                 continue
             t.add_row([perm, value])
         # Send two messages in case the rolename or channelname is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Available permissions for role {results[0][0]} in channel {channel.name}]```")
+        await ctx.send(
+            f"```ini\n[Available permissions for role {results[0][0]} in channel {channel.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")
 
     @commands.guild_only()
@@ -233,7 +272,7 @@ class ListPermissions(commands.Cog):
         await ctx.send("```py\n" + str(t) + "```")
 
     @dp_guild.command(name="member")
-    async def dp_guild_member(self, ctx, member: discord.Member=None):
+    async def dp_guild_member(self, ctx, member: discord.Member = None):
         """Generates the guild wide permissions for a member.  This only takes into account their guild permissions, not any for specific channels."""
         if not member:
             member = ctx.author
@@ -244,7 +283,9 @@ class ListPermissions(commands.Cog):
                 continue
             t.add_row([perm, value])
         # Send two messages in case the member name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Denied permissions for user {member.display_name} in guild {ctx.guild.name}]```")
+        await ctx.send(
+            f"```ini\n[Denied permissions for user {member.display_name} in guild {ctx.guild.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")
 
     @deniedpermissions.group(name="channel")
@@ -253,7 +294,12 @@ class ListPermissions(commands.Cog):
         pass
 
     @dp_channel.command(name="member")
-    async def dp_channel_member(self, ctx, member: discord.Member=None, channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]=None):
+    async def dp_channel_member(
+        self,
+        ctx,
+        member: discord.Member = None,
+        channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
+    ):
         """Generates the permissions for a member in a channel.
         
         Permissions Values:
@@ -263,7 +309,7 @@ class ListPermissions(commands.Cog):
             channel = ctx.channel
         if not member:
             member = ctx.author
-        
+
         permissions = channel.permissions_for(member)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
@@ -271,11 +317,21 @@ class ListPermissions(commands.Cog):
                 continue
             t.add_row([perm, value])
         # Send two messages in case the member/channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Denied permissions for user {member.display_name} in channel {channel.name}]```")
+        await ctx.send(
+            f"```ini\n[Denied permissions for user {member.display_name} in channel {channel.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")
 
     @dp_channel.command(name="role")
-    async def dp_channel_role(self, ctx, channel: Optional[Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]]=None, *, rolename):
+    async def dp_channel_role(
+        self,
+        ctx,
+        channel: Optional[
+            Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel]
+        ] = None,
+        *,
+        rolename,
+    ):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
         
         Permissions Values:
@@ -297,5 +353,7 @@ class ListPermissions(commands.Cog):
                 continue
             t.add_row([perm, value])
         # Send two messages in case the rolename or channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Denied permissions for role {results[0][0]} in channel {channel.name}]```")
+        await ctx.send(
+            f"```ini\n[Denied permissions for role {results[0][0]} in channel {channel.name}]```"
+        )
         await ctx.send("```py\n" + str(t) + "```")

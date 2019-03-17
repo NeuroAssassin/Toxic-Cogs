@@ -3,6 +3,7 @@ import random
 import discord
 import asyncio
 
+
 class Simon(commands.Cog):
     """Play Simon, and guess the write number sequence!
     
@@ -23,11 +24,10 @@ class Simon(commands.Cog):
     @simon.command()
     async def start(self, ctx):
         """Start a game of Simon."""
-        await ctx.send("Starting game...\n**RULES:**\n```1. When you are ready for the sequence, click the green checkmark.\n2. Watch the sequence carefully, then repeat it back into chat.  For example, if the 1 then the 2 changed, I would type 12.\n3. You are given 10 seconds to repeat the sequence.\n4. When waiting for confirmation for next sequence, click the green check within 5 minutes of the bot being ready.\n5. Answer as soon as you can once the bot adds the stop watch emoji.```")
-        board = [
-            [1, 2],
-            [3, 4]
-        ]
+        await ctx.send(
+            "Starting game...\n**RULES:**\n```1. When you are ready for the sequence, click the green checkmark.\n2. Watch the sequence carefully, then repeat it back into chat.  For example, if the 1 then the 2 changed, I would type 12.\n3. You are given 10 seconds to repeat the sequence.\n4. When waiting for confirmation for next sequence, click the green check within 5 minutes of the bot being ready.\n5. Answer as soon as you can once the bot adds the stop watch emoji.```"
+        )
+        board = [[1, 2], [3, 4]]
         level = [1, 4]
         message = await ctx.send("```" + self.print_board(board) + "```")
         await message.add_reaction("\u2705")
@@ -35,11 +35,17 @@ class Simon(commands.Cog):
         await ctx.send("Click the Green Check Reaction when you are ready for the sequence.")
 
         def check(reaction, user):
-            return (user.id == ctx.author.id) and (str(reaction.emoji) in ["\u2705", "\u274C"]) and (reaction.message.id == message.id)
+            return (
+                (user.id == ctx.author.id)
+                and (str(reaction.emoji) in ["\u2705", "\u274C"])
+                and (reaction.message.id == message.id)
+            )
 
         while True:
             try:
-                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=300.0)
+                reaction, user = await self.bot.wait_for(
+                    "reaction_add", check=check, timeout=300.0
+                )
             except asyncio.TimeoutError:
                 await message.delete()
                 await ctx.send("Game has ended due to no response for starting the next sequence.")
@@ -85,6 +91,7 @@ class Simon(commands.Cog):
 
                 def check_t(m):
                     return (m.author.id == ctx.author.id) and (m.content.isdigit())
+
                 try:
                     user_answer = await self.bot.wait_for("message", check=check_t, timeout=10.0)
                 except asyncio.TimeoutError:
@@ -101,7 +108,9 @@ class Simon(commands.Cog):
                         await message.add_reaction("\U0001F44D")
                     else:
                         await message.add_reaction("\U0001F6AB")
-                        await ctx.send(f"Sorry, but that was the incorrect pattern.  The pattern was {answer}")
+                        await ctx.send(
+                            f"Sorry, but that was the incorrect pattern.  The pattern was {answer}"
+                        )
                         return
                     another_message = await ctx.send("Sequence was correct.")
                     await asyncio.sleep(3)

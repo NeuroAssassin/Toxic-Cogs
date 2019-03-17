@@ -3,6 +3,7 @@ from colour import Color as col
 from colour import rgb2hex
 import discord
 
+
 class Color(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -21,7 +22,11 @@ class Color(commands.Cog):
         try:
             c = col(name)
             hexa = rgb2hex(c.rgb, force_long=True)
-            embed = discord.Embed(title="Color Embed for: " + name, description="Hexadecimal, RGB and HSL values for: " + name, color=int(hexa.replace("#", "0x"), 0))
+            embed = discord.Embed(
+                title="Color Embed for: " + name,
+                description="Hexadecimal, RGB and HSL values for: " + name,
+                color=int(hexa.replace("#", "0x"), 0),
+            )
             embed.add_field(name="Hexadecimal Value:", value=hexa)
             embed.add_field(name="Red, Green, Blue (RGB) Value: ", value=str(c.rgb))
             embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(c.hsl))
@@ -35,7 +40,11 @@ class Color(commands.Cog):
         try:
             hexa = hexa.replace("0x", "#")
             c = col(hexa)
-            embed = discord.Embed(title="Color Embed for: " + hexa, description="Hexadecimal and RGB values for: " + hexa, color=int(hexa.replace("#", "0x"), 0))
+            embed = discord.Embed(
+                title="Color Embed for: " + hexa,
+                description="Hexadecimal and RGB values for: " + hexa,
+                color=int(hexa.replace("#", "0x"), 0),
+            )
             embed.add_field(name="Hexadecimal Value:", value=hexa)
             embed.add_field(name="Red Green Blue (RGB) Value: ", value=str(c.rgb))
             embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(c.hsl))
@@ -54,9 +63,13 @@ class Color(commands.Cog):
             b = b / 255
         try:
             c = col(rgb=(r, g, b))
-            values = (r*255, g*255, b*255)
+            values = (r * 255, g * 255, b * 255)
             hexa = rgb2hex(c.rgb, force_long=True)
-            embed = discord.Embed(title="Color Embed for: " + str(values), description="Hexadecimal and RGB values for: " + str(values), color=int(hexa.replace("#", "0x"), 0))
+            embed = discord.Embed(
+                title="Color Embed for: " + str(values),
+                description="Hexadecimal and RGB values for: " + str(values),
+                color=int(hexa.replace("#", "0x"), 0),
+            )
             embed.add_field(name="Hexadecimal Value:", value=hexa)
             embed.add_field(name="Red Green Blue (RGB) Value: ", value=str(c.rgb))
             embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(c.hsl))
@@ -71,7 +84,11 @@ class Color(commands.Cog):
             c = col(hsl=(h, s, l))
             values = (h, s, l)
             hexa = rgb2hex(c.rgb, force_long=True)
-            embed = discord.Embed(title="Color Embed for: " + str(values), description="Hexadecimal and RGB values for: " + str(values), color=int(hexa.replace("#", "0x"), 0))
+            embed = discord.Embed(
+                title="Color Embed for: " + str(values),
+                description="Hexadecimal and RGB values for: " + str(values),
+                color=int(hexa.replace("#", "0x"), 0),
+            )
             embed.add_field(name="Hexadecimal Value:", value=hexa)
             embed.add_field(name="Red Green Blue: ", value=str(c.rgb))
             embed.add_field(name="Hue, Saturation, Luminance (HSL):", value=str(c.hsl))

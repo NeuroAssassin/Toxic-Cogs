@@ -10,12 +10,15 @@ from datetime import datetime, timezone
 import pytz
 
 import matplotlib
+
 matplotlib.use("agg")
 
 import matplotlib.pyplot as plt
+
 plt.switch_backend("agg")
 
 from redbot.core import commands
+
 
 class CommandChart(commands.Cog):
     def __init__(self, bot):
@@ -95,7 +98,7 @@ class CommandChart(commands.Cog):
 
     @commands.guild_only()
     @commands.command()
-    async def commandchart(self, ctx, channel: discord.TextChannel = None, number: int=5000):
+    async def commandchart(self, ctx, channel: discord.TextChannel = None, number: int = 5000):
         """See the used commands in a certain channel within a certain amount of messages."""
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://i.imgur.com/vSp4xRk.gif")
@@ -131,7 +134,7 @@ class CommandChart(commands.Cog):
                 msg_data["commands"][short_name] = {}
                 msg_data["commands"][short_name]["count"] = 1
                 msg_data["total count"] += 1
-        
+
         if msg_data["commands"] == {}:
             await em.delete()
             return await ctx.send("No commands have been run in that channel.")

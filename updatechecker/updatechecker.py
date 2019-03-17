@@ -12,12 +12,19 @@ import traceback
 from typing import Optional
 from datetime import datetime
 
+
 class UpdateChecker(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
-        self.conf = Config.get_conf(self, identifier=473541068378341376)
-        default_global = {"updated": False, "repos": {}, "auto": False, "gochannel": 0, "embed": True}
+        self.conf = Config.get_conf(self, identifier=473_541_068_378_341_376)
+        default_global = {
+            "updated": False,
+            "repos": {},
+            "auto": False,
+            "gochannel": 0,
+            "embed": True,
+        }
         self.conf.register_global(**default_global)
         self.task = self.bot.loop.create_task(self.bg_task())
 
@@ -35,7 +42,7 @@ class UpdateChecker(commands.Cog):
                 cog = self.bot.get_cog("Downloader")
                 if cog != None:
                     repos = await self.conf.repos()
-                    auto  = await self.conf.auto()
+                    auto = await self.conf.auto()
                     channel = await self.conf.gochannel()
                     use_embed = await self.conf.embed()
                     if channel == 0:
@@ -53,7 +60,12 @@ class UpdateChecker(commands.Cog):
                         if commit != commit_saved:
                             if not auto:
                                 if use_embed:
-                                    e = discord.Embed(title="[Update Checker]", description=f"Update available for repo: {repo.name}", timestamp=datetime.utcnow(), color=0x00ff00)
+                                    e = discord.Embed(
+                                        title="[Update Checker]",
+                                        description=f"Update available for repo: {repo.name}",
+                                        timestamp=datetime.utcnow(),
+                                        color=0x00FF00,
+                                    )
                                     e.add_field(name="URL", value=repo.url)
                                     e.add_field(name="Branch", value=repo.branch)
                                     e.add_field(name="Commit", value=commit)
@@ -75,32 +87,44 @@ class UpdateChecker(commands.Cog):
                                         await channel.send(message)
                                 except AttributeError:
                                     owner = (await self.bot.application_info()).owner
-                                    await owner.send("[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you.")
+                                    await owner.send(
+                                        "[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you."
+                                    )
                                     channel = owner
                                     await self.conf.gochannel.set(0)
                                 except discord.errors.Forbidden:
                                     owner = (await self.bot.application_info()).owner
-                                    await owner.send("[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you.")
+                                    await owner.send(
+                                        "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you."
+                                    )
                                     channel = owner
                                     await self.conf.gochannel.set(0)
                             else:
                                 try:
-                                    await channel.send(f"[Update Checker] Update found for repo: {repo.name}.  Updating repos...")
+                                    await channel.send(
+                                        f"[Update Checker] Update found for repo: {repo.name}.  Updating repos..."
+                                    )
                                 except AttributeError:
                                     owner = (await self.bot.application_info()).owner
-                                    await owner.send("[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you.")
+                                    await owner.send(
+                                        "[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you."
+                                    )
                                     channel = owner
                                     await self.conf.gochannel.set(0)
                                 except discord.errors.Forbidden:
                                     owner = (await self.bot.application_info()).owner
-                                    await owner.send("[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you.")
+                                    await owner.send(
+                                        "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you."
+                                    )
                                     channel = owner
                                     await self.conf.gochannel.set(0)
                                 # Just a copy of `[p]cog update`, but without using ctx things
                                 try:
                                     installed_cogs = set(await cog.installed_cogs())
                                     updated = await cog._repo_manager.update_all_repos()
-                                    updated_cogs = set(cog for repo in updated for cog in repo.available_cogs)
+                                    updated_cogs = set(
+                                        cog for repo in updated for cog in repo.available_cogs
+                                    )
                                     installed_and_updated = updated_cogs & installed_cogs
                                     if installed_and_updated:
                                         await cog._reinstall_requirements(installed_and_updated)
@@ -109,17 +133,25 @@ class UpdateChecker(commands.Cog):
                                         cognames = {c.name for c in installed_and_updated}
                                         message = humanize_list(tuple(map(inline, cognames)))
                                 except Exception as error:
-                                    exception_log = "Exception while updating repos in Update Checker \n"
+                                    exception_log = (
+                                        "Exception while updating repos in Update Checker \n"
+                                    )
                                     exception_log += "".join(
-                                        traceback.format_exception(type(error), error, error.__traceback__)
+                                        traceback.format_exception(
+                                            type(error), error, error.__traceback__
+                                        )
                                     )
                                     try:
-                                        await channel.send(f"[Update Checker]: Error while updating repos.\n\n{exception_log}")
+                                        await channel.send(
+                                            f"[Update Checker]: Error while updating repos.\n\n{exception_log}"
+                                        )
                                     except discord.errors.Forbidden:
                                         pass
                                 else:
                                     try:
-                                        await channel.send(f"[Update Checker]: Ran cog update.  Updated cogs: {message}")
+                                        await channel.send(
+                                            f"[Update Checker]: Ran cog update.  Updated cogs: {message}"
+                                        )
                                     except discord.errors.Forbidden:
                                         pass
                             repos[repo.name] = commit
@@ -153,11 +185,15 @@ class UpdateChecker(commands.Cog):
         You should only run this once, when first loading the cog.  After that, you can just use `[p]cog update`."""
         updated = await self.conf.updated()
         if updated:
-            return await ctx.send("You have already run this command once, you do not need to again.  Please use `[p]cog update` to update your repos.")
+            return await ctx.send(
+                "You have already run this command once, you do not need to again.  Please use `[p]cog update` to update your repos."
+            )
         await self.conf.updated.set(True)
         cog = self.bot.get_cog("Downloader")
         await ctx.invoke(cog._cog_update)
-        await ctx.send("Done invoking cog update command.  Getting latest commits and storing them...")
+        await ctx.send(
+            "Done invoking cog update command.  Getting latest commits and storing them..."
+        )
         repos = cog._repo_manager.get_all_repo_names()
         data = await self.conf.repos()
         for repo_name in repos:
@@ -170,7 +206,9 @@ class UpdateChecker(commands.Cog):
                 continue
             data[repo.name] = commit
         await self.conf.repos.set(data)
-        await ctx.send("The latest commits for all of your repos have been saved.  You will be notified when an update is available.")
+        await ctx.send(
+            "The latest commits for all of your repos have been saved.  You will be notified when an update is available."
+        )
 
     @checks.is_owner()
     @update.command()
@@ -183,7 +221,7 @@ class UpdateChecker(commands.Cog):
 
     @checks.is_owner()
     @update.command()
-    async def channel(self, ctx, channel: discord.TextChannel=None):
+    async def channel(self, ctx, channel: discord.TextChannel = None):
         """Sets a channel for update messages to go to.
 
         If argument is not supplied, it will be sent to the bot owner's DMs.  By default, goes to owner DMs."""
@@ -204,7 +242,7 @@ class UpdateChecker(commands.Cog):
         channel = await self.conf.gochannel()
         embed = await self.conf.embed()
         if embed:
-            e = discord.Embed(title="Update Checker settings", color=0x00ff00)
+            e = discord.Embed(title="Update Checker settings", color=0x00FF00)
             e.add_field(name="Automatic Cog Updates", value=str(auto))
             if channel == 0:
                 channel = "Direct Messages"

@@ -3,6 +3,7 @@ import random
 import asyncio
 import copy
 
+
 class Minesweeper(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -261,7 +262,7 @@ class Minesweeper(commands.Cog):
                     5: "five",
                     6: "six",
                     7: "seven",
-                    8: "eight"
+                    8: "eight",
                 }
                 board[row][column] = ":" + str(switches[hint]) + ":"
         return board
@@ -274,15 +275,38 @@ class Minesweeper(commands.Cog):
 
     def add_desc(self, board):
         nb = copy.deepcopy(board)
-        letters = [":regional_indicator_a:", ":regional_indicator_b:", ":regional_indicator_c:", ":regional_indicator_d:", ":regional_indicator_e:", ":regional_indicator_f:", ":regional_indicator_g:", ":regional_indicator_h:", ":regional_indicator_i:", ":regional_indicator_j:"]
+        letters = [
+            ":regional_indicator_a:",
+            ":regional_indicator_b:",
+            ":regional_indicator_c:",
+            ":regional_indicator_d:",
+            ":regional_indicator_e:",
+            ":regional_indicator_f:",
+            ":regional_indicator_g:",
+            ":regional_indicator_h:",
+            ":regional_indicator_i:",
+            ":regional_indicator_j:",
+        ]
         for row in range(len(nb)):
             nb[row].insert(0, letters[row])
-        cd = [":black_large_square:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":keycap_ten:"]
+        cd = [
+            ":black_large_square:",
+            ":one:",
+            ":two:",
+            ":three:",
+            ":four:",
+            ":five:",
+            ":six:",
+            ":seven:",
+            ":eight:",
+            ":nine:",
+            ":keycap_ten:",
+        ]
         nb.insert(0, cd)
         return nb
 
     @commands.command(aliases=["ms"])
-    async def minesweeper(self, ctx, bombs: int="Random bomb amount"):
+    async def minesweeper(self, ctx, bombs: int = "Random bomb amount"):
         """Starts a game of minesweeper, with allowing you to choose the number of bombs in it.
         
         Must be between 10 bombs and 99 bombs.  Defaults to random between 15 to 25."""
@@ -294,15 +318,19 @@ class Minesweeper(commands.Cog):
         answer_board = self.generate_map(bombs)
         showing_board = []
         for x in range(10):
-            showing_board.append(["\u2B1B"]*10)
+            showing_board.append(["\u2B1B"] * 10)
         answer_board = self.add_hints(answer_board)
         sending_board = self.add_desc(showing_board)
         sending_board = self.print_board(sending_board)
         bm = await ctx.send(str(sending_board))
-        await ctx.send("Enter the row letter followed by the column number to guess.  The top row is row letter A, and the bottom row is row letter J.  The left column is column number 1, and the right column is column number 10.  For example, a guess could be: 'A1' for the top-left spot of the board, or 'J10' for bottom-right.  Type 'cancel' to stop.  You can guess multiple spots by putting a space between each.  Game will time out after 60 seconds of no response.")
+        await ctx.send(
+            "Enter the row letter followed by the column number to guess.  The top row is row letter A, and the bottom row is row letter J.  The left column is column number 1, and the right column is column number 10.  For example, a guess could be: 'A1' for the top-left spot of the board, or 'J10' for bottom-right.  Type 'cancel' to stop.  You can guess multiple spots by putting a space between each.  Game will time out after 60 seconds of no response."
+        )
         while bombs > 0:
+
             def check(m):
                 return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+
             try:
                 message = await self.bot.wait_for("message", check=check, timeout=60.0)
             except asyncio.TimeoutError:
@@ -326,7 +354,7 @@ class Minesweeper(commands.Cog):
                         "g": 6,
                         "h": 7,
                         "i": 8,
-                        "j": 9
+                        "j": 9,
                     }
                     try:
                         rn = switches[rl.lower()]
@@ -343,7 +371,9 @@ class Minesweeper(commands.Cog):
                             else:
                                 cn -= 1
                                 if answer_board[rn][cn] == ":bomb:":
-                                    await ctx.send(f"Uh oh!  {ctx.author.mention} looks like you stumbled across a bomb.  The answer board has been posted above.")
+                                    await ctx.send(
+                                        f"Uh oh!  {ctx.author.mention} looks like you stumbled across a bomb.  The answer board has been posted above."
+                                    )
                                     answer_board = self.print_board(answer_board)
                                     await bm.edit(content=answer_board)
                                     return
@@ -353,7 +383,7 @@ class Minesweeper(commands.Cog):
                                     await bm.edit(content=sending_board)
 
     @commands.command()
-    async def spoilerms(self, ctx, bombs: int="Random bomb amount"):
+    async def spoilerms(self, ctx, bombs: int = "Random bomb amount"):
         """Starts a game of minesweeper, with allowing you to choose the number of bombs in it.
         Does not interact with the user, instead just places spoilers around each entry for the user to find it out.
         Must be between 10 bombs and 99 bombs.  Defaults to random between 15 to 25."""

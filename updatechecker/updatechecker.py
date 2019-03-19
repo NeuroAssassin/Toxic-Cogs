@@ -54,11 +54,10 @@ class UpdateChecker(commands.Cog):
                         if not (repo in list(repos.keys())):
                             repos[repo] = "Default commit for UpdateChecker cog"
                             await self.conf.repos.set(repos)
-                    for repo_name, commit_saved in repos.items():
+                    saving_dict = {k: v for k, v in repos.items() if k in all_repos}
+                    for repo_name, commit_saved in saving_dict.items():
                         repo = cog._repo_manager.get_repo(repo_name)
                         if not repo:
-                            del repos[repo_name]
-                            await self.conf.repos.set(repos)
                             continue
                         url = repo.url + r"/commits/" + repo.branch + ".atom"
                         response = await self.fetch_feed(url)
@@ -66,6 +65,7 @@ class UpdateChecker(commands.Cog):
                             commit = response.entries[0]["title"]
                         except AttributeError:
                             continue
+                        saving_dict[repo_name] = commit
                         if commit != commit_saved:
                             if not auto:
                                 if use_embed:
@@ -163,8 +163,7 @@ class UpdateChecker(commands.Cog):
                                         )
                                     except discord.errors.Forbidden:
                                         pass
-                            repos[repo.name] = commit
-                            await self.conf.repos.set(repos)
+                    await self.conf.repos.set(saving_dict)
             await asyncio.sleep(60)
 
     async def fetch_feed(self, url: str) -> Optional[feedparser.FeedParserDict]:

@@ -49,6 +49,11 @@ class UpdateChecker(commands.Cog):
                         channel = (await self.bot.application_info()).owner
                     else:
                         channel = self.bot.get_channel(channel)
+                    all_repos = cog._repo_manager.get_all_repo_names()
+                    for repo in all_repos:
+                        if not (repo in list(repos.keys())):
+                            repos[repo] = "Default commit for UpdateChecker cog"
+                            await self.conf.repos.set(repos)
                     for repo_name, commit_saved in repos.items():
                         repo = cog._repo_manager.get_repo(repo_name)
                         if not repo:

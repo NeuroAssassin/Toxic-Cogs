@@ -51,6 +51,10 @@ class UpdateChecker(commands.Cog):
                         channel = self.bot.get_channel(channel)
                     for repo_name, commit_saved in repos.items():
                         repo = cog._repo_manager.get_repo(repo_name)
+                        if not repo:
+                            del repos[repo_name]
+                            await self.conf.repos.set(repos)
+                            continue
                         url = repo.url + r"/commits/" + repo.branch + ".atom"
                         response = await self.fetch_feed(url)
                         try:

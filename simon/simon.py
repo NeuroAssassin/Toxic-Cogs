@@ -29,6 +29,7 @@ class Simon(commands.Cog):
         )
         board = [[1, 2], [3, 4]]
         level = [1, 4]
+        points = 0
         message = await ctx.send("```" + self.print_board(board) + "```")
         await message.add_reaction("\u2705")
         await message.add_reaction("\u274C")
@@ -48,7 +49,9 @@ class Simon(commands.Cog):
                 )
             except asyncio.TimeoutError:
                 await message.delete()
-                await ctx.send("Game has ended due to no response for starting the next sequence.")
+                await ctx.send(
+                    f"Game has ended due to no response for starting the next sequence.  You got {points} sequence{'s' if points != 1 else ''} correct!"
+                )
                 return
             else:
                 if str(reaction.emoji) == "\u274C":
@@ -95,7 +98,9 @@ class Simon(commands.Cog):
                 try:
                     user_answer = await self.bot.wait_for("message", check=check_t, timeout=10.0)
                 except asyncio.TimeoutError:
-                    await ctx.send(f"Sorry {ctx.author.mention}!  You took too long to answer.")
+                    await ctx.send(
+                        f"Sorry {ctx.author.mention}!  You took too long to answer.  You got {points} sequence{'s' if points != 1 else ''} correct!"
+                    )
                     await message.remove_reaction("\u23F1", self.bot.user)
                     return
                 else:
@@ -109,10 +114,11 @@ class Simon(commands.Cog):
                     else:
                         await message.add_reaction("\U0001F6AB")
                         await ctx.send(
-                            f"Sorry, but that was the incorrect pattern.  The pattern was {answer}"
+                            f"Sorry, but that was the incorrect pattern.  The pattern was {answer}.  You got {points} sequence{'s' if points != 1 else ''} correct!"
                         )
                         return
                     another_message = await ctx.send("Sequence was correct.")
+                    points += 1
                     await asyncio.sleep(3)
                     await message.remove_reaction("\U0001F44D", self.bot.user)
                     await message.add_reaction("\u2705")

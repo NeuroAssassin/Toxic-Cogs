@@ -1,6 +1,7 @@
 from redbot.core import commands
 import random
 import asyncio
+import discord
 import copy
 
 
@@ -337,6 +338,10 @@ class Minesweeper(commands.Cog):
                 await ctx.send("Canceling game due to inactivity.")
                 return
             else:
+                try:
+                    await message.delete()
+                except discord.errors.Forbidden:
+                    pass
                 if message.content == "cancel":
                     await ctx.send("Canceling...")
                     return

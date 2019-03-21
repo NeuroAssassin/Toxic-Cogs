@@ -17,7 +17,7 @@ Cogs for Red - Discord Bot by TwentySix.
 ****
 ### Information
 
-The Toxic-Cogs repo holds cogs that provide some fun in Discord, while also providing tools for figuring out the status of a website/company and the stats on commands used with the bot.  In addition, there is also a cog that will return the hex/rgb/hsl value of a value that is passed to it, which can be either the name of a color or a hex/rgb/hsl value.  Finally, there is an sql cog to help with the storing of data, and settings for tables to make sure no one without permissions can view or edit the table.
+The Toxic-Cogs repo holds a bunch of different cogs, some being tools, some being for fun (like simon, twenty (2048)) and some others giving information (sw (Star Wars)).  You can find descriptions of them below in the table.
 
 [Back to Table of Contents](#table-of-contents)
 ****
@@ -40,12 +40,13 @@ These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot)
 | SQL | <details><summary>Store data in Discord with SQL</summary>Store data in a database inside of Discord to call for later use, and limit those who can access or edit the data</details> |
 | Twenty | <details><summary>Play 2048 in Discord</summary>Play 2048 in Discord with reactions</details> |
 | UpdateChecker | <details><summary>Get notifications when there is an update for one of your repositories added to your bot</summary>Have your bot tell you in DM or a channel when there is an update for one of the repos added to your bot</details> |
+| SW | <details><summary>Get Star Wars information through Discord</summary>Get info about something in Star Wars using this cog</details> |
 
 [Back to Table of Contents](#table-of-contents)
 ****
 ### Credits
 
-Credit to Aikaterna's chatchart cog, which I based my commandchart cog off of (which was also a requested cog on cogboard.red.  Want a cog made for you?  Submit a request on there.).  You can find that cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart.
+Credit to Aikaterna's chatchart cog, which I based my commandchart cog off of (which was also a requested cog on cogboard.red).  You can find that cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/chatchart.
 
 Thanks to:
 + Yukirin for suggesting/asking for the commandchart cog.

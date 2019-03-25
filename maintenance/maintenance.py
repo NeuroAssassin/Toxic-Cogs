@@ -2,15 +2,16 @@ from redbot.core import commands, checks, Config
 from discord.ext import commands as ext
 from datetime import datetime
 import time
-import inspect
-import textwrap
+
 
 class Maintenance(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
         default_global = {
-            "on": [False, 0, []]
+            "on": [False, 0, []],
+            "message": "The bot is undergoing maintenance.  Please check back later.",
+            "delete": 3,
         }
         # When on maintenance, on will be set to [True, second of when it is off maintenance, list of people who can bypass the maintenance]
         self.conf.register_global(**default_global)
@@ -30,7 +31,9 @@ class Maintenance(commands.Cog):
         on[2].append(self.bot.owner_id)
         if ctx.author.id in on[2]:
             return True
-        await ctx.send("The bot is undergoing maintenance.  Please check back later.")
+        message = await self.conf.message()
+        delete = await self.conf.delete()
+        await ctx.send(message, deleteafter=delete)
         return False
 
     @checks.is_owner()
@@ -57,7 +60,9 @@ class Maintenance(commands.Cog):
         if args == None:
             args = []
         if on[0]:
-            return await ctx.send(f"The bot is already on maintenance.  Please clear with `{ctx.prefix}maintenance off`")
+            return await ctx.send(
+                f"The bot is already on maintenance.  Please clear with `{ctx.prefix}maintenance off`"
+            )
         args = args.split(" ") if hasattr(args, "split") else args
         num = None
         whitelist = []
@@ -76,7 +81,9 @@ class Maintenance(commands.Cog):
                 elif arg.endswith("s"):
                     pass
                 else:
-                    return await ctx.send("You provided a time ending for the arguments, but an invalid timing letter.  Please use either s, m, h, d or w.")
+                    return await ctx.send(
+                        "You provided a time ending for the arguments, but an invalid timing letter.  Please use either s, m, h, d or w."
+                    )
             else:
                 arg = int(arg)
                 user = self.bot.get_user(arg)
@@ -92,17 +99,31 @@ class Maintenance(commands.Cog):
         await ctx.tick()
 
     @maintenance.command()
-    async def current(self, ctx):
-        """Tells if the bot is currently on maintenance"""
+    async def settings(self, ctx):
+        """Tells the current settings of the cog."""
         on = await self.conf.on()
+        message = await self.conf.message()
+        delete = await self.conf.delete()
+        sending = (
+            f"Messages are deleted after {delete} seconds.  "
+            f"Your current disabled message is ```{message}```.  "
+        )
         if not on[0]:
-            return await ctx.send("The bot is not on maintenance.")
+            sending += "The bot is currently not on maintenance."
+            return await ctx.send(sending)
         done = datetime.fromtimestamp(on[1]).strftime("%A, %B %d, %Y %I:%M:%S")
         users = []
         for user in on[2]:
-            user_profile = self.bot.get_user_info(user)
-            users.append(user_profile.display_name) if hasattr(user_profile, "display_name") else users.append(f"<removed user {user}>")
-        await ctx.send(f"The bot is currently under maintenance.  It will be done on {str(done)}.  The following users are whitelisted from maintenance: `{'` `'.join(users)}`")
+            user_profile = await self.bot.get_user_info(user)
+            users.append(user_profile.display_name) if hasattr(
+                user_profile, "display_name"
+            ) else users.append(f"<removed user {user}>")
+        sending += (
+            "The bot is currently under maintenance.  "
+            f"It will be done on {str(done)}.  "
+            f"The following users are whitelisted from the maintenance: `{'` `'.join(users)}`"
+        )
+        await ctx.send(sending)
 
     @maintenance.command()
     async def off(self, ctx):
@@ -112,4 +133,16 @@ class Maintenance(commands.Cog):
             return await ctx.send("The bot is not on maintenance.")
         setting = [False, 0, []]
         await self.conf.on.set(setting)
+        await ctx.tick()
+
+    @maintenance.command()
+    async def message(self, ctx, *, message):
+        """Set the message sent when the bot is down for maintenance"""
+        await self.conf.message.set(message)
+        await ctx.tick()
+
+    @maintenance.command()
+    async def deleteafter(self, ctx, amount: int = 0):
+        """Set the amount of seconds before the maintenance message is deleted.  Pass no parameter or 0 to make it not delete the message"""
+        await self.conf.delete.set(amount)
         await ctx.tick()

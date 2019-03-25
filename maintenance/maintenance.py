@@ -1,6 +1,6 @@
 from redbot.core import commands, checks, Config
-from discord.ext import commands as ext
 from datetime import datetime
+import discord
 import time
 
 
@@ -149,3 +149,16 @@ class Maintenance(commands.Cog):
         """Set the amount of seconds before the maintenance message is deleted.  Pass no parameter or 0 to make it not delete the message"""
         await self.conf.delete.set(amount)
         await ctx.tick()
+
+    @maintenance.command()
+    async def remove(self, ctx, user: discord.User):
+        """Remove or add a person from or to the whitelist for the current maintenance"""
+        on = await self.conf.on()
+        if user.id in on[2]:
+            on[2].remove(user.id)
+            message = f"{user.display_name} has been removed from the whitelist."
+        else:
+            on[2].append(user.id)
+            message = f"{user.display_name} has been added to the whitelist."
+        await self.conf.on.set(on)
+        await ctx.send(message)

@@ -151,7 +151,7 @@ class Maintenance(commands.Cog):
         await ctx.tick()
 
     @maintenance.command()
-    async def remove(self, ctx, user: discord.User):
+    async def whitelist(self, ctx, user: discord.User):
         """Remove or add a person from or to the whitelist for the current maintenance"""
         on = await self.conf.on()
         if user.id in on[2]:

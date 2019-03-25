@@ -106,7 +106,7 @@ class Maintenance(commands.Cog):
         delete = await self.conf.delete()
         sending = (
             f"Messages are deleted after {delete} seconds.  "
-            f"Your current disabled message is ```{message}```.  "
+            f"Your current disabled message is ```{message}```"
         )
         if not on[0]:
             sending += "The bot is currently not on maintenance."

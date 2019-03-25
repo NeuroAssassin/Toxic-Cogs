@@ -33,7 +33,10 @@ class Maintenance(commands.Cog):
             return True
         message = await self.conf.message()
         delete = await self.conf.delete()
-        await ctx.send(message, delete_after=delete)
+        if delete != 0:
+            await ctx.send(message, delete_after=delete)
+        else:
+            await ctx.send(message)
         return False
 
     @checks.is_owner()

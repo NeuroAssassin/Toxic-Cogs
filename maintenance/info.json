@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.",
+    "name" : "maintenance",
+    "short" : "Allows the bot owner to put the bot on maintenance.",
+    "description" : "Allows the owner to put the bot on maintenance, and specify when the maintenance will be over (but does not have to).  The bot owner can also whitelist users from the maintenance.",
+    "tags" : ["tools"],
+    "requirements" : ["datetime"],
+    "hidden" : false
+}

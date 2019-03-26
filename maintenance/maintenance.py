@@ -114,7 +114,11 @@ class Maintenance(commands.Cog):
         if not on[0]:
             sending += "The bot is currently not on maintenance."
             return await ctx.send(sending)
-        done = datetime.fromtimestamp(on[1]).strftime("%A, %B %d, %Y %I:%M:%S")
+        if on[1] != 0:
+            done = str(datetime.fromtimestamp(on[1]).strftime("%A, %B %d, %Y %I:%M:%S"))
+            done = "on " + done
+        else:
+            done = "when the bot owner removes it from maintenance"
         users = []
         for user in on[2]:
             user_profile = await self.bot.get_user_info(user)
@@ -123,7 +127,7 @@ class Maintenance(commands.Cog):
             ) else users.append(f"<removed user {user}>")
         sending += (
             "The bot is currently under maintenance.  "
-            f"It will be done on {str(done)}.  "
+            f"It will be done {str(done)}.  "
             f"The following users are whitelisted from the maintenance: `{'` `'.join(users)}`"
         )
         await ctx.send(sending)

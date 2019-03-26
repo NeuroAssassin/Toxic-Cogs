@@ -41,6 +41,7 @@ These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot)
 | Twenty | <details><summary>Play 2048 in Discord</summary>Play 2048 in Discord with reactions</details> |
 | UpdateChecker | <details><summary>Get notifications when there is an update for one of your repositories added to your bot</summary>Have your bot tell you in DM or a channel when there is an update for one of the repos added to your bot</details> |
 | SW | <details><summary>Get Star Wars information through Discord</summary>Get info about something in Star Wars using this cog</details> |
+| Maintenance | <details><summary>Put your bot on maintenance</summary>Put your bot on maintenance, telling people who are not in the whitelist for the maintenance that the bot is on maintenance, and will not respond to commands</details> |
 
 [Back to Table of Contents](#table-of-contents)
 ****

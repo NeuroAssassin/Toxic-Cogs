@@ -180,7 +180,7 @@ class UpdateChecker(commands.Cog):
             return None
         return ret
 
-    @commands.group()
+    @commands.group(name="cogupdater")
     async def update(self, ctx):
         """Group command for controlling the update checker cog."""
         pass

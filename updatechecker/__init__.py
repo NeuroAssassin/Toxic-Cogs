@@ -10,7 +10,7 @@ async def setup(bot):
     if not (await cog.conf.updated()):
         try:
             await owner.send(
-                "Hello!  Thank you for installing this cog.  Please do know however that this cog must know what verion your cogs are currently at, so you MUST use `[p]update all` first in order to get commits.  This command will run `[p]cog update`, then get the latest commits of all your repos.  After running it once however, you should use `[p]cog update`.  The command is disabled after being used once."
+                "Hello!  Thank you for installing this cog.  Please do know however that this cog must know what version your cogs are currently at, so you MUST use `[p]cogupdater all` first in order to get commits.  This command will run `[p]cog update`, then get the latest commits of all your repos.  After running it once however, you should use `[p]cog update`.  The command is disabled after being used once."
             )
         except:
             pass

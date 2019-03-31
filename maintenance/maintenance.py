@@ -1,4 +1,5 @@
 from redbot.core import commands, checks, Config
+from .converters import Margs
 from datetime import datetime
 import discord
 import time
@@ -12,13 +13,28 @@ class Maintenance(commands.Cog):
             "on": [False, 0, []],
             "message": "The bot is undergoing maintenance.  Please check back later.",
             "delete": 3,
+            "scheduledmaintenance": [],
         }
         # When on maintenance, on will be set to [True, second of when it is off maintenance, list of people who can bypass the maintenance]
         self.conf.register_global(**default_global)
         self.bot.add_check(self.cog_check)
+        self.task = self.bot.loop.create_task(self.bg_loop())
 
     def __unload(self):
         self.bot.remove_check(self.cog_check)
+        self.task.cancel()
+
+    async def bg_loop(self):
+        await self.bot.wait_until_ready()
+        while self == self.bot.get_cog("Maintenance"):
+            scheduled = await self.conf.scheduledmaintenance()
+            setting = []
+            for entry in scheduled:
+                if entry[0] <= time.time():
+                    await self.conf.on.set([True, entry[1], entry[2]])
+                else:
+                    setting.append(entry)
+            await self.conf.scheduledmaintenance.set(setting)
 
     async def cog_check(self, ctx):
         on = await self.conf.on()
@@ -46,65 +62,46 @@ class Maintenance(commands.Cog):
         pass
 
     @maintenance.command(name="on")
-    async def _on(self, ctx, *, args=None):
-        """Puts the bot on maintenance, preventing everyone but you from running commands.  Other people will just be told the bot is currently on maintenance.
+    async def _on(self, ctx, *, args: Margs = None):
+        """Puts the bot on maintenance, preventing everyone but you and people whitelisted from running commands.  Other people will just be told the bot is currently on maintenance.
         
-        You can specify arguments by seperating them from each other by a space.  Any argument that ends with an alphabetical letter will be considered as the time for when the maintenance will end.  If there is none, `[p]maintenance clear` will need to be used to remove the maintenance.  All other paramaters will be considered user IDs that can bypass the maintenance.
-        
-        For specifying the time, please end with an alphabetical letter, of one of the following:
-            S => Seconds
-            M = Minutes
-            H => Hours
-            D => Days
-            W => Weeks
+        You can use the following arguments to specify things:
+            --start-in: Makes the maintenace start in that long.
+            --end-in: Schedules the maintenance to end in that long from the current second.
+            --end-after: Schedules the maintenance to end in that long after the maitenance has started.
+            --whitelist: Provide user IDs after this to whitelist people from the maintenance.
             
-        For example, `1s` for one second, `5m` for five minutes, etc."""
+        Examples:
+        `[p]maintenance on --start-in 5 seconds`; starts a maintenance in 5 seconds
+        `[p]maintenance on --start-in 5 seconds --end-in 10 seconds`; starts a maintenance in 5 seconds, then scheduled to end in 10 seconds, so it will only be on maintenance for 5 seconds.
+        `[p]maintenance on --start-in 10 seconds --end-after 10 seconds --whitelist 473541068378341376 473541068378341377`; starts a maintenance in 10 seconds, that lasts for 10 seconds after, and has the two user IDs who are exempted from the maintenance."""
         on = await self.conf.on()
-        if args == None:
-            args = []
         if on[0]:
             return await ctx.send(
                 f"The bot is already on maintenance.  Please clear with `{ctx.prefix}maintenance off`"
             )
-        args = args.split(" ") if hasattr(args, "split") else args
-        num = None
-        whitelist = []
-        for arg in args:
-            if arg[-1].isalpha():
-                num = int(arg[:-1])
-                arg = arg.lower()
-                if arg.endswith("m"):
-                    num *= 60
-                elif arg.endswith("h"):
-                    num *= 3600
-                elif arg.endswith("d"):
-                    num *= 86400
-                elif arg.endswith("w"):
-                    num *= 604800
-                elif arg.endswith("s"):
-                    pass
-                else:
-                    return await ctx.send(
-                        "You provided a time ending for the arguments, but an invalid timing letter.  Please use either s, m, h, d or w."
-                    )
-            else:
-                arg = int(arg)
-                user = self.bot.get_user(arg)
-                if not user:
-                    return await ctx.send(f"Invalid User ID: {arg}")
-                whitelist.append(arg)
-        if not num:
-            num = 0
+        scheduled = await self.conf.scheduledmaintenance()
+        if args:
+            num = args.end
+            whitelist = args.whitelist
+            start = args.start
         else:
-            num += time.time()
-        setting = [True, num, whitelist]
-        await self.conf.on.set(setting)
+            num = 0
+            whitelist = []
+            start = time.time()
+        if start == time.time():
+            setting = [True, num, whitelist]
+            await self.conf.on.set(setting)
+        else:
+            scheduled.append([start, args.end, whitelist])
+            await self.conf.scheduledmaintenance.set(scheduled)
         await ctx.tick()
 
     @maintenance.command()
     async def settings(self, ctx):
         """Tells the current settings of the cog."""
         on = await self.conf.on()
+        scheduled = await self.conf.scheduledmaintenance()
         message = await self.conf.message()
         delete = await self.conf.delete()
         sending = (
@@ -113,6 +110,12 @@ class Maintenance(commands.Cog):
         )
         if not on[0]:
             sending += "The bot is currently not on maintenance."
+            if len(scheduled) != 0:
+                sending += "  The following maintenances are scheduled for:```\n"
+                for x in scheduled:
+                    starting = str(datetime.fromtimestamp(x[0]).strftime("%A, %B %d, %Y %I:%M:%S"))
+                    sending += "    • " + starting
+                sending += "```"
             return await ctx.send(sending)
         if on[1] != 0:
             done = str(datetime.fromtimestamp(on[1]).strftime("%A, %B %d, %Y %I:%M:%S"))
@@ -125,10 +128,11 @@ class Maintenance(commands.Cog):
             users.append(user_profile.display_name) if hasattr(
                 user_profile, "display_name"
             ) else users.append(f"<removed user {user}>")
+        sending += "The bot is currently under maintenance.  " f"It will be done {str(done)}.  "
         sending += (
-            "The bot is currently under maintenance.  "
-            f"It will be done {str(done)}.  "
-            f"The following users are whitelisted from the maintenance: `{'` `'.join(users)}`"
+            f"The following users are whitelisted from the maintenance: `{'` `'.join(users)}`."
+            if len(users) != 0
+            else "No users are whitelisted from the maintenance."
         )
         await ctx.send(sending)
 

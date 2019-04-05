@@ -107,7 +107,7 @@ class Evolution(commands.Cog):
         level = int(description.split(" ")[1])
         await ctx.invoke(self.buy, level=level)
 
-    @commands.group(alises=["e", "evo"])
+    @commands.group(aliases=["e", "evo"])
     async def evolution(self, ctx):
         """EVOLVE THE GREATEST ANIMALS OF ALL TIME!!!!"""
         pass

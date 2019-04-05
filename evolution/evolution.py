@@ -155,7 +155,8 @@ class Evolution(commands.Cog):
         balance = await bank.get_balance(ctx.author)
         bought = await self.conf.user(ctx.author).bought()
         current_bought = int(bought.get(str(level), 0))
-        if balance < level * 300 * amount:
+        price = self.get_total_price(level, current_bought, amount)
+        if balance < price:
             return await ctx.send("You don't have enough credits!")
         if prev >= 6:
             return await ctx.send("You have too many of those!  Evolve some of them already.")
@@ -167,7 +168,6 @@ class Evolution(commands.Cog):
             return await ctx.send("Ya cant buy a negative amount!")
         if (level > int(highest) - 3) and (level > 1):
             return await ctx.send("Please get higher animals to buy higher levels of them.")
-        price = self.get_total_price(level, current_bought, amount)
         m = await ctx.send(
             f"Are you sure you want to buy {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}?  This will cost you {str(price)}."
         )

@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.  Have fun!",
+    "name" : "evolution",
+    "short" : "Buy and get animals to get more economy credits!",
+    "description" : "Buy animals using economy credits or get them every 10 minutes, and gain a certain amount of credits every minute!",
+    "tags" : ["fun"],
+    "requirements" : [],
+    "hidden" : false
+}

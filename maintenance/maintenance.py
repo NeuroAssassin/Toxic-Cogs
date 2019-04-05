@@ -1,6 +1,7 @@
 from redbot.core import commands, checks, Config
 from .converters import Margs
 from datetime import datetime
+import asyncio
 import discord
 import time
 
@@ -35,6 +36,7 @@ class Maintenance(commands.Cog):
                 else:
                     setting.append(entry)
             await self.conf.scheduledmaintenance.set(setting)
+            await asyncio.sleep(5)
 
     async def cog_check(self, ctx):
         on = await self.conf.on()

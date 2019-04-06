@@ -97,10 +97,13 @@ class Evolution(commands.Cog):
         return (self.get_level_tax(level - 1) * 2) + 100
 
     def get_total_price(self, level, bought, amount):
-        normal = level * 300 * amount
-        level_tax = self.get_level_tax(level)
-        tax = bought * 100
-        return normal + level_tax + tax
+        total = 0
+        for x in range(amount):
+            normal = level * 300
+            level_tax = self.get_level_tax(level)
+            tax = bought * 100
+            total += normal + level_tax + tax + (x * 100)
+        return total
 
     async def shop_control_callback(self, ctx, pages, controls, message, page, timeout, emoji):
         description = message.embeds[0].description
@@ -150,7 +153,7 @@ class Evolution(commands.Cog):
         if animal in ["", "P"]:
             return await ctx.send("Finish starting your evolution first")
         animals = await self.conf.user(ctx.author).animals()
-        highest = max(list(animals.keys()))
+        highest = max(list(map(int, animals.keys())))
         prev = int(animals.get(str(level), 0))
         balance = await bank.get_balance(ctx.author)
         bought = await self.conf.user(ctx.author).bought()
@@ -230,18 +233,16 @@ class Evolution(commands.Cog):
         animal = await self.conf.user(ctx.author).animal()
         if animal in ["", "P"]:
             return await ctx.send("Finish starting your evolution first")
-        embed = discord.Embed(
-            title=f"The amount of {animal}s you have in your backyard.", color=0xD2B48C
-        )
+        embed_list = []
         animals = await self.conf.user(ctx.author).animals()
         for level, amount in animals.items():
-            if amount == 0:
-                continue
-            embed.add_field(
-                name=f"Level {str(level)} {animal}",
-                value=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''} \N{ZERO WIDTH SPACE} \N{ZERO WIDTH SPACE}",
+            embed = discord.Embed(
+                title=f"Level {str(level)} {animal}",
+                description=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''}",
+                color=0xD2B48C,
             )
-        await ctx.send(embed=embed)
+            embed_list.append(embed)
+        await menu(ctx, embed_list, DEFAULT_CONTROLS)
 
     @evolution.command()
     async def evolve(self, ctx, level: int, amount: int = 1):

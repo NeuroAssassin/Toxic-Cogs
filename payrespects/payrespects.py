@@ -37,7 +37,7 @@ class PayRespects(commands.Cog):
                         description=message.content, color=0x0000FF, timestamp=previous_timestamp
                     )
                     embed.set_author(
-                        name=message.author.display_name, url=message.author.avatar_url
+                        name=message.author.display_name, icon_url=message.author.avatar_url
                     )
                     embed.add_field(name="Jump", value=f"[Click here]({message.jump_url})")
                     await board_message.edit(
@@ -70,7 +70,7 @@ class PayRespects(commands.Cog):
                             timestamp=datetime.datetime.utcnow(),
                         )
                         embed.set_author(
-                            name=message.author.display_name, url=message.author.avatar_url
+                            name=message.author.display_name, icon_url=message.author.avatar_url
                         )
                         embed.add_field(name="Jump", value=f"[Click here]({message.jump_url})")
                         m = await sending_channel.send(
@@ -94,7 +94,7 @@ class PayRespects(commands.Cog):
                         description=message.content, color=0x0000FF, timestamp=previous_timestamp
                     )
                     embed.set_author(
-                        name=message.author.display_name, url=message.author.avatar_url
+                        name=message.author.display_name, icon_url=message.author.avatar_url
                     )
                     embed.add_field(name="Jump", value=f"[Click here]({message.jump_url})")
                     await board_message.edit(

@@ -2,15 +2,12 @@ from redbot.core import commands, Config
 import discord
 import datetime
 
+
 class PayRespects(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
-        self.conf.register_guild(
-            postchannel=0,
-            required=3,
-            cache={}
-        )
+        self.conf.register_guild(postchannel=0, required=3, cache={})
 
     async def on_raw_reaction_remove(self, payload):
         channel = self.bot.get_channel(payload.channel_id)
@@ -36,10 +33,17 @@ class PayRespects(commands.Cog):
                         del messages[str(message.id)]
                         return await self.conf.guild(guild).cache.set(messages)
                     previous_timestamp = board_message.embeds[0].timestamp
-                    embed = discord.Embed(description=message.content, color=0x0000ff, timestamp=previous_timestamp)
-                    embed.set_author(name=message.author.display_name, url=message.author.avatar_url)
+                    embed = discord.Embed(
+                        description=message.content, color=0x0000FF, timestamp=previous_timestamp
+                    )
+                    embed.set_author(
+                        name=message.author.display_name, url=message.author.avatar_url
+                    )
                     embed.add_field(name="Jump", value=f"[Click here]({message.jump_url})")
-                    await board_message.edit(content=f"\N{REGIONAL INDICATOR SYMBOL LETTER F} {channel.mention} ID: {message.id};  Respects paid: {count}", embed=embed)
+                    await board_message.edit(
+                        content=f"\N{REGIONAL INDICATOR SYMBOL LETTER F} {channel.mention} ID: {message.id};  Respects paid: {count}",
+                        embed=embed,
+                    )
 
     async def on_raw_reaction_add(self, payload):
         channel = self.bot.get_channel(payload.channel_id)
@@ -60,10 +64,19 @@ class PayRespects(commands.Cog):
                 sending_channel = self.bot.get_channel(await self.conf.guild(guild).postchannel())
                 if sending_channel:
                     try:
-                        embed = discord.Embed(description=message.content, color=0x0000ff, timestamp=datetime.datetime.utcnow())
-                        embed.set_author(name=message.author.display_name, url=message.author.avatar_url)
+                        embed = discord.Embed(
+                            description=message.content,
+                            color=0x0000FF,
+                            timestamp=datetime.datetime.utcnow(),
+                        )
+                        embed.set_author(
+                            name=message.author.display_name, url=message.author.avatar_url
+                        )
                         embed.add_field(name="Jump", value=f"[Click here]({message.jump_url})")
-                        m = await sending_channel.send(f"\N{REGIONAL INDICATOR SYMBOL LETTER F} {channel.mention} ID: {message.id};  Respects paid: {count}", embed=embed)
+                        m = await sending_channel.send(
+                            f"\N{REGIONAL INDICATOR SYMBOL LETTER F} {channel.mention} ID: {message.id};  Respects paid: {count}",
+                            embed=embed,
+                        )
                         messages[str(message.id)] = str(m.id)
                         await self.conf.guild(guild).cache.set(messages)
                     except:
@@ -77,11 +90,18 @@ class PayRespects(commands.Cog):
                 board_message = await board_channel.get_message(int(messages[str(message.id)]))
                 if board_message:
                     previous_timestamp = board_message.embeds[0].timestamp
-                    embed = discord.Embed(description=message.content, color=0x0000ff, timestamp=previous_timestamp)
-                    embed.set_author(name=message.author.display_name, url=message.author.avatar_url)
+                    embed = discord.Embed(
+                        description=message.content, color=0x0000FF, timestamp=previous_timestamp
+                    )
+                    embed.set_author(
+                        name=message.author.display_name, url=message.author.avatar_url
+                    )
                     embed.add_field(name="Jump", value=f"[Click here]({message.jump_url})")
-                    await board_message.edit(content=f"\N{REGIONAL INDICATOR SYMBOL LETTER F} {channel.mention} ID: {message.id};  Respects paid: {count}", embed=embed)
-        
+                    await board_message.edit(
+                        content=f"\N{REGIONAL INDICATOR SYMBOL LETTER F} {channel.mention} ID: {message.id};  Respects paid: {count}",
+                        embed=embed,
+                    )
+
     @commands.group()
     async def fboard(self, ctx):
         """Pay respects"""

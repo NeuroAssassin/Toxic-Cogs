@@ -1,4 +1,4 @@
-from redbot.core import commands, Config
+from redbot.core import commands, Config, checks
 import discord
 import datetime
 
@@ -102,6 +102,7 @@ class PayRespects(commands.Cog):
                         embed=embed,
                     )
 
+    @checks.admin()
     @commands.group()
     async def fboard(self, ctx):
         """Pay respects"""

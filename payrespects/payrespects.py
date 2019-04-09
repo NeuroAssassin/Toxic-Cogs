@@ -13,7 +13,7 @@ class PayRespects(commands.Cog):
         channel = self.bot.get_channel(payload.channel_id)
         message = await channel.get_message(payload.message_id)
         guild = self.bot.get_guild(payload.guild_id)
-        blacklisted = self.conf.guild(guild).blacklist()
+        blacklisted = await self.conf.guild(guild).blacklist()
         if str(channel.id) in blacklisted:
             return
         if str(payload.emoji) != "\N{REGIONAL INDICATOR SYMBOL LETTER F}":
@@ -52,7 +52,7 @@ class PayRespects(commands.Cog):
         channel = self.bot.get_channel(payload.channel_id)
         message = await channel.get_message(payload.message_id)
         guild = self.bot.get_guild(payload.guild_id)
-        blacklisted = self.conf.guild(guild).blacklist()
+        blacklisted = await self.conf.guild(guild).blacklist()
         if str(channel.id) in blacklisted:
             return
         if str(payload.emoji) != "\N{REGIONAL INDICATOR SYMBOL LETTER F}":

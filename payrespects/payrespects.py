@@ -128,6 +128,7 @@ class PayRespects(commands.Cog):
 
     @fboard.command()
     async def blacklist(self, ctx, channel: discord.TextChannel):
+        """Blacklist a channel to or from the F-board"""
         async with self.conf.guild(ctx.guild).blacklist() as blacklist:
             if str(channel.id) in blacklist:
                 blacklist.remove(str(channel.id))

@@ -7,12 +7,15 @@ class PayRespects(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
-        self.conf.register_guild(postchannel=0, required=3, cache={})
+        self.conf.register_guild(postchannel=0, required=3, cache={}, blacklist=[])
 
     async def on_raw_reaction_remove(self, payload):
         channel = self.bot.get_channel(payload.channel_id)
         message = await channel.get_message(payload.message_id)
         guild = self.bot.get_guild(payload.guild_id)
+        blacklisted = self.conf.guild(guild).blacklist()
+        if str(channel.id) in blacklisted:
+            return
         if str(payload.emoji) != "\N{REGIONAL INDICATOR SYMBOL LETTER F}":
             return
         count = 0
@@ -49,6 +52,9 @@ class PayRespects(commands.Cog):
         channel = self.bot.get_channel(payload.channel_id)
         message = await channel.get_message(payload.message_id)
         guild = self.bot.get_guild(payload.guild_id)
+        blacklisted = self.conf.guild(guild).blacklist()
+        if str(channel.id) in blacklisted:
+            return
         if str(payload.emoji) != "\N{REGIONAL INDICATOR SYMBOL LETTER F}":
             return
         count = 0
@@ -119,3 +125,14 @@ class PayRespects(commands.Cog):
         """Set how many respects must be paid to be broadcasted"""
         await self.conf.guild(ctx.guild).required.set(amount)
         await ctx.tick()
+
+    @fboard.command()
+    async def blacklist(self, ctx, channel: discord.TextChannel):
+        async with self.conf.guild(ctx.guild).blacklist() as blacklist:
+            if str(channel.id) in blacklist:
+                blacklist.remove(str(channel.id))
+                msg = "The channel has been removed from the blacklist."
+            else:
+                blacklist.append(str(channel.id))
+                msg = "The channel has been added to the blacklist."
+        await ctx.send(msg)

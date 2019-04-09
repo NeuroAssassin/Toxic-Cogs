@@ -228,34 +228,51 @@ class Evolution(commands.Cog):
         await menu(ctx, embed_list, controls)
 
     @evolution.command()
-    async def backyard(self, ctx):
-        """Where ya animals live!"""
+    async def backyard(self, ctx, menu: bool=False):
+        """Where ya animals live!  Pass 1 or true to put it in a menu."""
         animal = await self.conf.user(ctx.author).animal()
         if animal in ["", "P"]:
             return await ctx.send("Finish starting your evolution first")
-        embed_list = []
         animals = await self.conf.user(ctx.author).animals()
-        for level, amount in animals.items():
+        if menu:
+            embed_list = []
+            for level, amount in animals.items():
+                if amount == 0:
+                    continue
+                embed = discord.Embed(
+                    title=f"Level {str(level)} {animal}",
+                    description=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''}",
+                    color=0xD2B48C,
+                )
+                embed_list.append(embed)
+            await menu(ctx, embed_list, DEFAULT_CONTROLS)
+        else:
             embed = discord.Embed(
-                title=f"Level {str(level)} {animal}",
-                description=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''}",
-                color=0xD2B48C,
+                title=f"The amount of {animal}s you have in your backyard.", color=0xD2B48C
             )
-            embed_list.append(embed)
-        await menu(ctx, embed_list, DEFAULT_CONTROLS)
+            for level, amount in animals.items():
+                if amount == 0:
+                    continue
+                embed.add_field(
+                    name=f"Level {str(level)} {animal}",
+                    value=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''} \N{ZERO WIDTH SPACE} \N{ZERO WIDTH SPACE}"
+                )
+            await ctx.send(embed=embed)
 
     @evolution.command()
     async def evolve(self, ctx, level: int, amount: int = 1):
         """Evolve them animals to get more of da economy credits"""
         if level < 1 or amount < 1:
             return await ctx.send("Too low!")
+        if amount > 3:
+            return await ctx.send("Too high!")
         animal = await self.conf.user(ctx.author).animal()
         if animal in ["", "P"]:
             return await ctx.send("Finish starting your evolution first")
         animals = await self.conf.user(ctx.author).animals()
         current = animals.get(str(level), 0)
         highest = int(max(list(animals.keys())))
-        if current < 2:
+        if current < (amount * 2):
             return await ctx.send("You don't have enough animals at that level.")
         counter = 0
         found_new = False

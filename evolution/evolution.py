@@ -75,6 +75,7 @@ class Evolution(commands.Cog):
                     multiplier = await self.conf.user(member).multiplier()
                     if animal == "":
                         continue
+                    all_gaining = 0
                     for key, value in animals.items():
                         for x in range(0, value):
                             chance = random.randint(1, 100)
@@ -88,7 +89,8 @@ class Evolution(commands.Cog):
                             except:
                                 gaining = 1000
                             gaining *= multiplier
-                            await bank.deposit_credits(member, math.ceil(gaining))
+                            all_gaining += gaining
+                    await bank.deposit_credits(member, math.ceil(all_gaining))
             await asyncio.sleep(60)
 
     def get_level_tax(self, level):

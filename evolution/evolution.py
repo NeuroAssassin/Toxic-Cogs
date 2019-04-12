@@ -273,7 +273,7 @@ class Evolution(commands.Cog):
             return await ctx.send("Finish starting your evolution first")
         animals = await self.conf.user(ctx.author).animals()
         current = animals.get(str(level), 0)
-        highest = int(max(list(animals.keys())))
+        highest = max(list(map(int, animals.keys())))
         if current < (amount * 2):
             return await ctx.send("You don't have enough animals at that level.")
         counter = 0

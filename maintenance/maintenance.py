@@ -35,7 +35,8 @@ class Maintenance(commands.Cog):
                     await self.conf.on.set([True, entry[1], entry[2]])
                 else:
                     setting.append(entry)
-            await self.conf.scheduledmaintenance.set(setting)
+            if setting != scheduled:
+                await self.conf.scheduledmaintenance.set(setting)
             await asyncio.sleep(5)
 
     async def cog_check(self, ctx):
@@ -47,6 +48,7 @@ class Maintenance(commands.Cog):
             await self.conf.on.set(setting)
             return True
         on[2].append(self.bot.owner_id)
+        [on[2].append(co) for co in self.bot._co_owners]
         if ctx.author.id in on[2]:
             return True
         message = await self.conf.message()

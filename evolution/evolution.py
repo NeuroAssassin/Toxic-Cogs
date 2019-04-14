@@ -220,9 +220,12 @@ class Evolution(commands.Cog):
             embed.add_field(name="Price", value=self.get_total_price(int(x), current, 1))
             last = 0
             chances = []
-            for chance, value in LEVELS[int(x)].items():
-                chances.append(f"{str(chance-last)}% chance to gain {str(value)}")
-                last = chance
+            try:
+                for chance, value in LEVELS[int(x)].items():
+                    chances.append(f"{str(chance-last)}% chance to gain {str(value)}")
+                    last = chance
+            except KeyError:
+                chances = ["100% chance to gain 1000"]
             embed.add_field(name="Income", value="\n".join(chances))
             embed_list.append(embed)
         controls = copy.deepcopy(DEFAULT_CONTROLS)

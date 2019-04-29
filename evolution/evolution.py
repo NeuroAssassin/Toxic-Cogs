@@ -45,20 +45,16 @@ class Evolution(commands.Cog):
     async def gain_bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            seen = []
-            for guild in self.bot.guilds:
-                for member in guild.members:
-                    if member.id in seen:
-                        continue
-                    seen.append(member.id)
-                    animals = await self.conf.user(member).animals()
-                    animal = await self.conf.user(member).animal()
-                    if animal == "":
-                        continue
-                    prev = int(animals.get("1", 0))
-                    if prev < 6:
-                        animals["1"] = prev + 1
-                        await self.conf.user(member).animals.set(animals)
+            for member in self.bot.users:
+                animals = await self.conf.user(member).animals()
+                animal = await self.conf.user(member).animal()
+                if animal == "":
+                    continue
+                prev = int(animals.get("1", 0))
+                if prev < 6:
+                    animals["1"] = prev + 1
+                    await self.conf.user(member).animals.set(animals)
+                await asyncio.sleep(0.1) # Just in case for config abuse
             await asyncio.sleep(600)
 
     async def bg_task(self):

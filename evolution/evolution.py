@@ -54,39 +54,35 @@ class Evolution(commands.Cog):
                 if prev < 6:
                     animals["1"] = prev + 1
                     await self.conf.user(member).animals.set(animals)
-                await asyncio.sleep(0.1) # Just in case for config abuse
+                await asyncio.sleep(0.1)
             await asyncio.sleep(600)
 
     async def bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            seen = []
-            for guild in self.bot.guilds:
-                for member in guild.members:
-                    if member.id in seen:
-                        continue
-                    seen.append(member.id)
-                    animals = await self.conf.user(member).animals()
-                    animal = await self.conf.user(member).animal()
-                    multiplier = await self.conf.user(member).multiplier()
-                    if animal == "":
-                        continue
-                    all_gaining = 0
-                    for key, value in animals.items():
-                        for x in range(0, value):
-                            chance = random.randint(1, 100)
-                            try:
-                                chances = list(LEVELS[int(key)].keys())
-                            except:
-                                chances = [100]
-                            chosen = min([c for c in chances if chance <= c])
-                            try:
-                                gaining = LEVELS[int(key)][chosen]
-                            except:
-                                gaining = 1000
-                            gaining *= multiplier
-                            all_gaining += gaining
-                    await bank.deposit_credits(member, math.ceil(all_gaining))
+            for member in self.bot.users:
+                animals = await self.conf.user(member).animals()
+                animal = await self.conf.user(member).animal()
+                multiplier = await self.conf.user(member).multiplier()
+                if animal == "":
+                    continue
+                all_gaining = 0
+                for key, value in animals.items():
+                    for x in range(0, value):
+                        chance = random.randint(1, 100)
+                        try:
+                            chances = list(LEVELS[int(key)].keys())
+                        except:
+                            chances = [100]
+                        chosen = min([c for c in chances if chance <= c])
+                        try:
+                            gaining = LEVELS[int(key)][chosen]
+                        except:
+                            gaining = 1000
+                        gaining *= multiplier
+                        all_gaining += gaining
+                await bank.deposit_credits(member, math.ceil(all_gaining))
+                await asyncio.sleep(0.1)
             await asyncio.sleep(60)
 
     def get_level_tax(self, level):

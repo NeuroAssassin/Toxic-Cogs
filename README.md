@@ -17,7 +17,7 @@ Cogs for Red - Discord Bot by TwentySix.
 ****
 ### Information
 
-The Toxic-Cogs repo holds a bunch of different cogs, some being tools, some being for fun (like simon, twenty (2048)) and some others giving information (sw (Star Wars)).  You can find descriptions of them below in the table.
+The Toxic-Cogs repo holds a bunch of different cogs, some being tools (listpermissions, maintenance), some being for fun (like simon, twenty (2048)) and some others giving information (sw (Star Wars)).  You can find descriptions of them below in the table.
 
 [Back to Table of Contents](#table-of-contents)
 ****
@@ -42,7 +42,8 @@ These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot)
 | UpdateChecker | <details><summary>Get notifications when there is an update for one of your repositories added to your bot</summary>Have your bot tell you in DM or a channel when there is an update for one of the repos added to your bot</details> |
 | SW | <details><summary>Get Star Wars information through Discord</summary>Get info about something in Star Wars using this cog</details> |
 | Maintenance | <details><summary>Put your bot on maintenance</summary>Put your bot on maintenance, telling people who are not in the whitelist for the maintenance that the bot is on maintenance, and will not respond to commands</details> |
-| Evolution | <details><summary>Buy animals with economy credits and get more credits!</summary>A cog that I kinda made after a mobile app, kinda cheesy but fun.</details> |
+| Evolution | <details><summary>Buy animals with economy credits and get more credits!</summary>A cog that I made after a mobile app, kinda cheesy but fun.</details> |
+| Switcher | <details><summary>Switch between bot accounts quick and easily</summary>Register the bot with a name and the correct token, then just run a command to easily switch to it</details> |
 
 [Back to Table of Contents](#table-of-contents)
 ****

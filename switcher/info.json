@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.",
+    "name" : "switcher",
+    "short" : "Allows the bot owner to switch between bot's via token.",
+    "description" : "This cog allows the bot owner to change the bot instance to another set in the cog, to make it easy if you need to switch the bot you are using.",
+    "tags" : ["tools"],
+    "requirements" : ["tabulate"],
+    "hidden" : false
+}

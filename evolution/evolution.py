@@ -1,6 +1,8 @@
 from redbot.core import commands, Config, bank
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from threading import Thread
 import copy
+import time
 import asyncio
 import random
 import discord
@@ -42,48 +44,58 @@ class Evolution(commands.Cog):
         self.money_task.cancel()
         self.gain_task.cancel()
 
+    def gain_bg_thread(self):
+        for member in self.bot.users:
+            animals = self.bot.loop.create_task(self.conf.user(member).animals())
+            animal = self.bot.loop.create_task(self.conf.user(member).animal())
+            if animal == "":
+                continue
+            prev = int(animals.get("1", 0))
+            if prev < 6:
+                animals["1"] = prev + 1
+                self.bot.loop.create_task(self.conf.user(member).animals.set(animals))
+            time.sleep(0.1)
+
+    def bg_thread(self):
+        for member in self.bot.users:
+            animals = self.bot.loop.create_task(self.conf.user(member).animals())
+            animal = self.bot.loop.create_task(self.conf.user(member).animal())
+            multiplier = self.bot.loop.create_task(self.conf.user(member).multiplier())
+            if animal == "":
+                continue
+            all_gaining = 0
+            for key, value in animals.items():
+                for x in range(0, value):
+                    chance = random.randint(1, 100)
+                    try:
+                        chances = list(LEVELS[int(key)].keys())
+                    except:
+                        chances = [100]
+                    chosen = min([c for c in chances if chance <= c])
+                    try:
+                        gaining = LEVELS[int(key)][chosen]
+                    except:
+                        gaining = 1000
+                    gaining *= multiplier
+                    all_gaining += gaining
+            self.bot.loop.create_task(bank.deposit_credits(member, math.ceil(all_gaining)))
+            time.sleep(0.1)
+
     async def gain_bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            for member in self.bot.users:
-                animals = await self.conf.user(member).animals()
-                animal = await self.conf.user(member).animal()
-                if animal == "":
-                    continue
-                prev = int(animals.get("1", 0))
-                if prev < 6:
-                    animals["1"] = prev + 1
-                    await self.conf.user(member).animals.set(animals)
-                await asyncio.sleep(0.1)
+            thread = Thread(target=self.gain_bg_thread)
+            thread.start()
+            thread.join()
             await asyncio.sleep(600)
 
     async def bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            for member in self.bot.users:
-                animals = await self.conf.user(member).animals()
-                animal = await self.conf.user(member).animal()
-                multiplier = await self.conf.user(member).multiplier()
-                if animal == "":
-                    continue
-                all_gaining = 0
-                for key, value in animals.items():
-                    for x in range(0, value):
-                        chance = random.randint(1, 100)
-                        try:
-                            chances = list(LEVELS[int(key)].keys())
-                        except:
-                            chances = [100]
-                        chosen = min([c for c in chances if chance <= c])
-                        try:
-                            gaining = LEVELS[int(key)][chosen]
-                        except:
-                            gaining = 1000
-                        gaining *= multiplier
-                        all_gaining += gaining
-                await bank.deposit_credits(member, math.ceil(all_gaining))
-                await asyncio.sleep(0.1)
-            await asyncio.sleep(60)
+            thread = Thread(target=self.bg_thread)
+            thread.start()
+            thread.join()
+            await asyncio.sleep(600)
 
     def get_level_tax(self, level):
         if level == 1:

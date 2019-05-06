@@ -32,6 +32,9 @@ class Sql(commands.Cog):
 
     __author__ = "Neuro Assassin#4227 <@473541068378341376>"
 
+    def cog_unload(self):
+        self.__unload()
+
     def __unload(self):
         # Delete tables from memory
         self.memc.execute("SELECT name FROM sqlite_master WHERE type= 'table'")

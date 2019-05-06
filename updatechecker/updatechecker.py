@@ -28,6 +28,9 @@ class UpdateChecker(commands.Cog):
         self.conf.register_global(**default_global)
         self.task = self.bot.loop.create_task(self.bg_task())
 
+    def cog_unload(self):
+        self.__unload()
+
     def __unload(self):
         self.task.cancel()
         self.session.detach()

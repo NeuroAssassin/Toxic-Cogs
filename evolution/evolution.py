@@ -40,6 +40,9 @@ class Evolution(commands.Cog):
         self.money_task = self.bot.loop.create_task(self.bg_task())
         self.gain_task = self.bot.loop.create_task(self.gain_bg_task())
 
+    def cog_unload(self):
+        self.__unload()
+
     def __unload(self):
         self.money_task.cancel()
         self.gain_task.cancel()

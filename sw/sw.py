@@ -10,6 +10,9 @@ class SW(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
 
+    def cog_unload(self):
+        self.__unload()
+
     def __unload(self):
         self.session.detach()
 

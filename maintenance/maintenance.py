@@ -18,11 +18,14 @@ class Maintenance(commands.Cog):
         }
         # When on maintenance, on will be set to [True, second of when it is off maintenance, list of people who can bypass the maintenance]
         self.conf.register_global(**default_global)
-        self.bot.add_check(self.cog_check)
+        self.bot.add_check(self.this_check)
         self.task = self.bot.loop.create_task(self.bg_loop())
 
+    def cog_unload(self):
+        self.__unload()
+
     def __unload(self):
-        self.bot.remove_check(self.cog_check)
+        self.bot.remove_check(self.this_check)
         self.task.cancel()
 
     async def bg_loop(self):
@@ -39,7 +42,7 @@ class Maintenance(commands.Cog):
                 await self.conf.scheduledmaintenance.set(setting)
             await asyncio.sleep(5)
 
-    async def cog_check(self, ctx):
+    async def this_check(self, ctx):
         on = await self.conf.on()
         if not on[0]:
             return True

@@ -48,45 +48,46 @@ class Evolution(commands.Cog):
     async def gain_bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            async with self.conf.all_users() as users:
-                for user, data in users.items():
-                    animals = data["animals"]
-                    animal = data["animal"]
-                    if animal == "":
-                        continue
-                    prev = int(animals.get("1", 0))
-                    if prev < 6:
-                        animals["1"] = prev + 1
-                    await asyncio.sleep(0.1)
+            users = await self.conf.all_users()
+            for user, data in users.items():
+                animals = data["animals"]
+                animal = data["animal"]
+                if animal == "":
+                    continue
+                prev = int(animals.get("1", 0))
+                if prev < 6:
+                    animals["1"] = prev + 1
+                await asyncio.sleep(0.1)
+                await self.conf.user(user).animals.set(animals)
             await asyncio.sleep(600)
 
     async def bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            async with self.conf.all_users() as users:
-                for user, data in users.items():
-                    animal = data['animal']
-                    if animal == "":
-                        continue
-                    multiplier = data['multiplier']
-                    animals = data['multiplier']
-                    all_gaining = 0
-                    for key, value in animals.items():
-                        for x in range(0, value):
-                            chance = random.randint(1, 100)
-                            try:
-                                chances = list(LEVELS[int(key)].keys())
-                            except:
-                                chances = [100]
-                            chosen = min([c for c in chances if chance <= c])
-                            try:
-                                gaining = LEVELS[int(key)][chosen]
-                            except:
-                                gaining = 1000
-                            gaining *= multiplier
-                            all_gaining += gaining
-                    await bank.deposit_credits(user, math.ceil(all_gaining))
-                    await asyncio.sleep(0.1)
+            users = await self.conf.all_users()
+            for user, data in users.items():
+                animal = data['animal']
+                if animal == "":
+                    continue
+                multiplier = data['multiplier']
+                animals = data['multiplier']
+                all_gaining = 0
+                for key, value in animals.items():
+                    for x in range(0, value):
+                        chance = random.randint(1, 100)
+                        try:
+                            chances = list(LEVELS[int(key)].keys())
+                        except:
+                            chances = [100]
+                        chosen = min([c for c in chances if chance <= c])
+                        try:
+                            gaining = LEVELS[int(key)][chosen]
+                        except:
+                            gaining = 1000
+                        gaining *= multiplier
+                        all_gaining += gaining
+                await bank.deposit_credits(user, math.ceil(all_gaining))
+                await asyncio.sleep(0.1)
             await asyncio.sleep(60)
 
     def get_level_tax(self, level):

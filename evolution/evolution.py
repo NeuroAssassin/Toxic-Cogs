@@ -58,6 +58,10 @@ class Evolution(commands.Cog):
                 if prev < 6:
                     animals["1"] = prev + 1
                 await asyncio.sleep(0.1)
+                try:
+                    user = await self.bot.get_user_info(user)
+                except AttributeError:
+                    user = await self.bot.fetch_user(user)
                 await self.conf.user(user).animals.set(animals)
             await asyncio.sleep(600)
 
@@ -70,7 +74,7 @@ class Evolution(commands.Cog):
                 if animal == "":
                     continue
                 multiplier = data['multiplier']
-                animals = data['multiplier']
+                animals = data['animals']
                 all_gaining = 0
                 for key, value in animals.items():
                     for x in range(0, value):
@@ -86,6 +90,10 @@ class Evolution(commands.Cog):
                             gaining = 1000
                         gaining *= multiplier
                         all_gaining += gaining
+                try:
+                    user = await self.bot.get_user_info(user)
+                except AttributeError:
+                    user = await self.bot.fetch_user(user)
                 await bank.deposit_credits(user, math.ceil(all_gaining))
                 await asyncio.sleep(0.1)
             await asyncio.sleep(60)

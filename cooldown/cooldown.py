@@ -4,11 +4,6 @@ import asyncio
 import time
 import traceback
 
-
-class CooldownFailure(dc.CommandError):
-    pass
-
-
 class Cooldown(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -16,6 +11,9 @@ class Cooldown(commands.Cog):
         default_global = {"data": []}
         self.conf.register_global(**default_global)
         self.task = self.bot.loop.create_task(self.initialize())
+
+    def cog_unload(self):
+        self.__unload()
 
     def __unload(self):
         self.task.cancel()

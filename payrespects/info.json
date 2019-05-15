@@ -1,9 +1,0 @@
-{
-    "author" : ["Neuro Assassin"],
-    "install_msg" : "Press F to pay respects",
-    "name" : "payrespects",
-    "short" : "Press F to go on the F Board.",
-    "description" : "Literally just like starboard, but with F's.",
-    "tags" : ["fun"],
-    "hidden" : false
-}

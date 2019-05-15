@@ -62,7 +62,8 @@ class Evolution(commands.Cog):
                     user = await self.bot.get_user_info(user)
                 except AttributeError:
                     user = await self.bot.fetch_user(user)
-                await self.conf.user(user).animals.set(animals)
+                if user:
+                    await self.conf.user(user).animals.set(animals)
             await asyncio.sleep(600)
 
     async def bg_task(self):
@@ -94,19 +95,20 @@ class Evolution(commands.Cog):
                     user = await self.bot.get_user_info(user)
                 except AttributeError:
                     user = await self.bot.fetch_user(user)
-                await bank.deposit_credits(user, math.ceil(all_gaining))
+                if user:
+                    await bank.deposit_credits(user, math.ceil(all_gaining))
                 await asyncio.sleep(0.1)
             await asyncio.sleep(60)
 
     def get_level_tax(self, level):
         if level == 1:
             return 0
-        return (self.get_level_tax(level - 1) * 2) + 100
+        return (self.get_level_tax(level - 1) * 2) + 200
 
     def get_total_price(self, level, bought, amount):
         total = 0
         for x in range(amount):
-            normal = level * 300
+            normal = level * 400
             level_tax = self.get_level_tax(level)
             tax = bought * 100
             total += normal + level_tax + tax + (x * 100)

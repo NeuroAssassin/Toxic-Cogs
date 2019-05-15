@@ -37,7 +37,7 @@ class UpdateChecker(commands.Cog):
 
     async def bg_task(self):
         await self.bot.wait_until_ready()
-        # To make sure owner gets set
+        # Just in case
         await asyncio.sleep(10)
         while True:
             updated = await self.conf.updated()
@@ -55,7 +55,7 @@ class UpdateChecker(commands.Cog):
                     all_repos = cog._repo_manager.get_all_repo_names()
                     for repo in all_repos:
                         if not (repo in list(repos.keys())):
-                            repos[repo] = "Default commit for UpdateChecker cog"
+                            repos[repo] = "--default--"
                             await self.conf.repos.set(repos)
                     saving_dict = {k: v for k, v in repos.items() if k in all_repos}
                     for repo_name, commit_saved in saving_dict.items():
@@ -69,7 +69,7 @@ class UpdateChecker(commands.Cog):
                         except AttributeError:
                             continue
                         saving_dict[repo_name] = commit
-                        if commit != commit_saved:
+                        if commit != commit_saved and commit_saved != "--default--":
                             if not auto:
                                 if use_embed:
                                     e = discord.Embed(

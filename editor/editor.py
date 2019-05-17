@@ -60,7 +60,7 @@ class Editor(commands.Cog):
                 return await ctx.send("I can only edit my own messages.")
             await ctx.send(f"Message successfully edited.  Jump URL: {editmessage.jump_url}")
         else:
-            await editmessage.edit(content=content)
+            await editmessage.edit(content=content, embed=None)
             try:
                 await ctx.send(f"Message successfully edited.  Jump URL: {editmessage.jump_url}")
             except discord.errors.Forbidden:

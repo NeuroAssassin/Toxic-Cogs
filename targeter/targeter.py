@@ -8,9 +8,11 @@ import argparse
 import discord
 import re
 
+
 class NoExitParser(argparse.ArgumentParser):
     def error(self, message):
         raise BadArgument()
+
 
 class Args(Converter):
     async def convert(self, ctx, argument):
@@ -48,7 +50,6 @@ class Args(Converter):
         cd.add_argument("--created-on", nargs="*", dest="created-on", default=[])
         cd.add_argument("--created-before", nargs="*", dest="created-be", default=[])
         cd.add_argument("--created-after", nargs="*", dest="created-af", default=[])
-
 
         # Status / Activity / Device
         parser.add_argument("--status", nargs="*", dest="status", default=[])
@@ -91,7 +92,9 @@ class Args(Converter):
             raise BadArgument(str(e))
 
         if any(s for s in vals["status"] if not s.lower() in ["online", "dnd", "idle", "offline"]):
-            raise BadArgument("Invalid status.  Must be either `online`, `dnd`, `idle` or `offline`.")
+            raise BadArgument(
+                "Invalid status.  Must be either `online`, `dnd`, `idle` or `offline`."
+            )
 
         # Rooooooooooooooooles
 
@@ -132,7 +135,9 @@ class Args(Converter):
 
         if vals["joined-on"]:
             if len(vals["joined-on"]) != 3:
-                raise BadArgument("Invalid amount of digits for the `joined-on` date.  Must be `YYYY MM DD`")
+                raise BadArgument(
+                    "Invalid amount of digits for the `joined-on` date.  Must be `YYYY MM DD`"
+                )
             try:
                 vals["joined-on"] = list(map(int, vals["joined-on"]))
             except ValueError:
@@ -140,7 +145,9 @@ class Args(Converter):
 
         if vals["joined-be"]:
             if len(vals["joined-be"]) != 3:
-                raise BadArgument("Invalid amount of digits for the `joined-before` date.  Must be `YYYY MM DD`")
+                raise BadArgument(
+                    "Invalid amount of digits for the `joined-before` date.  Must be `YYYY MM DD`"
+                )
             try:
                 vals["joined-be"] = list(map(int, vals["joined-be"]))
             except ValueError:
@@ -148,16 +155,19 @@ class Args(Converter):
 
         if vals["joined-af"]:
             if len(vals["joined-af"]) != 3:
-                raise BadArgument("Invalid amount of digits for the `joined-after` date.  Must be `YYYY MM DD`")
+                raise BadArgument(
+                    "Invalid amount of digits for the `joined-after` date.  Must be `YYYY MM DD`"
+                )
             try:
                 vals["joined-af"] = list(map(int, vals["joined-af"]))
             except ValueError:
                 raise BadArgument("Dates must be integers.")
 
-
         if vals["created-on"]:
             if len(vals["created-on"]) != 3:
-                raise BadArgument("Invalid amount of digits for the `created-on` date.  Must be `YYYY MM DD`")
+                raise BadArgument(
+                    "Invalid amount of digits for the `created-on` date.  Must be `YYYY MM DD`"
+                )
             try:
                 vals["created-on"] = list(map(int, vals["created-on"]))
             except ValueError:
@@ -165,7 +175,9 @@ class Args(Converter):
 
         if vals["created-be"]:
             if len(vals["created-be"]) != 3:
-                raise BadArgument("Invalid amount of digits for the `created-before` date.  Must be `YYYY MM DD`")
+                raise BadArgument(
+                    "Invalid amount of digits for the `created-before` date.  Must be `YYYY MM DD`"
+                )
             try:
                 vals["created-be"] = list(map(int, vals["created-be"]))
             except ValueError:
@@ -173,7 +185,9 @@ class Args(Converter):
 
         if vals["created-af"]:
             if len(vals["created-af"]) != 3:
-                raise BadArgument("Invalid amount of digits for the `created-after` date.  Must be `YYYY MM DD`")
+                raise BadArgument(
+                    "Invalid amount of digits for the `created-after` date.  Must be `YYYY MM DD`"
+                )
             try:
                 vals["created-af"] = list(map(int, vals["created-af"]))
             except ValueError:
@@ -191,24 +205,27 @@ class Args(Converter):
                 "playing": at.playing,
                 "streaming": at.streaming,
                 "listening": at.listening,
-                "watching": at.watching
+                "watching": at.watching,
             }
             if not all([a.lower() in switcher for a in vals["at"]]):
-                raise BadArgument("Invalid Activity Type.  Must be either `unknown`, `playing`, `streaming`, `listening` or `watching`.")
+                raise BadArgument(
+                    "Invalid Activity Type.  Must be either `unknown`, `playing`, `streaming`, `listening` or `watching`."
+                )
             new = [switcher[name.lower()] for name in vals["at"]]
             vals["at"] = new
 
         return vals
 
+
 class Targeter(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.conv = Args() # For evals
+        self.conv = Args()  # For evals
         self.s = aiohttp.ClientSession()
 
     async def post(self, string):
-        async with self.s.put("http://bin.doyle.la", data=string.encode('utf-8')) as post:
-            text = await post.text()      
+        async with self.s.put("http://bin.doyle.la", data=string.encode("utf-8")) as post:
+            text = await post.text()
         return text
 
     def lookup(self, ctx, args):
@@ -221,7 +238,9 @@ class Targeter(commands.Cog):
         if args["nick"]:
             matched_here = []
             for user in matched:
-                if any([user.nick and piece.lower() in user.nick.lower() for piece in args["nick"]]):
+                if any(
+                    [user.nick and piece.lower() in user.nick.lower() for piece in args["nick"]]
+                ):
                     matched_here.append(user)
             passed.append(matched_here)
 
@@ -239,11 +258,15 @@ class Targeter(commands.Cog):
                     matched_here.append(user)
             passed.append(matched_here)
 
-        
         if args["not-nick"]:
             matched_here = []
             for user in matched:
-                if not any([user.nick and piece.lower() in user.nick.lower() for piece in args["not-nick"]]):
+                if not any(
+                    [
+                        user.nick and piece.lower() in user.nick.lower()
+                        for piece in args["not-nick"]
+                    ]
+                ):
                     matched_here.append(user)
             passed.append(matched_here)
 
@@ -257,7 +280,9 @@ class Targeter(commands.Cog):
         if args["not-name"]:
             matched_here = []
             for user in matched:
-                if not any([piece.lower() in user.display_name.lower() for piece in args["not-name"]]):
+                if not any(
+                    [piece.lower() in user.display_name.lower() for piece in args["not-name"]]
+                ):
                     matched_here.append(user)
             passed.append(matched_here)
 
@@ -300,14 +325,14 @@ class Targeter(commands.Cog):
         if args["a-role"]:
             matched_here = []
             for user in matched:
-                if len(user.roles) > 1: # Since all members have the @everyone role
+                if len(user.roles) > 1:  # Since all members have the @everyone role
                     matched_here.append(user)
             passed.append(matched_here)
 
         if args["no-role"]:
             matched_here = []
             for user in matched:
-                if len(user.roles) == 1: # Since all members have the @everyone role
+                if len(user.roles) == 1:  # Since all members have the @everyone role
                     matched_here.append(user)
             passed.append(matched_here)
 
@@ -353,7 +378,6 @@ class Targeter(commands.Cog):
                 else:
                     pass
             passed.append(matched_here)
-
 
         if args["created-on"]:
             a = args["created-on"]
@@ -425,7 +449,9 @@ class Targeter(commands.Cog):
         if args["a"]:
             matched_here = []
             for user in matched:
-                if (user.activity) and (user.activity.name.lower() in [a.lower() for a in args["a"]]):
+                if (user.activity) and (
+                    user.activity.name.lower() in [a.lower() for a in args["a"]]
+                ):
                     matched_here.append(user)
             passed.append(matched_here)
 
@@ -457,7 +483,7 @@ class Targeter(commands.Cog):
         """Targets users based on the passed arguments.
         
         Run `[p]target help` to see a list of valid arguments."""
-        #await ctx.send(args)
+        # await ctx.send(args)
         async with ctx.typing():
             compact = functools.partial(self.lookup, ctx, args)
             matched = await self.bot.loop.run_in_executor(None, compact)
@@ -469,14 +495,20 @@ class Targeter(commands.Cog):
                     string += adding
                 url = await self.post(string)
                 if len(matched) < 500:
-                    color = 0x00ff00
+                    color = 0x00FF00
                 elif len(matched) < 1000:
-                    color = 0xffa500
+                    color = 0xFFA500
                 else:
-                    color = 0xff0000
-                embed = discord.Embed(title="Targeting complete", description=f"Found {len(matched)} matches.  Click [here]({url}) to see the full results.", color=color)
+                    color = 0xFF0000
+                embed = discord.Embed(
+                    title="Targeting complete",
+                    description=f"Found {len(matched)} matches.  Click [here]({url}) to see the full results.",
+                    color=color,
+                )
             else:
-                embed = discord.Embed(title="Targeting complete", description=f"Found no matches.", color=0xff0000)
+                embed = discord.Embed(
+                    title="Targeting complete", description=f"Found no matches.", color=0xFF0000
+                )
         await ctx.send(embed=embed)
 
     @target.command(name="help")
@@ -517,7 +549,7 @@ class Targeter(commands.Cog):
             "`--status <offline> <online> <dnd> <idle>` - Users' status must have at least one of the statuses passed.\n"
             "`--device <mobile> <web> <desktop>` - Filters by their device statuses.  If they are not offline on any of the ones specified, they are included.\n"
             "\n"
-            "`--activity \"name of activity\" \"another one\"` - Users' activity must contain one of the activities passed.\n"
+            '`--activity "name of activity" "another one"` - Users\' activity must contain one of the activities passed.\n'
             "`--activity-type <playing> <streaming> <watching> <listening>` - Users' activity types must be one of the ones passed.\n"
             "`--an-activity` - Users must be in an activity.\n"
             "`--no-activity` - Users cannot be in an activity.\n"

@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.",
+    "name" : "targeter",
+    "short" : "Targets users based upon the passed arguments",
+    "description" : "Returns a list of members in the current guild that meet the passed arguments.  Commands can take long times based upon the amount of members in the guild.",
+    "tags" : ["tools"],
+    "requirements" : [],
+    "hidden" : false
+}

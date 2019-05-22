@@ -5,14 +5,12 @@ import discord
 import asyncio
 from copy import deepcopy as dc
 
+
 class Deleter(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
-        default_channel = {
-            "wait": 0,
-            "messages": {}
-        }
+        default_channel = {"wait": 0, "messages": {}}
         self.conf.register_channel(**default_channel)
         self.task = self.bot.loop.create_task(self.background_task())
 
@@ -70,7 +68,9 @@ class Deleter(commands.Cog):
             return await ctx.send("You do not have permission to delete messages in that channel.")
         await self.conf.channel(channel).wait.set(str(wait))
         if wait:
-            await ctx.send(f"Messages in {channel.mention} will now be deleted after {wait} seconds.")
+            await ctx.send(
+                f"Messages in {channel.mention} will now be deleted after {wait} seconds."
+            )
         else:
             await ctx.send("Messages will not be auto-deleted after a specific amount of time.")
 
@@ -91,7 +91,9 @@ class Deleter(commands.Cog):
         if not success:
             success = [None]
         await self.conf.channel(channel).messages.set(msgs)
-        await ctx.send(f"Messages successfully removed: {humanize_list(success)}\nMessages that failed to be removed: {humanize_list(failed)}")
+        await ctx.send(
+            f"Messages successfully removed: {humanize_list(success)}\nMessages that failed to be removed: {humanize_list(failed)}"
+        )
 
     @deleter.command()
     @checks.admin()

@@ -51,9 +51,13 @@ class Args(Converter):
         cd.add_argument("--created-before", nargs="*", dest="created-be", default=[])
         cd.add_argument("--created-after", nargs="*", dest="created-af", default=[])
 
-        # Status / Activity / Device
+        # Status / Activity / Device / Just Basically Profile Stuff
         parser.add_argument("--status", nargs="*", dest="status", default=[])
         parser.add_argument("--device", nargs="*", dest="device", default=[])
+
+        bots = parser.add_mutually_exclusive_group()
+        bots.add_argument("--only-bots", dest="bots", action="store_true")
+        bots.add_argument("--no-bots", dest="nbots", action="store_true")
 
         parser.add_argument("--activity-type", nargs="*", dest="at", default=[])
         parser.add_argument("--activity", nargs="*", dest="a", default=[])
@@ -439,6 +443,20 @@ class Targeter(commands.Cog):
                         matched_here.append(user)
             passed.append(matched_here)
 
+        if args["bots"]:
+            matched_here = []
+            for user in matched:
+                if user.bot:
+                    matched_here.append(user)
+            passed.append(matched_here)
+
+        if args["nbots"]:
+            matched_here = []
+            for user in matched:
+                if not user.bot:
+                    matched_here.append(user)
+            passed.append(matched_here)
+
         if args["at"]:
             matched_here = []
             for user in matched:
@@ -544,10 +562,12 @@ class Targeter(commands.Cog):
         roles.set_footer(text="Target Arguments - Roles; Page 2/4")
         embed_list.append(roles)
 
-        status = discord.Embed(title="Target Arguments - Status")
+        status = discord.Embed(title="Target Arguments - Profile")
         desc = (
             "`--status <offline> <online> <dnd> <idle>` - Users' status must have at least one of the statuses passed.\n"
             "`--device <mobile> <web> <desktop>` - Filters by their device statuses.  If they are not offline on any of the ones specified, they are included.\n"
+            "`--only-bots` - Users must be a bot.\n"
+            "`--no-bots` - Users cannot be a bot.\n"
             "\n"
             '`--activity "name of activity" "another one"` - Users\' activity must contain one of the activities passed.\n'
             "`--activity-type <playing> <streaming> <watching> <listening>` - Users' activity types must be one of the ones passed.\n"
@@ -555,7 +575,7 @@ class Targeter(commands.Cog):
             "`--no-activity` - Users cannot be in an activity.\n"
         )
         status.description = desc
-        status.set_footer(text="Target Arguments - Status; Page 3/4")
+        status.set_footer(text="Target Arguments - Profile; Page 3/4")
         embed_list.append(status)
 
         dates = discord.Embed(title="Target Arguments - Dates")

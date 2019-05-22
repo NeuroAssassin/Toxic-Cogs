@@ -35,6 +35,8 @@ class Editor(commands.Cog):
         editchannel = self.bot.get_channel(ecid)
         if not editchannel:
             return await ctx.send("Invalid channel for the message you are editing.")
+        if not editchannel.permissions_for(ctx.author).manage_messages and not (await self.bot.is_owner(ctx.author)):
+            return await ctx.send("You do not have permission to edit messages in that channel.")
         try:
             editmessage = await editchannel.fetch_message(editid)
         except discord.NotFound:

@@ -44,6 +44,9 @@ These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot)
 | Maintenance | <details><summary>Put your bot on maintenance</summary>Put your bot on maintenance, telling people who are not in the whitelist for the maintenance that the bot is on maintenance, and will not respond to commands</details> |
 | Evolution | <details><summary>Buy animals with economy credits and get more credits!</summary>A cog that I made after a mobile app, kinda cheesy but fun.</details> |
 | Switcher | <details><summary>Switch between bot accounts quick and easily</summary>Register the bot with a name and the correct token, then just run a command to easily switch to it</details> |
+| Deleter | <details><summary>Auto-delete messages after a certain amount of time</summary>Delete messages after a certain amount of specified time, after the message was sent</details> |
+| Editor | <details><summary>Edit messages sent by the bot</summary>Allows an administrator to edit one of the bot's messages, by either copying the content and/or embed from a previously sent message from the bot, or by the specified content</details> |
+| Targeter | <details><summary>Target users in the guild based upon the passed arguments</summary>Allows arguments for dates, roles, names, activities, statuses or devices.</details> |
 
 [Back to Table of Contents](#table-of-contents)
 ****
@@ -53,6 +56,8 @@ Credit to Aikaterna's chatchart cog, which I based my commandchart cog off of (w
 
 Thanks to:
 + Yukirin for suggesting/asking for the commandchart cog.
++ Olaroll for suggesting/asking for the editor cog
++ kennnyshiwa for suggestin/asking for the deleter cog
 + Other people in Red for helping me with coming up with ideas and helping me find shortcuts to some things
 
 [Back to Table of Contents](#table-of-contents)

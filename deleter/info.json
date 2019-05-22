@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.",
+    "name" : "deleter",
+    "short" : "Allows for the auto-deletion of messages in a channel after a specified wait time.",
+    "description" : "Allows moderators to make messages be auto-deleted after a certain amount of time in a certain channel.",
+    "tags" : ["tools"],
+    "requirements" : [],
+    "hidden" : false
+}

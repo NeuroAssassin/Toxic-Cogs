@@ -1,5 +1,6 @@
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from redbot.core.commands import BadArgument, Converter, RoleConverter
+from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
+from redbot.core.utils.chat_formatting import humanize_list
 from redbot.core import commands
 from datetime import datetime
 import functools
@@ -7,6 +8,39 @@ import aiohttp
 import argparse
 import discord
 import re
+
+PERMS = [
+    "add_reactions",
+    "administrator",
+    "attach_files",
+    "ban_members",
+    "change_nickname",
+    "connect",
+    "create_instant_invite",
+    "deafen_members",
+    "embed_links",
+    "external_emojis",
+    "kick_members",
+    "manage_channels",
+    "manage_emojis",
+    "manage_guild",
+    "manage_messages",
+    "manage_nicknames",
+    "manage_roles",
+    "manage_webhooks",
+    "mention_everyone",
+    "move_members",
+    "mute_members",
+    "priority_speaker",
+    "read_message_history",
+    "read_messages",
+    "send_messages",
+    "send_tts_messages",
+    "speak",
+    "stream",
+    "use_voice_activation",
+    "view_audit_log",
+]
 
 
 class NoExitParser(argparse.ArgumentParser):
@@ -65,6 +99,13 @@ class Args(Converter):
         at = parser.add_mutually_exclusive_group()
         at.add_argument("--no-activity", dest="na", action="store_true")
         at.add_argument("--an-activity", dest="aa", action="store_true")
+
+        # Permissions
+        parser.add_argument("--perms", nargs="*", dest="perms", default=[])
+        parser.add_argument("--any-perm", nargs="*", dest="any-perm", default=[])
+
+        parser.add_argument("--not-perms", nargs="*", dest="not-perms", default=[])
+        parser.add_argument("--not-any-perm", nargs="*", dest="not-any-perm", default=[])
 
         try:
             vals = vars(parser.parse_args(argument.split(" ")))
@@ -217,6 +258,46 @@ class Args(Converter):
                 )
             new = [switcher[name.lower()] for name in vals["at"]]
             vals["at"] = new
+
+        new = []
+        for perm in vals["perms"]:
+            perm = perm.replace(" ", "_")
+            if not perm.lower() in PERMS:
+                raise BadArgument(
+                    f"Invalid permission.  Run `{ctx.prefix}target permissions` to see a list of valid permissions."
+                )
+            new.append(perm)
+        vals["perms"] = new
+
+        new = []
+        for perm in vals["any-perm"]:
+            perm = perm.replace(" ", "_")
+            if not perm.lower() in PERMS:
+                raise BadArgument(
+                    f"Invalid permission.  Run `{ctx.prefix}target permissions` to see a list of valid permissions."
+                )
+            new.append(perm)
+        vals["any-perm"] = new
+
+        new = []
+        for perm in vals["not-perms"]:
+            perm = perm.replace(" ", "_")
+            if not perm.lower() in PERMS:
+                raise BadArgument(
+                    f"Invalid permission.  Run `{ctx.prefix}target permissions` to see a list of valid permissions."
+                )
+            new.append(perm)
+        vals["not-perms"] = new
+
+        new = []
+        for perm in vals["not-any-perm"]:
+            perm = perm.replace(" ", "_")
+            if not perm.lower() in PERMS:
+                raise BadArgument(
+                    f"Invalid permission.  Run `{ctx.prefix}target permissions` to see a list of valid permissions."
+                )
+            new.append(perm)
+        vals["not-any-perm"] = new
 
         return vals
 
@@ -489,6 +570,39 @@ class Targeter(commands.Cog):
 
         # -- End Statuses / Activities --
 
+        # -- Permissions --
+        if args["perms"]:
+            matched_here = []
+            for user in matched:
+                up = user.guild_permissions
+                if all(getattr(up, perm) for perm in args["perms"]):
+                    matched_here.append(user)
+            passed.append(matched_here)
+
+        if args["any-perm"]:
+            matched_here = []
+            for user in matched:
+                up = user.guild_permissions
+                if any(getattr(up, perm) for perm in args["any-perm"]):
+                    matched_here.append(user)
+            passed.append(matched_here)
+
+        if args["not-perms"]:
+            matched_here = []
+            for user in matched:
+                up = user.guild_permissions
+                if not all(getattr(up, perm) for perm in args["not-perms"]):
+                    matched_here.append(user)
+            passed.append(matched_here)
+
+        if args["not-any-perm"]:
+            matched_here = []
+            for user in matched:
+                up = user.guild_permissions
+                if not any(getattr(up, perm) for perm in args["not-any-perm"]):
+                    matched_here.append(user)
+            passed.append(matched_here)
+
         # --- End going through possible arguments ---
         try:
             all_passed = set(passed.pop())
@@ -545,7 +659,7 @@ class Targeter(commands.Cog):
             "`--not-name <nameone> <nametwo>` - Users must not have one of the passed names in their username, and if they don't have one, their username."
         )
         names.description = desc
-        names.set_footer(text="Target Arguments - Names; Page 1/4")
+        names.set_footer(text="Target Arguments - Names; Page 1/5")
         embed_list.append(names)
 
         roles = discord.Embed(title="Target Arguments - Roles")
@@ -559,7 +673,7 @@ class Targeter(commands.Cog):
             "`--no-role` - Users cannot have any roles."
         )
         roles.description = desc
-        roles.set_footer(text="Target Arguments - Roles; Page 2/4")
+        roles.set_footer(text="Target Arguments - Roles; Page 2/5")
         embed_list.append(roles)
 
         status = discord.Embed(title="Target Arguments - Profile")
@@ -575,7 +689,7 @@ class Targeter(commands.Cog):
             "`--no-activity` - Users cannot be in an activity.\n"
         )
         status.description = desc
-        status.set_footer(text="Target Arguments - Profile; Page 3/4")
+        status.set_footer(text="Target Arguments - Profile; Page 3/5")
         embed_list.append(status)
 
         dates = discord.Embed(title="Target Arguments - Dates")
@@ -589,7 +703,29 @@ class Targeter(commands.Cog):
             "`--created-after YYYY MM DD` - Users must have created their account after the day specified.  The day specified is not counted."
         )
         dates.description = desc
-        dates.set_footer(text="Target Arguments - Dates; Page 4/4")
+        dates.set_footer(text="Target Arguments - Dates; Page 4/5")
         embed_list.append(dates)
 
+        perms = discord.Embed(title="Target Arguments - Permissions")
+        desc = (
+            "`--perms` - Users must have all of the permissions passed.\n"
+            "`--any-perm` - Users must have at least one of the permissions passed.\n"
+            "\n"
+            "`--not-perms` - Users cannot have all of the permissions passed.\n"
+            "`--not-any-perm` - Users cannot have any of the permissions passed.\n"
+            "\n"
+            f"Run `{ctx.prefix}target permissions` to see a list of permissions that can be passed."
+        )
+        perms.description = desc
+        perms.set_footer(text="Target Arguments - Permissions; Page 5/5")
+        embed_list.append(perms)
+
         await menu(ctx, embed_list, DEFAULT_CONTROLS)
+
+    @target.command()
+    async def permissions(self, ctx):
+        """Returns a list of permissions that can be passed to `[p]target`"""
+        perms = [p.replace("_", " ") for p in PERMS]
+        embed = discord.Embed(title="Permissions that can be passed to Targeter")
+        embed.description = humanize_list(perms)
+        await ctx.send(embed=embed)

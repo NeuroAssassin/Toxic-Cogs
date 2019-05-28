@@ -1,4 +1,4 @@
-from redbot.core import commands
+from redbot.core import commands, Config
 from PIL import Image
 from colour import Color as col
 from colour import rgb2hex
@@ -11,6 +11,10 @@ import functools
 class Color(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.conf = Config.get_conf(self, identifier=473541068378341376)
+
+        self.conf.register_guild(enabled=True)
+
         self.r = re.compile(
             r"(?i)^(?:(?:(?:0x|#|)((?:[a-fA-F0-9]{3}){1,2}$))|(?:([+-]?(?:[0-9]*[.])?[0-9]+,[+-]?(?:[0-9]*[.])?[0-9]+,[+-]?(?:[0-9]*[.])?[0-9]+))|(?:(\S+)))"
         )  # The Regex gods are going to kill me
@@ -45,6 +49,8 @@ class Color(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot:
+            return
+        if message.guild and not (await self.conf.guild(message.guild).enabled()):
             return
         words = message.content.split(" ")
         counter = 0
@@ -145,3 +151,12 @@ class Color(commands.Cog):
             await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
             await ctx.send("That hsl number is not recognized.")
+
+    @color.command()
+    async def msgshort(self, ctx, enable: bool):
+        """Set whether or not the in-message shortcut can be used."""
+        await self.conf.guild(ctx.guild).enabled.set(enable)
+        if enable:
+            await ctx.send("The in-message shortcut is now enabled.")
+        else:
+            await ctx.send("The in-message shortcut is now disabled.")

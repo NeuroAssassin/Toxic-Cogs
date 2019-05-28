@@ -1,14 +1,91 @@
 from redbot.core import commands
+from PIL import Image
 from colour import Color as col
 from colour import rgb2hex
 import discord
+import io
+import re
+import functools
 
 
 class Color(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.r = re.compile(
+            r"(?i)^(?:(?:(?:0x|#|)((?:[a-fA-F0-9]{3}){1,2}$))|(?:([+-]?(?:[0-9]*[.])?[0-9]+,[+-]?(?:[0-9]*[.])?[0-9]+,[+-]?(?:[0-9]*[.])?[0-9]+))|(?:(\S+)))"
+        )  # The Regex gods are going to kill me
 
     __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+
+    def have_fun_with_pillow(self, rgb):
+        im = Image.new("RGB", (200, 200), rgb)
+        f = io.BytesIO()
+        im.save(f, format="png")
+        f.seek(0)
+        file = discord.File(f, filename="picture.png")
+        return file
+
+    async def build_embed(self, co):
+        rgb = [int(c * 255) for c in co.rgb]
+        rgb = tuple(rgb)
+        file = await self.bot.loop.run_in_executor(None, self.have_fun_with_pillow, rgb)
+        hexa = rgb2hex(co.rgb, force_long=True)
+        embed = discord.Embed(
+            title=f"Color Embed for: {hexa}", color=int(hexa.replace("#", "0x"), 0)
+        )
+        embed.add_field(name="Hexadecimal Value:", value=hexa)
+        embed.add_field(
+            name="Red, Green, Blue (RGB) Value: ",
+            value=f"{str(co.rgb)}\n{str(tuple([item*255 for item in co.rgb]))}",
+        )
+        embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(co.hsl))
+        embed.set_thumbnail(url="attachment://picture.png")
+        return embed, file
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        words = message.content.split(" ")
+        counter = 0
+        for word in words:
+            if counter == 3:
+                return
+            if word.startswith("#"):
+                word = word[1:]
+                m = self.r.match(word)
+                if m.group(1):  # Hex
+                    hexa = m.group(1)
+                    try:
+                        c = col(f"#{hexa}")
+                        embed, file = await self.build_embed(c)
+                        await message.channel.send(file=file, embed=embed)
+                        counter += 1
+                    except (ValueError, AttributeError):
+                        pass
+                elif m.group(2):  # RGB
+                    try:
+                        stuff = m.group(2)
+                        tup = tuple(stuff.split(","))
+                        if any([float(item) > 1 for item in tup]):
+                            tup = tuple([float(item) / 255 for item in tup])
+                        tup = tuple(map(float, tup))
+                        try:
+                            c = col(rgb=tup)
+                            embed, file = await self.build_embed(c)
+                            await message.channel.send(file=file, embed=embed)
+                            counter += 1
+                        except (ValueError, AttributeError) as e:
+                            await message.channel.send(f"Not recognized: {tup}; {e}")
+                    except Exception as e:
+                        await message.channel.send(e)
+                elif m.group(3):  # Named
+                    name = m.group(3)
+                    try:
+                        c = col(name)
+                        embed, file = await self.build_embed(c)
+                        await message.channel.send(file=file, embed=embed)
+                        counter += 1
+                    except (ValueError, AttributeError):
+                        pass
 
     @commands.group(aliases=["colour"])
     async def color(self, ctx):
@@ -21,16 +98,8 @@ class Color(commands.Cog):
         name = name.lower()
         try:
             c = col(name)
-            hexa = rgb2hex(c.rgb, force_long=True)
-            embed = discord.Embed(
-                title="Color Embed for: " + name,
-                description="Hexadecimal, RGB and HSL values for: " + name,
-                color=int(hexa.replace("#", "0x"), 0),
-            )
-            embed.add_field(name="Hexadecimal Value:", value=hexa)
-            embed.add_field(name="Red, Green, Blue (RGB) Value: ", value=str(c.rgb))
-            embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(c.hsl))
-            await ctx.send(embed=embed)
+            embed, file = await self.build_embed(c)
+            await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
             await ctx.send("That color is not recognized.")
 
@@ -38,19 +107,16 @@ class Color(commands.Cog):
     async def hex(self, ctx, hexa: str):
         """Provides the RGB value and HSL value of a passed hexadecimal value.  Hexadecimal value must in the format of something like `#ffffff` or `0xffffff` to be used."""
         try:
-            hexa = hexa.replace("0x", "#")
-            c = col(hexa)
-            embed = discord.Embed(
-                title="Color Embed for: " + hexa,
-                description="Hexadecimal and RGB values for: " + hexa,
-                color=int(hexa.replace("#", "0x"), 0),
-            )
-            embed.add_field(name="Hexadecimal Value:", value=hexa)
-            embed.add_field(name="Red Green Blue (RGB) Value: ", value=str(c.rgb))
-            embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(c.hsl))
-            await ctx.send(embed=embed)
+            match = re.match(r"(?i)^(?:0x|#|)((?:[a-fA-F0-9]{3}){1,2})$", hexa)
+            c = col("#" + match.group(1))
+            embed, file = await self.build_embed(c)
+            await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
             await ctx.send("That hexadecimal value is not recognized.")
+        except IndexError:
+            await ctx.send(
+                "Invalid formatting for the hexadecimal.  Must be the hexadecimal value, with an optional `0x` or `#` in the beginning."
+            )
 
     @color.command()
     async def rgb(self, ctx, highest: int, r: float, g: float, b: float):
@@ -63,17 +129,8 @@ class Color(commands.Cog):
             b = b / 255
         try:
             c = col(rgb=(r, g, b))
-            values = (r * 255, g * 255, b * 255)
-            hexa = rgb2hex(c.rgb, force_long=True)
-            embed = discord.Embed(
-                title="Color Embed for: " + str(values),
-                description="Hexadecimal and RGB values for: " + str(values),
-                color=int(hexa.replace("#", "0x"), 0),
-            )
-            embed.add_field(name="Hexadecimal Value:", value=hexa)
-            embed.add_field(name="Red Green Blue (RGB) Value: ", value=str(c.rgb))
-            embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(c.hsl))
-            await ctx.send(embed=embed)
+            embed, file = await self.build_embed(c)
+            await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
             await ctx.send("That rgb number is not recognized.")
 
@@ -82,16 +139,7 @@ class Color(commands.Cog):
         """Provides the hexadecimal value and the RGB value of the hsl value given.  Each value must have a space between them."""
         try:
             c = col(hsl=(h, s, l))
-            values = (h, s, l)
-            hexa = rgb2hex(c.rgb, force_long=True)
-            embed = discord.Embed(
-                title="Color Embed for: " + str(values),
-                description="Hexadecimal and RGB values for: " + str(values),
-                color=int(hexa.replace("#", "0x"), 0),
-            )
-            embed.add_field(name="Hexadecimal Value:", value=hexa)
-            embed.add_field(name="Red Green Blue: ", value=str(c.rgb))
-            embed.add_field(name="Hue, Saturation, Luminance (HSL):", value=str(c.hsl))
-            await ctx.send(embed=embed)
+            embed, file = await self.build_embed(c)
+            await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
             await ctx.send("That hsl number is not recognized.")

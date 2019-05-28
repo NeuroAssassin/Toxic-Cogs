@@ -44,6 +44,8 @@ class Color(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.author.bot:
+            return
         words = message.content.split(" ")
         counter = 0
         for word in words:

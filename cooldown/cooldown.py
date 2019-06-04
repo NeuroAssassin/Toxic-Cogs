@@ -110,8 +110,8 @@ class Cooldown(commands.Cog):
             )
 
         cooldowns = cmd._buckets._cooldown
+        all_data = await self.conf.data()
         if cooldowns:
-            all_data = await self.conf.data()
             if not command in [item[0] for item in all_data]:
                 extra = "\nThis command also had an original cooldown.  Cooldowns are typically on commands for certain reasons, and so editing it is not recommended.  Proceed at your own risk."
             else:

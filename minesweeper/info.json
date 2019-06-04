@@ -1,6 +1,6 @@
 {
     "author" : ["Neuro Assassin"],
-    "install_msg" : "Thank you for downloading this cog.",
+    "install_msg" : "Thank you for downloading this cog.\nSmall warning: this cog can sometimes you up rate limits (depending how fast you play), so be careful while playing.",
     "name" : "minesweeper",
     "short" : "Allows you to play Minesweeper inside of Discord!\nSmall warning: this cog can sometimes you up rate limits (depending how fast you play), so be careful while playing.",
     "description" : "This cog allows a Discord User to play the game Minesweeper inside of a text channel.\nSmall warning: this cog can sometimes you up rate limits (depending how fast you play), so be careful while playing.",

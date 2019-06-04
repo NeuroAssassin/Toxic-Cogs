@@ -6,10 +6,12 @@ import copy
 
 
 class Minesweeper(commands.Cog):
+    """Play Minesweeper inside of Discord"""
+
     def __init__(self, bot):
         self.bot = bot
 
-    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+    __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
     def generate_map(self, max_counter):
         board = [
@@ -308,9 +310,9 @@ class Minesweeper(commands.Cog):
 
     @commands.command(aliases=["ms"])
     async def minesweeper(self, ctx, bombs: int = "Random bomb amount"):
-        """Starts a game of minesweeper, with allowing you to choose the number of bombs in it.
-        
-        Must be between 10 bombs and 99 bombs.  Defaults to random between 15 to 25."""
+        """Starts a game of minesweeper.
+
+        You can specify the amount of wanted bombs using the bomb paramater.  It must be between 10 bombs and 99 bombs, and defaults to random between 15 to 25."""
         if isinstance(bombs, str):
             bombs = random.randint(15, 25)
         if bombs < 10 or bombs > 99:
@@ -325,7 +327,7 @@ class Minesweeper(commands.Cog):
         sending_board = self.print_board(sending_board)
         bm = await ctx.send(str(sending_board))
         await ctx.send(
-            "Enter the row letter followed by the column number to guess.  The top row is row letter A, and the bottom row is row letter J.  The left column is column number 1, and the right column is column number 10.  For example, a guess could be: 'A1' for the top-left spot of the board, or 'J10' for bottom-right.  Type 'cancel' to stop.  You can guess multiple spots by putting a space between each.  Game will time out after 60 seconds of no response."
+            f"Enter the row letter followed by the column number to guess.  The top row is row letter A, and the bottom row is row letter J.  The left column is column number 1, and the right column is column number 10.  For example, a guess could be: 'A1' for the top-left spot of the board, or 'J10' for bottom-right.  Type 'cancel' to stop.  You can guess multiple spots by putting a space between each.  Game will time out after 60 seconds of no response.  The current game has a total of **{bombs}** bombs."
         )
         while bombs > 0:
 
@@ -364,34 +366,32 @@ class Minesweeper(commands.Cog):
                     try:
                         rn = switches[rl.lower()]
                     except KeyError:
-                        await ctx.send("Invalid row letter.")
+                        continue
+                    try:
+                        cn = int(cn)
+                    except ValueError:
+                        continue
+                    if cn > 10 or cn <= 0:
+                        await ctx.send("Column number is too high or too low.")
                     else:
-                        try:
-                            cn = int(cn)
-                        except ValueError:
-                            await ctx.send("Invalid column number.")
+                        cn -= 1
+                        if answer_board[rn][cn] == ":bomb:":
+                            await ctx.send(
+                                f"Uh oh!  {ctx.author.mention} looks like you stumbled across a bomb.  The answer board has been posted above."
+                            )
+                            answer_board = self.print_board(answer_board)
+                            await bm.edit(content=answer_board)
+                            return
                         else:
-                            if cn > 10 or cn <= 0:
-                                await ctx.send("Column number is too high or too low.")
-                            else:
-                                cn -= 1
-                                if answer_board[rn][cn] == ":bomb:":
-                                    await ctx.send(
-                                        f"Uh oh!  {ctx.author.mention} looks like you stumbled across a bomb.  The answer board has been posted above."
-                                    )
-                                    answer_board = self.print_board(answer_board)
-                                    await bm.edit(content=answer_board)
-                                    return
-                                else:
-                                    showing_board[rn][cn] = answer_board[rn][cn]
-                                    sending_board = self.print_board(self.add_desc(showing_board))
-                                    await bm.edit(content=sending_board)
+                            showing_board[rn][cn] = answer_board[rn][cn]
+                sending_board = self.print_board(self.add_desc(showing_board))
+                await bm.edit(content=sending_board)
 
     @commands.command()
     async def spoilerms(self, ctx, bombs: int = "Random bomb amount"):
-        """Starts a game of minesweeper, with allowing you to choose the number of bombs in it.
-        Does not interact with the user, instead just places spoilers around each entry for the user to find it out.
-        Must be between 10 bombs and 99 bombs.  Defaults to random between 15 to 25."""
+        """Starts a non-interactive game of minesweeper with spoilers.
+        
+        You can specify the amount of wanted bombs using the bomb paramater.  It must be between 10 bombs and 99 bombs, and defaults to random between 15 to 25."""
         if isinstance(bombs, str):
             bombs = random.randint(15, 25)
         if bombs < 10 or bombs > 99:
@@ -404,3 +404,4 @@ class Minesweeper(commands.Cog):
                 answer_board[row][column] = "||" + answer_board[row][column] + "||"
         answer_board = self.print_board(answer_board)
         await ctx.send(answer_board)
+        await ctx.send(f"This game has a total of **{bombs}** bombs.")

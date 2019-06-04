@@ -13,16 +13,11 @@ class Simon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
-
-    @commands.group()
-    async def simon(self, ctx):
-        """Group command for playing Simon."""
-        pass
+    __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
     @checks.bot_has_permissions(add_reactions=True)
-    @simon.command()
-    async def start(self, ctx):
+    @commands.command()
+    async def simon(self, ctx):
         """Start a game of Simon."""
         await ctx.send(
             "Starting game...\n**RULES:**\n```1. When you are ready for the sequence, click the green checkmark.\n2. Watch the sequence carefully, then repeat it back into chat.  For example, if the 1 then the 2 changed, I would type 12.\n3. You are given 10 seconds to repeat the sequence.\n4. When waiting for confirmation for next sequence, click the green check within 5 minutes of the bot being ready.\n5. Answer as soon as you can once the bot adds the stop watch emoji.```"
@@ -42,6 +37,10 @@ class Simon(commands.Cog):
                 and (reaction.message.id == message.id)
             )
 
+        randoms = []
+        for x in range(4):
+            randoms.append(random.randint(1, 4))
+
         while True:
             try:
                 reaction, user = await self.bot.wait_for(
@@ -56,17 +55,19 @@ class Simon(commands.Cog):
             else:
                 if str(reaction.emoji) == "\u274C":
                     await message.delete()
+                    await ctx.send(
+                        f"Game has ended due to no response.  You got {points} sequence{'s' if points != 1 else ''} correct!"
+                    )
                     return
                 await message.remove_reaction("\u2705", self.bot.user)
+                await message.remove_reaction("\u274C", self.bot.user)
                 try:
                     await message.remove_reaction("\u2705", ctx.author)
                 except discord.errors.Forbidden:
                     pass
                 await message.add_reaction("\u26A0")
-                randoms = []
-                for x in range(level[1]):
-                    randoms.append(random.randint(1, 4))
                 for x in randoms:
+                    await asyncio.sleep(1)
                     if x == 1:
                         board[0][0] = "-"
                         await message.edit(content="```" + self.print_board(board) + "```")
@@ -125,7 +126,7 @@ class Simon(commands.Cog):
                     await message.add_reaction("\u274C")
                     await another_message.delete()
                 level[0] *= 0.90
-                level[1] += 1
+                randoms.append(random.randint(1, 4))
 
     def print_board(self, board):
         col_width = max(len(str(word)) for row in board for word in row) + 2  # padding

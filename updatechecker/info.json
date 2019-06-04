@@ -1,6 +1,6 @@
 {
     "author" : ["Neuro Assassin"],
-    "install_msg" : "Thank you for downloading this cog.  Please note that when starting this cog, you should use `[p]update all` right off the bot to update cogs and get the commits.  After that, you can just use `[p]cog update`.",
+    "install_msg" : "Thank you for downloading this cog.",
     "name" : "updatechecker",
     "short" : "Notifies you when an update for a repo is available.",
     "description" : "This cog will tell when there is an update available for a repository you have added for your bot, and, depending on settings, will auto update or will just notify you.",

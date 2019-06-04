@@ -7,6 +7,8 @@ import time
 
 
 class Maintenance(commands.Cog):
+    """Put the bot on maintenance, and allow a customizable message to the people not whitelisted"""
+
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
@@ -111,10 +113,11 @@ class Maintenance(commands.Cog):
         scheduled = await self.conf.scheduledmaintenance()
         message = await self.conf.message()
         delete = await self.conf.delete()
-        sending = (
-            f"Messages are deleted after {delete} seconds.  "
-            f"Your current disabled message is ```{message}```"
-        )
+        if delete != 0:
+            deletion = f"Messages are deleted after {delete} seconds."
+        else:
+            deletion = "Message are not deleted."
+        sending = f"{deletion}  " f"Your current disabled message is ```{message}```"
         if not on[0]:
             sending += "The bot is currently not on maintenance."
             if len(scheduled) != 0:
@@ -131,15 +134,18 @@ class Maintenance(commands.Cog):
             done = "when the bot owner removes it from maintenance"
         users = []
         for user in on[2]:
-            user_profile = await self.bot.get_user_info(user)
+            try:
+                user_profile = await self.bot.get_user_info(user)
+            except AttributeError:
+                user_profile = await self.bot.fetch_user(user)
             users.append(user_profile.display_name) if hasattr(
                 user_profile, "display_name"
             ) else users.append(f"<removed user {user}>")
         sending += "The bot is currently under maintenance.  " f"It will be done {str(done)}.  "
         sending += (
-            f"The following users are whitelisted from the maintenance: `{'` `'.join(users)}`."
+            f"The following users are whitelisted from this current maintenance: `{'` `'.join(users)}`."
             if len(users) != 0
-            else "No users are whitelisted from the maintenance."
+            else "No users are whitelisted from the current maintenance."
         )
         await ctx.send(sending)
 
@@ -148,7 +154,9 @@ class Maintenance(commands.Cog):
         """Clears the bot from maintenance"""
         on = await self.conf.on()
         if not on[0]:
-            return await ctx.send("The bot is not on maintenance.")
+            return await ctx.send(
+                "The bot is not on maintenance.  Turn it on by running `[p]maintenance on`."
+            )
         setting = [False, 0, []]
         await self.conf.on.set(setting)
         await ctx.tick()
@@ -156,19 +164,25 @@ class Maintenance(commands.Cog):
     @maintenance.command()
     async def message(self, ctx, *, message):
         """Set the message sent when the bot is down for maintenance"""
+        if len(message) > 1000:
+            return await ctx.send("Maintenance message cannot be above 1000 characters.")
         await self.conf.message.set(message)
         await ctx.tick()
 
     @maintenance.command()
-    async def deleteafter(self, ctx, amount: int = 0):
-        """Set the amount of seconds before the maintenance message is deleted.  Pass no parameter or 0 to make it not delete the message"""
+    async def deleteafter(self, ctx, amount: int):
+        """Set the amount of seconds before the maintenance message is deleted.  Pass 0 to make it not delete the message."""
+        if amount < 0:
+            return await ctx.send("Amount of seconds must be 0 or higher.")
         await self.conf.delete.set(amount)
         await ctx.tick()
 
     @maintenance.command()
     async def whitelist(self, ctx, user: discord.User):
-        """Remove or add a person from or to the whitelist for the current maintenance"""
+        """Remove or add a person from or to the whitelist for the current maintenance.  Note that this is only for the current maintenance, subsequent ones must have them set again."""
         on = await self.conf.on()
+        if not on[0]:
+            return await ctx.send("The bot is not on maintenance.")
         if user.id in on[2]:
             on[2].remove(user.id)
             message = f"{user.display_name} has been removed from the whitelist."

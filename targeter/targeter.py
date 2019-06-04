@@ -1,7 +1,7 @@
 from redbot.core.commands import BadArgument, Converter, RoleConverter
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
-from redbot.core.utils.chat_formatting import humanize_list
-from redbot.core import commands
+from redbot.core.utils.chat_formatting import humanize_list, pagify
+from redbot.core import commands, checks
 from datetime import datetime
 import functools
 import aiohttp
@@ -63,6 +63,9 @@ class Args(Converter):
         names.add_argument("--not-user", nargs="*", dest="not-user", default=[])
         names.add_argument("--not-name", nargs="*", dest="not-name", default=[])
 
+        names.add_argument("--a-nick", dest="a-nick", action="store_true")
+        names.add_argument("--no-nick", dest="no-nick", action="store_true")
+
         # Roles
         parser.add_argument("--roles", nargs="*", dest="roles", default=[])
         parser.add_argument("--any-role", nargs="*", dest="any-role", default=[])
@@ -107,6 +110,9 @@ class Args(Converter):
         parser.add_argument("--not-perms", nargs="*", dest="not-perms", default=[])
         parser.add_argument("--not-any-perm", nargs="*", dest="not-any-perm", default=[])
 
+        # Extra
+        parser.add_argument("--format", nargs="*", dest="format", default=["page"])
+
         try:
             vals = vars(parser.parse_args(argument.split(" ")))
         except Exception as exc:
@@ -120,15 +126,36 @@ class Args(Converter):
                     tmp = ""
                     for word in split_words:
                         if not word.startswith('"') and not word.endswith('"') and not tmp:
+                            if word.startswith(r"\""):
+                                word = word[1:]
                             word_list.append(word)
                         else:
-                            if word.startswith('"'):
-                                tmp += word[1:] + " "
-                            elif word.endswith('"'):
+                            echanged = False
+                            if word.endswith(r"\""):
+                                word = word[:-2] + '"'
+                                echanged = True
+
+                            schanged = False
+                            if word.startswith(r"\""):
+                                word = word[1:]
+                                schanged = True
+                            if word.startswith('"') and not schanged:
+                                if word.startswith('"') and word.endswith('"') and len(word) > 1:
+                                    word_list.append(word)
+                                else:
+                                    if tmp.endswith(" "):
+                                        word_list.append(tmp)
+                                        tmp = ""
+                                        continue
+                                    tmp += word[1:] + " "
+                            elif word.endswith('"') and not echanged:
                                 tmp += word[:-1]
                                 word_list.append(tmp)
                                 tmp = ""
                             else:
+                                if schanged or echanged:
+                                    word_list.append(word)
+                                    continue
                                 tmp += word + " "
                     if tmp:
                         raise BadArgument("A quote was started but never finished.")
@@ -187,6 +214,10 @@ class Args(Converter):
                 vals["joined-on"] = list(map(int, vals["joined-on"]))
             except ValueError:
                 raise BadArgument("Dates must be integers.")
+            if not vals["joined-on"][1] in range(1, 13):
+                raise BadArgument("Month must be between 1 and 12")
+            if not vals["joined-on"][2] in range(1, 32):
+                raise BadArgument("Day must be between 1 and 31")
 
         if vals["joined-be"]:
             if len(vals["joined-be"]) != 3:
@@ -197,6 +228,10 @@ class Args(Converter):
                 vals["joined-be"] = list(map(int, vals["joined-be"]))
             except ValueError:
                 raise BadArgument("Dates must be integers.")
+            if not vals["joined-be"][1] in range(1, 13):
+                raise BadArgument("Month must be between 1 and 12")
+            if not vals["joined-be"][2] in range(1, 32):
+                raise BadArgument("Day must be between 1 and 31")
 
         if vals["joined-af"]:
             if len(vals["joined-af"]) != 3:
@@ -207,6 +242,10 @@ class Args(Converter):
                 vals["joined-af"] = list(map(int, vals["joined-af"]))
             except ValueError:
                 raise BadArgument("Dates must be integers.")
+            if not vals["joined-af"][1] in range(1, 13):
+                raise BadArgument("Month must be between 1 and 12")
+            if not vals["joined-af"][2] in range(1, 32):
+                raise BadArgument("Day must be between 1 and 31")
 
         if vals["created-on"]:
             if len(vals["created-on"]) != 3:
@@ -217,6 +256,10 @@ class Args(Converter):
                 vals["created-on"] = list(map(int, vals["created-on"]))
             except ValueError:
                 raise BadArgument("Dates must be integers.")
+            if not vals["created-on"][1] in range(1, 13):
+                raise BadArgument("Month must be between 1 and 12")
+            if not vals["created-on"][2] in range(1, 32):
+                raise BadArgument("Day must be between 1 and 31")
 
         if vals["created-be"]:
             if len(vals["created-be"]) != 3:
@@ -227,6 +270,10 @@ class Args(Converter):
                 vals["created-be"] = list(map(int, vals["created-be"]))
             except ValueError:
                 raise BadArgument("Dates must be integers.")
+            if not vals["created-be"][1] in range(1, 13):
+                raise BadArgument("Month must be between 1 and 12")
+            if not vals["created-be"][2] in range(1, 32):
+                raise BadArgument("Day must be between 1 and 31")
 
         if vals["created-af"]:
             if len(vals["created-af"]) != 3:
@@ -237,6 +284,10 @@ class Args(Converter):
                 vals["created-af"] = list(map(int, vals["created-af"]))
             except ValueError:
                 raise BadArgument("Dates must be integers.")
+            if not vals["created-af"][1] in range(1, 13):
+                raise BadArgument("Month must be between 1 and 12")
+            if not vals["created-af"][2] in range(1, 32):
+                raise BadArgument("Day must be between 1 and 31")
 
         # Actiiiiiiiiiiiiiiiiivities
         if vals["device"]:
@@ -298,6 +349,13 @@ class Args(Converter):
                 )
             new.append(perm)
         vals["not-any-perm"] = new
+
+        if vals["format"]:
+            if not vals["format"][0].lower() in ["page", "menu"]:
+                raise BadArgument(
+                    "Invalid format.  Must be `page` for in a bin or `menu` for in an embed."
+                )
+            vals["format"] = vals["format"][0].lower()
 
         return vals
 
@@ -368,6 +426,20 @@ class Targeter(commands.Cog):
                 if not any(
                     [piece.lower() in user.display_name.lower() for piece in args["not-name"]]
                 ):
+                    matched_here.append(user)
+            passed.append(matched_here)
+
+        if args["a-nick"]:
+            matched_here = []
+            for user in matched:
+                if user.nick:
+                    matched_here.append(user)
+            passed.append(matched_here)
+
+        if args["no-nick"]:
+            matched_here = []
+            for user in matched:
+                if not user.nick:
                     matched_here.append(user)
             passed.append(matched_here)
 
@@ -610,6 +682,8 @@ class Targeter(commands.Cog):
             return []
         return all_passed.intersection(*passed)
 
+    @checks.bot_has_permissions(embed_links=True)
+    @commands.guild_only()
     @commands.group(invoke_without_command=True)
     async def target(self, ctx, *, args: Args):
         """Targets users based on the passed arguments.
@@ -621,27 +695,39 @@ class Targeter(commands.Cog):
             matched = await self.bot.loop.run_in_executor(None, compact)
 
             if len(matched) != 0:
-                string = "The following users have matched your arguments:\n"
-                for number, member in enumerate(matched, 1):
-                    adding = f"Entry #{number}\n    • Username: {member.name}\n    • Guild Name: {member.display_name}\n    • ID: {member.id}\n"
-                    string += adding
-                url = await self.post(string)
-                if len(matched) < 500:
-                    color = 0x00FF00
-                elif len(matched) < 1000:
-                    color = 0xFFA500
+                color = await ctx.embed_color()
+                if args["format"] == "page":
+                    string = "The following users have matched your arguments:\n"
+                    for number, member in enumerate(matched, 1):
+                        adding = f"Entry #{number}\n    • Username: {member.name}\n    • Guild Name: {member.display_name}\n    • ID: {member.id}\n"
+                        string += adding
+                    url = await self.post(string)
+                    embed = discord.Embed(
+                        title="Targeting complete",
+                        description=f"Found {len(matched)} matches.  Click [here]({url}) to see the full results.",
+                        color=color,
+                    )
+                    m = False
                 else:
-                    color = 0xFF0000
-                embed = discord.Embed(
-                    title="Targeting complete",
-                    description=f"Found {len(matched)} matches.  Click [here]({url}) to see the full results.",
-                    color=color,
-                )
+                    string = " ".join([m.mention for m in matched])
+                    embed_list = []
+                    for page in pagify(string, delims=[" "], page_length=750):
+                        embed = discord.Embed(
+                            title=f"Targeting complete.  Found {len(matched)} matches.",
+                            color=color,
+                        )
+                        embed.description = page
+                        embed_list.append(embed)
+                    m = True
             else:
                 embed = discord.Embed(
                     title="Targeting complete", description=f"Found no matches.", color=0xFF0000
                 )
-        await ctx.send(embed=embed)
+                m = False
+        if not m:
+            await ctx.send(embed=embed)
+        else:
+            await menu(ctx, embed_list, DEFAULT_CONTROLS)
 
     @target.command(name="help")
     async def _help(self, ctx):
@@ -656,10 +742,13 @@ class Targeter(commands.Cog):
             "\n"
             "`--not-nick <nickone> <nicktwo>` - Users must not have one of the passed nicks in their nickname.  If they don't have a nickname, they will instantly be excluded.\n"
             "`--not-user <userone> <usertwo>` - Users must not have one of the passed usernames in their real username.  This will not look at nicknames.\n"
-            "`--not-name <nameone> <nametwo>` - Users must not have one of the passed names in their username, and if they don't have one, their username."
+            "`--not-name <nameone> <nametwo>` - Users must not have one of the passed names in their username, and if they don't have one, their username.\n"
+            "\n"
+            "`--a-nick` - Users must have a nickname in the server.\n"
+            "`--no-nick` - Users cannot have a nickname in the server."
         )
         names.description = desc
-        names.set_footer(text="Target Arguments - Names; Page 1/5")
+        names.set_footer(text="Target Arguments - Names; Page 1/6")
         embed_list.append(names)
 
         roles = discord.Embed(title="Target Arguments - Roles")
@@ -673,7 +762,7 @@ class Targeter(commands.Cog):
             "`--no-role` - Users cannot have any roles."
         )
         roles.description = desc
-        roles.set_footer(text="Target Arguments - Roles; Page 2/5")
+        roles.set_footer(text="Target Arguments - Roles; Page 2/6")
         embed_list.append(roles)
 
         status = discord.Embed(title="Target Arguments - Profile")
@@ -689,7 +778,7 @@ class Targeter(commands.Cog):
             "`--no-activity` - Users cannot be in an activity.\n"
         )
         status.description = desc
-        status.set_footer(text="Target Arguments - Profile; Page 3/5")
+        status.set_footer(text="Target Arguments - Profile; Page 3/6")
         embed_list.append(status)
 
         dates = discord.Embed(title="Target Arguments - Dates")
@@ -703,7 +792,7 @@ class Targeter(commands.Cog):
             "`--created-after YYYY MM DD` - Users must have created their account after the day specified.  The day specified is not counted."
         )
         dates.description = desc
-        dates.set_footer(text="Target Arguments - Dates; Page 4/5")
+        dates.set_footer(text="Target Arguments - Dates; Page 4/6")
         embed_list.append(dates)
 
         perms = discord.Embed(title="Target Arguments - Permissions")
@@ -717,8 +806,18 @@ class Targeter(commands.Cog):
             f"Run `{ctx.prefix}target permissions` to see a list of permissions that can be passed."
         )
         perms.description = desc
-        perms.set_footer(text="Target Arguments - Permissions; Page 5/5")
+        perms.set_footer(text="Target Arguments - Permissions; Page 5/6")
         embed_list.append(perms)
+
+        special = discord.Embed(title="Target Arguments - Special Notes")
+        desc = (
+            "`--format` - How to display results.  At the moment, must be `page` for posting on a website, or `menu` for showing the results in Discord.\n"
+            "\n"
+            "If at any time you need to include quotes at the beginning or ending of something (such as a nickname or a role), include a slash (\) right before it."
+        )
+        special.description = desc
+        special.set_footer(text="Target Arguments - Special Notes; Page 6/6")
+        embed_list.append(special)
 
         await menu(ctx, embed_list, DEFAULT_CONTROLS)
 

@@ -14,6 +14,8 @@ except ModuleNotFoundError:
 
 
 class Sql(commands.Cog):
+    """Store data for your guild in SQL format"""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -30,7 +32,7 @@ class Sql(commands.Cog):
         self.fileset = sqlite3.connect(str(self.cog_path / "filesettings.sqlite"))
         self.filesetc = self.fileset.cursor()
 
-    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+    __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
     def cog_unload(self):
         self.__unload()
@@ -66,6 +68,7 @@ class Sql(commands.Cog):
         """Group command for SQL cog.  Warning: due to the input of values, SQL commands are not always sanitized and can result in the destruction of tables on accident.  Run at your own risk."""
         pass
 
+    @checks.admin()
     @sql.group()
     async def settings(self, ctx):
         """Group command for settings management."""
@@ -1209,7 +1212,11 @@ class Sql(commands.Cog):
         nex = ""
         categories = []
         while nex != "exit":
-            message = await self.bot.wait_for("message", check=check)
+            try:
+                message = await self.bot.wait_for("message", check=check, timeout=30.0)
+            except asyncio.TimeoutError:
+                await ctx.send("Interactive mode timed out.  Exiting.")
+                return
             nex = message.content
             if nex != "exit":
                 categories.append(nex)

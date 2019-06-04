@@ -8,6 +8,7 @@ import heapq
 from io import BytesIO
 from datetime import datetime, timezone
 import pytz
+import typing
 
 import matplotlib
 
@@ -17,14 +18,16 @@ import matplotlib.pyplot as plt
 
 plt.switch_backend("agg")
 
-from redbot.core import commands
+from redbot.core import commands, checks
 
 
 class CommandChart(commands.Cog):
+    """Shows the commands most used in a certain channel within the last so-and-so messages"""
+
     def __init__(self, bot):
         self.bot = bot
 
-    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+    __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
     async def command_from_message(self, m: discord.Message):
         message_context = await self.bot.get_context(m)
@@ -96,16 +99,19 @@ class CommandChart(commands.Cog):
         image_object.seek(0)
         return image_object
 
+    @checks.bot_has_permissions(embed_links=True)
     @commands.guild_only()
     @commands.command()
-    async def commandchart(self, ctx, channel: discord.TextChannel = None, number: int = 5000):
+    async def commandchart(
+        self, ctx, channel: typing.Optional[discord.TextChannel] = None, number: int = 5000
+    ):
         """See the used commands in a certain channel within a certain amount of messages."""
         e = discord.Embed(description="Loading...", color=0x000099)
         e.set_thumbnail(url="https://cdn.discordapp.com/emojis/544517783224975387.gif?v=1")
         em = await ctx.send(embed=e)
 
-        if channel is None:
-            channel = ctx.message.channel
+        if not channel:
+            channel = ctx.channel
         if not channel.permissions_for(ctx.message.author).read_messages == True:
             await em.delete()
             return await ctx.send("You do not have the proper permissions to access that channel.")

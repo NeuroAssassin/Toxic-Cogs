@@ -14,10 +14,12 @@ from datetime import datetime
 
 
 class UpdateChecker(commands.Cog):
+    """Get notices or auto-update cogs when an update is available for it's repo"""
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
-        self.conf = Config.get_conf(self, identifier=473_541_068_378_341_376)
+        self.conf = Config.get_conf(self, identifier=473541068378341376)
         default_global = {
             "updated": False,
             "repos": {},
@@ -71,7 +73,10 @@ class UpdateChecker(commands.Cog):
                         saving_dict[repo_name] = commit
                         if commit != commit_saved and commit_saved != "--default--":
                             if not auto:
-                                if use_embed:
+                                if (
+                                    use_embed
+                                    and channel.permissions_for(channel.guild.me).embed_links
+                                ):
                                     e = discord.Embed(
                                         title="[Update Checker]",
                                         description=f"Update available for repo: {repo.name}",
@@ -93,7 +98,10 @@ class UpdateChecker(commands.Cog):
                                         "```"
                                     )
                                 try:
-                                    if use_embed:
+                                    if (
+                                        use_embed
+                                        and channel.permissions_for(channel.guild.me).embed_links
+                                    ):
                                         await channel.send(embed=e)
                                     else:
                                         await channel.send(message)
@@ -102,6 +110,10 @@ class UpdateChecker(commands.Cog):
                                     await owner.send(
                                         "[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you."
                                     )
+                                    if use_embed:
+                                        await owner.send(embed=e)
+                                    else:
+                                        await channel.send(message)
                                     channel = owner
                                     await self.conf.gochannel.set(0)
                                 except discord.errors.Forbidden:
@@ -183,43 +195,11 @@ class UpdateChecker(commands.Cog):
             return None
         return ret
 
+    @checks.is_owner()
     @commands.group(name="cogupdater")
     async def update(self, ctx):
         """Group command for controlling the update checker cog."""
         pass
-
-    @checks.is_owner()
-    @update.command(name="all")
-    async def _update_all(self, ctx):
-        """Runs `[p]cog update`, then saves all of the commits.
-        
-        You should only run this once, when first loading the cog.  After that, you can just use `[p]cog update`."""
-        updated = await self.conf.updated()
-        if updated:
-            return await ctx.send(
-                "You have already run this command once, you do not need to again.  Please use `[p]cog update` to update your repos."
-            )
-        await self.conf.updated.set(True)
-        cog = self.bot.get_cog("Downloader")
-        await ctx.invoke(cog._cog_update)
-        await ctx.send(
-            "Done invoking cog update command.  Getting latest commits and storing them..."
-        )
-        repos = cog._repo_manager.get_all_repo_names()
-        data = await self.conf.repos()
-        for repo_name in repos:
-            repo = cog._repo_manager.get_repo(repo_name)
-            url = repo.url + r"/commits/" + repo.branch + ".atom"
-            response = await self.fetch_feed(url)
-            try:
-                commit = response.entries[0]["title"]
-            except AttributeError:
-                continue
-            data[repo.name] = commit
-        await self.conf.repos.set(data)
-        await ctx.send(
-            "The latest commits for all of your repos have been saved.  You will be notified when an update is available."
-        )
 
     @checks.is_owner()
     @update.command()
@@ -292,7 +272,7 @@ class UpdateChecker(commands.Cog):
         await ctx.send(f"Embeds are now {word}")
 
     @checks.is_owner()
-    @update.group(name="task")
+    @update.group(name="task", hidden=True)
     async def _group_update_task(self, ctx):
         """View the status of the task (the one checking for updates)."""
         pass
@@ -315,7 +295,7 @@ class UpdateChecker(commands.Cog):
         except asyncio.base_futures.InvalidStateError:
             message += "  No error has been encountered."
         else:
-            message += "  An error has been encountered.  Please run `[p]update task error` and report it to Neuro Assassin on the help server."
+            message += "  An error has been encountered.  Please run `[p]cogupdater task error` and report it to Neuro Assassin on the help server."
         await ctx.send(message)
 
     @_group_update_task.command()

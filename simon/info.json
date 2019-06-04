@@ -6,5 +6,5 @@
     "description" : "This cog allows a Discord User to play the game Simon inside of a text channel.\nWarning!  This cog uses a major portion of the bot's rate limits.  This may prevent the bot from sending messages, adding emojis or deleting messages in specific peroids of time.",
     "tags" : ["fun"],
     "requirements" : [],
-    "hidden" : false
+    "hidden" : true
 }

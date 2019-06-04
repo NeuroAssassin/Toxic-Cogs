@@ -1,3 +1,4 @@
+from redbot.core.utils.chat_formatting import pagify
 from redbot.core import commands
 from prettytable import PrettyTable
 from fuzzywuzzy import process
@@ -6,6 +7,8 @@ from typing import Union, Optional
 
 
 class ListPermissions(commands.Cog):
+    """Get the allowed/disable permissions in a guild or channel for a role or member"""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -23,21 +26,29 @@ class ListPermissions(commands.Cog):
     @lp_guild.command(name="role")
     async def guild_role(self, ctx, *, rolename):
         """Generates the permissions of a role.
+
+        Role name can be the name of the role (or at least close to it) or the ID of it.
         
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
-        roles = [role.name for role in ctx.guild.roles]
-        results = process.extract(rolename, roles, limit=1)
-        if results[0][1] <= 70:
-            return await ctx.send("Match was too low to be sure the role was found.")
-        role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        if not rolename.isdigit():
+            roles = [role.name for role in ctx.guild.roles]
+            results = process.extract(rolename, roles, limit=1)
+            if results[0][1] <= 70:
+                return await ctx.send("Match was too low to be sure the role was found.")
+            role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        else:
+            try:
+                role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
+            except IndexError:
+                return await ctx.send("Could not find a role with that ID.")
         t = PrettyTable(["Permission", "Value"])
         for perm, value in role.permissions:
             t.add_row([perm, value])
-        # Send two messages in case the rolename is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Permissions for role: {results[0][0]}]```")
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for role: {results[0][0]}]```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @lp_guild.command(name="member")
     async def guild_member(self, ctx, member: discord.Member = None):
@@ -48,11 +59,9 @@ class ListPermissions(commands.Cog):
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
             t.add_row([perm, value])
-        # Send two messages in case the member name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Permissions for user {member.display_name} in guild {ctx.guild.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for user: {member.display_name}] in guild {ctx.guild.name}```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @listpermissions.group(name="channel")
     async def lp_channel(self, ctx):
@@ -80,11 +89,9 @@ class ListPermissions(commands.Cog):
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
             t.add_row([perm, value])
-        # Send two messages in case the member/channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Permissions for user {member.display_name} in channel {channel.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for user: {member.display_name}] in channel {channel.name}```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @lp_channel.command(name="role")
     async def channel_role(
@@ -97,6 +104,8 @@ class ListPermissions(commands.Cog):
         rolename,
     ):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
+
+        Role name can be the name of the role (or at least close to it) or the ID of it.
         
         Permissions Values:
             None: means that it depends on the role permissions
@@ -105,20 +114,24 @@ class ListPermissions(commands.Cog):
         """
         if not channel:
             channel = ctx.channel
-        roles = [role.name for role in ctx.guild.roles]
-        results = process.extract(rolename, roles, limit=1)
-        if results[0][1] <= 70:
-            return await ctx.send("Match was too low to be sure the role was found.")
-        role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        if not rolename.isdigit():
+            roles = [role.name for role in ctx.guild.roles]
+            results = process.extract(rolename, roles, limit=1)
+            if results[0][1] <= 70:
+                return await ctx.send("Match was too low to be sure the role was found.")
+            role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        else:
+            try:
+                role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
+            except IndexError:
+                return await ctx.send("Could not find a role with that ID.")
         permissions = channel.overwrites_for(role)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
             t.add_row([perm, value])
-        # Send two messages in case the rolename or channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Permissions for role {results[0][0]} in channel {channel.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for role: {results[0][0]} in channel {channel.name}]```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @commands.guild_only()
     @commands.group(aliases=["ap"])
@@ -134,23 +147,31 @@ class ListPermissions(commands.Cog):
     @ap_guild.command(name="role")
     async def ap_guild_role(self, ctx, *, rolename):
         """Generates the permissions of a role.
+
+        Role name can be the name of the role (or at least close to it) or the ID of it.
         
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
-        roles = [role.name for role in ctx.guild.roles]
-        results = process.extract(rolename, roles, limit=1)
-        if results[0][1] <= 70:
-            return await ctx.send("Match was too low to be sure the role was found.")
-        role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        if not rolename.isdigit():
+            roles = [role.name for role in ctx.guild.roles]
+            results = process.extract(rolename, roles, limit=1)
+            if results[0][1] <= 70:
+                return await ctx.send("Match was too low to be sure the role was found.")
+            role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        else:
+            try:
+                role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
+            except IndexError:
+                return await ctx.send("Could not find a role with that ID.")
         t = PrettyTable(["Permission", "Value"])
         for perm, value in role.permissions:
             if not value:
                 continue
             t.add_row([perm, value])
-        # Send two messages in case the rolename is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Available permissions for role: {results[0][0]}]```")
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Available permissions for role: {results[0][0]}]```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @ap_guild.command(name="member")
     async def ap_guild_member(self, ctx, member: discord.Member = None):
@@ -163,11 +184,9 @@ class ListPermissions(commands.Cog):
             if not value:
                 continue
             t.add_row([perm, value])
-        # Send two messages in case the member name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Available permissions for user {member.display_name} in guild {ctx.guild.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Available Permissions for user: {member.display_name}] in guild {ctx.guild.name}```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @availablepermissions.group(name="channel")
     async def ap_channel(self, ctx):
@@ -197,11 +216,9 @@ class ListPermissions(commands.Cog):
             if not value:
                 continue
             t.add_row([perm, value])
-        # Send two messages in case the member/channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Available permissions for user {member.display_name} in channel {channel.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Available permissions for user: {member.display_name}] in channel {channel.name}```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @ap_channel.command(name="role")
     async def ap_channel_role(
@@ -214,6 +231,8 @@ class ListPermissions(commands.Cog):
         rolename,
     ):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
+
+        Role name can be the name of the role (or at least close to it) or the ID of it.
         
         Permissions Values:
             None: means that it depends on the role permissions
@@ -222,22 +241,26 @@ class ListPermissions(commands.Cog):
         """
         if not channel:
             channel = ctx.channel
-        roles = [role.name for role in ctx.guild.roles]
-        results = process.extract(rolename, roles, limit=1)
-        if results[0][1] <= 70:
-            return await ctx.send("Match was too low to be sure the role was found.")
-        role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        if not rolename.isdigit():
+            roles = [role.name for role in ctx.guild.roles]
+            results = process.extract(rolename, roles, limit=1)
+            if results[0][1] <= 70:
+                return await ctx.send("Match was too low to be sure the role was found.")
+            role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        else:
+            try:
+                role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
+            except IndexError:
+                return await ctx.send("Could not find a role with that ID.")
         permissions = channel.overwrites_for(role)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
             if not value:
                 continue
             t.add_row([perm, value])
-        # Send two messages in case the rolename or channelname is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Available permissions for role {results[0][0]} in channel {channel.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for role: {results[0][0]} in channel {channel.name}]```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @commands.guild_only()
     @commands.group(aliases=["dp"])
@@ -253,23 +276,31 @@ class ListPermissions(commands.Cog):
     @dp_guild.command(name="role")
     async def dp_guild_role(self, ctx, *, rolename):
         """Generates the permissions of a role.
+
+        Role name can be the name of the role (or at least close to it) or the ID of it.
         
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
-        roles = [role.name for role in ctx.guild.roles]
-        results = process.extract(rolename, roles, limit=1)
-        if results[0][1] <= 70:
-            return await ctx.send("Match was too low to be sure the role was found.")
-        role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        if not rolename.isdigit():
+            roles = [role.name for role in ctx.guild.roles]
+            results = process.extract(rolename, roles, limit=1)
+            if results[0][1] <= 70:
+                return await ctx.send("Match was too low to be sure the role was found.")
+            role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        else:
+            try:
+                role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
+            except IndexError:
+                return await ctx.send("Could not find a role with that ID.")
         t = PrettyTable(["Permission", "Value"])
         for perm, value in role.permissions:
             if value:
                 continue
             t.add_row([perm, value])
-        # Send two messages in case the rolename is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(f"```ini\n[Denied permissions for role: {results[0][0]}]```")
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for role: {results[0][0]}]```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @dp_guild.command(name="member")
     async def dp_guild_member(self, ctx, member: discord.Member = None):
@@ -282,11 +313,9 @@ class ListPermissions(commands.Cog):
             if value:
                 continue
             t.add_row([perm, value])
-        # Send two messages in case the member name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Denied permissions for user {member.display_name} in guild {ctx.guild.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for user: {member.display_name}] in guild {ctx.guild.name}```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @deniedpermissions.group(name="channel")
     async def dp_channel(self, ctx):
@@ -316,11 +345,9 @@ class ListPermissions(commands.Cog):
             if value:
                 continue
             t.add_row([perm, value])
-        # Send two messages in case the member/channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Denied permissions for user {member.display_name} in channel {channel.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for user: {member.display_name}] in channel {channel.name}```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)
 
     @dp_channel.command(name="role")
     async def dp_channel_role(
@@ -333,6 +360,8 @@ class ListPermissions(commands.Cog):
         rolename,
     ):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
+
+        Role name can be the name of the role (or at least close to it) or the ID of it.
         
         Permissions Values:
             None: means that it depends on the role permissions
@@ -341,19 +370,23 @@ class ListPermissions(commands.Cog):
         """
         if not channel:
             channel = ctx.channel
-        roles = [role.name for role in ctx.guild.roles]
-        results = process.extract(rolename, roles, limit=1)
-        if results[0][1] <= 70:
-            return await ctx.send("Match was too low to be sure the role was found.")
-        role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        if not rolename.isdigit():
+            roles = [role.name for role in ctx.guild.roles]
+            results = process.extract(rolename, roles, limit=1)
+            if results[0][1] <= 70:
+                return await ctx.send("Match was too low to be sure the role was found.")
+            role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
+        else:
+            try:
+                role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
+            except IndexError:
+                return await ctx.send("Could not find a role with that ID.")
         permissions = channel.overwrites_for(role)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
             if value:
                 continue
             t.add_row([perm, value])
-        # Send two messages in case the rolename or channel name is really long, in order to make sure we don't exceed the 2000 character limit
-        await ctx.send(
-            f"```ini\n[Denied permissions for role {results[0][0]} in channel {channel.name}]```"
-        )
-        await ctx.send("```py\n" + str(t) + "```")
+        sending = f"```ini\n[Permissions for role: {results[0][0]} in channel {channel.name}]```\n```py\n{t}```"
+        for page in pagify(sending):
+            await ctx.send(sending)

@@ -1,4 +1,4 @@
-from redbot.core import commands, Config
+from redbot.core import commands, Config, checks
 from PIL import Image
 from colour import Color as col
 from colour import rgb2hex
@@ -9,6 +9,8 @@ import functools
 
 
 class Color(commands.Cog):
+    """View embeds showcasing the supplied color and information about it"""
+
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
@@ -19,7 +21,7 @@ class Color(commands.Cog):
             r"(?i)^(?:(?:(?:0x|#|)((?:[a-fA-F0-9]{3}){1,2}$))|(?:([+-]?(?:[0-9]*[.])?[0-9]+,[+-]?(?:[0-9]*[.])?[0-9]+,[+-]?(?:[0-9]*[.])?[0-9]+))|(?:(\S+)))"
         )  # The Regex gods are going to kill me
 
-    __author__ = "Neuro Assassin#4227 <@473541068378341376>"
+    __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
     def have_fun_with_pillow(self, rgb):
         im = Image.new("RGB", (200, 200), rgb)
@@ -38,10 +40,9 @@ class Color(commands.Cog):
             title=f"Color Embed for: {hexa}", color=int(hexa.replace("#", "0x"), 0)
         )
         embed.add_field(name="Hexadecimal Value:", value=hexa)
-        embed.add_field(
-            name="Red, Green, Blue (RGB) Value: ",
-            value=f"{str(co.rgb)}\n{str(tuple([item*255 for item in co.rgb]))}",
-        )
+        normal = ", ".join([f"{part:.2f}" for part in co.rgb])
+        extended = ", ".join([f"{(part*255):.2f}" for part in co.rgb])
+        embed.add_field(name="Red, Green, Blue (RGB) Value: ", value=f"{normal}\n{extended}")
         embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(co.hsl))
         embed.set_thumbnail(url="attachment://picture.png")
         return embed, file
@@ -52,6 +53,9 @@ class Color(commands.Cog):
             return
         if message.guild and not (await self.conf.guild(message.guild).enabled()):
             return
+        ctx = await self.bot.get_context(message)
+        if ctx.valid:
+            return
         words = message.content.split(" ")
         counter = 0
         for word in words:
@@ -60,6 +64,8 @@ class Color(commands.Cog):
             if word.startswith("#"):
                 word = word[1:]
                 m = self.r.match(word)
+                if not m:
+                    continue
                 if m.group(1):  # Hex
                     hexa = m.group(1)
                     try:
@@ -100,6 +106,7 @@ class Color(commands.Cog):
         """Group command for color commands"""
         pass
 
+    @checks.bot_has_permissions(embed_links=True)
     @color.command()
     async def name(self, ctx, name):
         """Provides the hexadecimal value, RGB value and HSL value of a passed color.  For example, pass `red` or `blue` as the name argument."""
@@ -111,6 +118,7 @@ class Color(commands.Cog):
         except (ValueError, AttributeError):
             await ctx.send("That color is not recognized.")
 
+    @checks.bot_has_permissions(embed_links=True)
     @color.command()
     async def hex(self, ctx, hexa: str):
         """Provides the RGB value and HSL value of a passed hexadecimal value.  Hexadecimal value must in the format of something like `#ffffff` or `0xffffff` to be used."""
@@ -126,6 +134,7 @@ class Color(commands.Cog):
                 "Invalid formatting for the hexadecimal.  Must be the hexadecimal value, with an optional `0x` or `#` in the beginning."
             )
 
+    @checks.bot_has_permissions(embed_links=True)
     @color.command()
     async def rgb(self, ctx, highest: int, r: float, g: float, b: float):
         """Provides the hexadecimal value and HSL value of the rgb value given.  Each value must have a space between them.  Highest argument must be 1 or 255, indicating the highest value of a single value (r, g, or b)."""
@@ -142,6 +151,7 @@ class Color(commands.Cog):
         except (ValueError, AttributeError):
             await ctx.send("That rgb number is not recognized.")
 
+    @checks.bot_has_permissions(embed_links=True)
     @color.command()
     async def hsl(self, ctx, h: float, s: float, l: float):
         """Provides the hexadecimal value and the RGB value of the hsl value given.  Each value must have a space between them."""
@@ -152,9 +162,16 @@ class Color(commands.Cog):
         except (ValueError, AttributeError):
             await ctx.send("That hsl number is not recognized.")
 
+    @checks.admin()
     @color.command()
     async def msgshort(self, ctx, enable: bool):
-        """Set whether or not the in-message shortcut can be used."""
+        """Enable or disable the in-message shortcut.
+        
+        In-message shortcuts can be used by using the hex, rgb or name after a `#` in the middle of a message, as follows:
+        
+        `#000000` (hex)
+        `#1,1,1` (rgb)
+        `#black` (named)"""
         await self.conf.guild(ctx.guild).enabled.set(enable)
         if enable:
             await ctx.send("The in-message shortcut is now enabled.")

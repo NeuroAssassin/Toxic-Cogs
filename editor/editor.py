@@ -2,13 +2,18 @@ from redbot.core import commands, checks
 from typing import Union
 import discord
 
+
 class Editor(commands.Cog):
+    """Allows for Administrators to edit a bot's messages by providing the new content or by copying another message"""
+
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
     @checks.admin()
-    async def editmessage(self, ctx, ecid: int, editid: int, ccid: int, *, content: Union[int, str]):
+    async def editmessage(
+        self, ctx, ecid: int, editid: int, ccid: int, *, content: Union[int, str]
+    ):
         """Edits a message with the content of another message or the specified content.
 
         Arguments:
@@ -29,27 +34,43 @@ class Editor(commands.Cog):
         `[p]editmessage 133251234164375552 578969593708806144 0 ah bruh`
         """
         if isinstance(content, int) and ccid == 0:
-            return await ctx.send("You provided an ID of a message to copy from, but didn't provide a channel ID to get the message from.")
-        
+            return await ctx.send(
+                "You provided an ID of a message to copy from, but didn't provide a channel ID to get the message from."
+            )
+
         # Make sure channels and IDs are all good
         editchannel = self.bot.get_channel(ecid)
-        if not editchannel:
+        if not editchannel or not type(editchannel) == discord.TextChannel:
             return await ctx.send("Invalid channel for the message you are editing.")
-        if not editchannel.permissions_for(ctx.author).manage_messages and not (await self.bot.is_owner(ctx.author)):
+        if not editchannel.permissions_for(ctx.author).manage_messages and not (
+            await self.bot.is_owner(ctx.author)
+        ):
             return await ctx.send("You do not have permission to edit messages in that channel.")
         try:
             editmessage = await editchannel.fetch_message(editid)
         except discord.NotFound:
-            return await ctx.send("Invalid editing message ID, or you passed the wrong channel ID for the message.")
+            return await ctx.send(
+                "Invalid editing message ID, or you passed the wrong channel ID for the message."
+            )
+        except discord.Forbidden:
+            return await ctx.send(
+                "I'm not allowed to view the channel which contains the message I am editing."
+            )
         if ccid != 0 and type(content) == int:
             copychannel = self.bot.get_channel(ccid)
-            if not copychannel:
+            if not copychannel or not type(editchannel) == discord.TextChannel:
                 return await ctx.send("Invalid ID for channel of the message to copy from.")
             try:
                 copymessage = await copychannel.fetch_message(content)
             except discord.NotFound:
-                return await ctx.send("Invalid copying message ID, or you passed the wrong channel ID for the message.")
-            
+                return await ctx.send(
+                    "Invalid copying message ID, or you passed the wrong channel ID for the message."
+                )
+            except discord.Forbidden:
+                return await ctx.send(
+                    "I'm not allowed to view the channel of the message from which I am copying."
+                )
+
             # All checks passed
             content = copymessage.content
             try:
@@ -62,8 +83,8 @@ class Editor(commands.Cog):
                 return await ctx.send("I can only edit my own messages.")
             await ctx.send(f"Message successfully edited.  Jump URL: {editmessage.jump_url}")
         else:
-            await editmessage.edit(content=content, embed=None)
             try:
+                await editmessage.edit(content=content, embed=None)
                 await ctx.send(f"Message successfully edited.  Jump URL: {editmessage.jump_url}")
             except discord.errors.Forbidden:
-                return await ctx.send("I can only edit my own messages.")
+                await ctx.send("I can only edit my own messages.")

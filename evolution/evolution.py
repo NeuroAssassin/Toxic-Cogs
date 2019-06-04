@@ -1,4 +1,4 @@
-from redbot.core import commands, Config, bank
+from redbot.core import commands, Config, bank, checks
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 import copy
 import asyncio
@@ -71,11 +71,11 @@ class Evolution(commands.Cog):
         while True:
             users = await self.conf.all_users()
             for user, data in users.items():
-                animal = data['animal']
+                animal = data["animal"]
                 if animal == "":
                     continue
-                multiplier = data['multiplier']
-                animals = data['animals']
+                multiplier = data["multiplier"]
+                animals = data["animals"]
                 all_gaining = 0
                 for key, value in animals.items():
                     for x in range(0, value):
@@ -108,10 +108,10 @@ class Evolution(commands.Cog):
     def get_total_price(self, level, bought, amount):
         total = 0
         for x in range(amount):
-            normal = level * 400
+            normal = level * 800
             level_tax = self.get_level_tax(level)
-            tax = bought * 100
-            total += normal + level_tax + tax + (x * 100)
+            tax = bought * 300
+            total += normal + level_tax + tax + (x * 300)
         return total
 
     async def shop_control_callback(self, ctx, pages, controls, message, page, timeout, emoji):
@@ -208,6 +208,7 @@ class Evolution(commands.Cog):
             f"You bought {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}"
         )
 
+    @checks.bot_has_permissions(embed_links=True)
     @evolution.command()
     async def shop(self, ctx):
         """View them animals in a nice little buying menu"""
@@ -239,14 +240,15 @@ class Evolution(commands.Cog):
         controls["\N{MONEY BAG}"] = self.shop_control_callback
         await menu(ctx, embed_list, controls)
 
+    @checks.bot_has_permissions(embed_links=True)
     @evolution.command()
-    async def backyard(self, ctx, menu: bool=False):
+    async def backyard(self, ctx, use_menu: bool = False):
         """Where ya animals live!  Pass 1 or true to put it in a menu."""
         animal = await self.conf.user(ctx.author).animal()
         if animal in ["", "P"]:
             return await ctx.send("Finish starting your evolution first")
         animals = await self.conf.user(ctx.author).animals()
-        if menu:
+        if use_menu:
             embed_list = []
             for level, amount in animals.items():
                 if amount == 0:
@@ -267,7 +269,7 @@ class Evolution(commands.Cog):
                     continue
                 embed.add_field(
                     name=f"Level {str(level)} {animal}",
-                    value=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''} \N{ZERO WIDTH SPACE} \N{ZERO WIDTH SPACE}"
+                    value=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''} \N{ZERO WIDTH SPACE} \N{ZERO WIDTH SPACE}",
                 )
             await ctx.send(embed=embed)
 
@@ -315,7 +317,7 @@ class Evolution(commands.Cog):
                 f"**To:** {ctx.author.display_name}\n"
                 f"**Concerning:** Animal experiment #{str(math.ceil(((multiplier - 1) * 5) + 1))}\n"
                 f"**Subject:** Animal experiment concluded.\n\n"
-                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough chickens to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 50,000 credits, remove all of your animals, and give you an extra 0.2% income rate for the next universe from all income.  Congratulations!\n\n"
+                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animalss to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 50,000 credits, remove all of your animals, and give you an extra 0.2% income rate for the next universe from all income.  Congratulations!\n\n"
                 f"From, The Head {animal.title()}"
             )
             await ctx.send(new)

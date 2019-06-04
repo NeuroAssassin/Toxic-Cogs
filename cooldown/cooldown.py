@@ -4,7 +4,10 @@ import asyncio
 import time
 import traceback
 
+
 class Cooldown(commands.Cog):
+    """Add or remove cooldowns from/to commands"""
+
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
@@ -32,15 +35,15 @@ class Cooldown(commands.Cog):
                 }
                 commands.cooldown(entry[1], entry[2], switch[entry[3]])(cmd)
 
+    @checks.is_owner()
     @commands.group()
     async def cooldown(self, ctx):
         """Group command for working with cooldowns for commands."""
         pass
 
-    @checks.is_owner()
-    @cooldown.command(alises=["update", "change"])
+    @cooldown.command(alises=["update", "change", "edit"])
     async def add(self, ctx, rate: int, per, btype, *, command):
-        """Sets a cooldown for a command, allowing a certain amount of times in a certain amount of time for a certain type.
+        """Sets a cooldown for a command, allowing a certain amount of times in a certain amount of time for a certain type.  If a cooldown already exists for the specified command, then it will be overwritten and edited.
 
         The command argument does not require quotes, as it consumes the rest in order to make cooldowns for subcommands easier.
 
@@ -76,6 +79,8 @@ class Cooldown(commands.Cog):
             return await ctx.send(
                 "Invalid amount of time.  There is a non-number in your `per` argument, not including the time type."
             )
+        if rate < 1:
+            return await ctx.send("The rate argument must be at least 1 or higher.")
         np = int(np)
         if per.endswith("s"):
             ttype = "seconds"
@@ -94,7 +99,7 @@ class Cooldown(commands.Cog):
         if not btype in ["user", "channel", "guild", "global"]:
             return await ctx.send("Invalid bucket type.")
         cmd = self.bot.get_command(command)
-        if cmd == None:
+        if cmd == None or not str(cmd) == command:
             return await ctx.send("Invalid command argument.")
 
         def check(m):
@@ -104,10 +109,21 @@ class Cooldown(commands.Cog):
                 and (m.content[0].lower() in ["y", "n"])
             )
 
+        cooldowns = cmd._buckets._cooldown
+        if cooldowns:
+            all_data = await self.conf.data()
+            if not command in [item[0] for item in all_data]:
+                extra = "\nThis command also had an original cooldown.  Cooldowns are typically on commands for certain reasons, and so editing it is not recommended.  Proceed at your own risk."
+            else:
+                extra = "\nThis command already had a cooldown from this cog, so its current cooldown will be edited to the new one."
+        else:
+            extra = ""
+
         await ctx.send(
             (
                 "You are about to add a cooldown for a command using this cog.  "
                 "Are you sure you wish to set this cooldown?  Respond with 'y' or 'n' to this message."
+                f"{extra}"
             )
         )
         try:
@@ -125,7 +141,6 @@ class Cooldown(commands.Cog):
         else:
             return await ctx.send("Not establishing command cooldown.")
         data = [command, rate, np, btype]
-        all_data = await self.conf.data()
         changed = False
         for position, entry in enumerate(all_data):
             if entry[0] == data[0]:
@@ -138,10 +153,9 @@ class Cooldown(commands.Cog):
 
         await ctx.send("Your cooldown has been established")
 
-    @checks.is_owner()
     @cooldown.command()
     async def remove(self, ctx, *, command):
-        """Removes the cooldown from a command, under a specific bucket.
+        """Removes the cooldown from a command.
 
         The cooldown can be one set from this cog or from inside the cog's code.
 
@@ -149,16 +163,22 @@ class Cooldown(commands.Cog):
 
         Please do note however: some commands are meant to have cooldowns.  They may prevent something malicious from happening, or maybe your device from breaking or from being used too much.  I (Neuro Assassin <@473541068378341376>) take no responsibility for any complications that may result because of this.  Use at your own risk.
 
-        Bucket Types:
-        -   User
-        -   Channel
-        -   Guild
-        -   Global
-        
-        Note: Does not actually remove the command cooldown (undocumented), so instead it allows for the command to be run 100000 times every 1 second until the next boot up, where it will not be added."""
+        Note: Does not actually remove the command cooldown (undocumented), so instead it allows for the command to be run 100000 times every 1 second until the next boot up, where it will not be added (unless you are removing a cooldown from outside of this cog, then it will be kept after restart)."""
         cmd = self.bot.get_command(command)
-        if cmd == None:
+        if cmd == None or not str(cmd) == command:
             return await ctx.send("Invalid command argument.")
+
+        cooldowns = cmd._buckets._cooldown
+        if not cooldowns:
+            return await ctx.send("This command does not have any cooldown.")
+
+        data = await self.conf.data()
+        if not command in [item[0] for item in data]:
+            fromcog = False
+            extra = "\nThis command also had an original cooldown.  Cooldowns are typically on commands for certain reasons, and so removing it is not recommended.  Proceed at your own risk."
+        else:
+            fromcog = True
+            extra = ""
 
         def check(m):
             return (
@@ -171,6 +191,7 @@ class Cooldown(commands.Cog):
             (
                 "You are about to remove a cooldown for a command.  "
                 "Are you sure you wish to remove it?  Respond with 'y' or 'n' to this message."
+                f"{extra}"
             )
         )
         try:
@@ -181,11 +202,15 @@ class Cooldown(commands.Cog):
             commands.cooldown(10000, 1, dc.BucketType.user)(cmd)
         else:
             return await ctx.send("Not removing command cooldown.")
-        data = await self.conf.data()
-        for entry in data:
-            if entry[0] == command:
-                data.remove(entry)
-                break
+        if fromcog:
+            for entry in data:
+                if entry[0] == command:
+                    data.remove(entry)
+                    break
+        else:
+            data.append([command, 10000, 1, "global"])
         await self.conf.data.set(data)
 
-        await ctx.send("Your cooldown has been removed.")
+        await ctx.send(
+            "Your cooldown has been removed.  If this cog originally had a cooldown, then you removed/edited it, and you just removed it, a bot restart is required for the original cooldown to be instated."
+        )

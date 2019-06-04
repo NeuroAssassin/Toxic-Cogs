@@ -5,13 +5,13 @@ import discord
 import asyncio
 import tabulate
 
-async def no_guild(ctx):
-    return ctx.guild is None
-
 CHECK = "\N{WHITE HEAVY CHECK MARK}"
 XEMOJI = "\N{NEGATIVE SQUARED CROSS MARK}"
 
+
 class Switcher(commands.Cog):
+    """Switch between bot accounts easily while maintaning the current bot's data"""
+
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
@@ -101,11 +101,15 @@ class Switcher(commands.Cog):
         try:
             reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=30.0)
         except asyncio.TimeoutError:
-            return await ctx.send("Not restarting.  Bot change will happen on the next restart.  Do not change your token or the bot will fail to start.")
+            return await ctx.send(
+                "Not restarting.  Bot change will happen on the next restart.  Do not change your token or the bot will fail to start."
+            )
         if str(reaction.emoji) == CHECK:
             await ctx.invoke(self.bot.get_command("restart"))
         else:
-            await ctx.send("Not restarting.  Bot change will happen on the next restart.  Do not change your token or the bot will fail to start.")
+            await ctx.send(
+                "Not restarting.  Bot change will happen on the next restart.  Do not change your token or the bot will fail to start."
+            )
 
     @switcher.command(name="list", usage=" ")
     async def _list(self, ctx, show_tokens: bool = False):
@@ -122,9 +126,9 @@ class Switcher(commands.Cog):
             if show_tokens:
                 setting.append(token)
             sending.append(setting)
-        string = tabulate.tabulate(sending, headers=headers, tablefmt='psql')
+        string = tabulate.tabulate(sending, headers=headers, tablefmt="psql")
         for page in pagify(string, delims=["\n"], shorten_by=10):
-            await ctx.send("```py\n" + page + "```")
+            await ctx.send("```\n" + page + "```")
 
     @switcher.command()
     async def remove(self, ctx, bot_name):
@@ -181,7 +185,7 @@ class Switcher(commands.Cog):
 
         def check(reaction, user):
             return (user.id == ctx.author.id) and (str(reaction.emoji) in [CHECK, XEMOJI])
-        
+
         m = await ctx.send("Are you sure you want to do this?")
         await self.add_reactions(m)
         try:
@@ -190,7 +194,7 @@ class Switcher(commands.Cog):
             return await ctx.send("Not changing token.")
         if str(reaction.emoji) == XEMOJI:
             return await ctx.send("Not changing token.")
-        
+
         data[bot_name] = token
         await self.conf.data.set(data)
         await ctx.tick()

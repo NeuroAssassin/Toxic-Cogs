@@ -317,7 +317,7 @@ class Evolution(commands.Cog):
                 f"**To:** {ctx.author.display_name}\n"
                 f"**Concerning:** Animal experiment #{str(math.ceil(((multiplier - 1) * 5) + 1))}\n"
                 f"**Subject:** Animal experiment concluded.\n\n"
-                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animalss to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 50,000 credits, remove all of your animals, and give you an extra 0.2% income rate for the next universe from all income.  Congratulations!\n\n"
+                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animals to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 50,000 credits, remove all of your animals, and give you an extra 0.2% income rate for the next universe from all income.  Congratulations!\n\n"
                 f"From, The Head {animal.title()}"
             )
             await ctx.send(new)

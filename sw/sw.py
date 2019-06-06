@@ -7,6 +7,7 @@ import json
 
 class SW(commands.Cog):
     """Interact with the Star Wars API"""
+
     def __init__(self, bot):
         self.bot = bot
         self.session = aiohttp.ClientSession()
@@ -64,7 +65,9 @@ class SW(commands.Cog):
             species_num = int(person["species"][0].split(r"/")[-2])
             species = await self.session.get(person["species"][0])
             species = json.loads(await species.text())
-            embed.add_field(name="Species", value=f"Name: {species['name']}; ID: {str(species_num)}")
+            embed.add_field(
+                name="Species", value=f"Name: {species['name']}; ID: {str(species_num)}"
+            )
             vehicles = []
             for vehicle in person["vehicles"]:
                 vehicle_num = int(vehicle.split(r"/")[-2])
@@ -192,7 +195,9 @@ class SW(commands.Cog):
     async def starship(self, ctx, starship_id: int):
         """Gets the profile of a starship by its ID"""
         async with ctx.typing():
-            response = await self.session.get(r"https://swapi.co/api/starships/" + str(starship_id))
+            response = await self.session.get(
+                r"https://swapi.co/api/starships/" + str(starship_id)
+            )
             if response.status == 404:
                 return await ctx.send("Invalid Starship ID.")
             starship = json.loads(await response.text())
@@ -334,7 +339,13 @@ class SW(commands.Cog):
                 homeworld_num = int(person["homeworld"].split(r"/")[-2])
                 embed.add_field(name="Homeworld", value=f"ID: {str(homeworld_num)}")
                 persons_list.append(embed)
-            persons_list.sort(key=lambda x: int([field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0]["value"]))
+            persons_list.sort(
+                key=lambda x: int(
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
+                )
+            )
         await menu(ctx, persons_list, DEFAULT_CONTROLS)
 
     @_all_group.command()
@@ -364,7 +375,13 @@ class SW(commands.Cog):
                         continue
                     embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 planets_list.append(embed)
-            planets_list.sort(key=lambda x: int([field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0]["value"]))
+            planets_list.sort(
+                key=lambda x: int(
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
+                )
+            )
         await menu(ctx, planets_list, DEFAULT_CONTROLS)
 
     @_all_group.command()
@@ -406,7 +423,13 @@ class SW(commands.Cog):
                     value = value.title() if hasattr(value, "title") else value
                     embed.add_field(name=key.replace("_", " ").title(), value=value)
                 films_list.append(embed)
-            films_list.sort(key=lambda x: int([field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0]["value"]))
+            films_list.sort(
+                key=lambda x: int(
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
+                )
+            )
         await menu(ctx, films_list, DEFAULT_CONTROLS)
 
     @_all_group.command()
@@ -437,7 +460,13 @@ class SW(commands.Cog):
                     value = value.title() if hasattr(value, "title") else value
                     embed.add_field(name=key.replace("_", " ").title(), value=value)
                 starships_list.append(embed)
-            starships_list.sort(key=lambda x: int([field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0]["value"]))
+            starships_list.sort(
+                key=lambda x: int(
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
+                )
+            )
         await menu(ctx, starships_list, DEFAULT_CONTROLS)
 
     @_all_group.command()
@@ -468,7 +497,13 @@ class SW(commands.Cog):
                     value = value.title() if hasattr(value, "title") else value
                     embed.add_field(name=key.replace("_", " ").title(), value=value)
                 vehicles_list.append(embed)
-            vehicles_list.sort(key=lambda x: int([field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0]["value"]))
+            vehicles_list.sort(
+                key=lambda x: int(
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
+                )
+            )
         await menu(ctx, vehicles_list, DEFAULT_CONTROLS)
 
     @_all_group.command(name="species")
@@ -499,5 +534,11 @@ class SW(commands.Cog):
                     value = value.title() if hasattr(value, "title") else value
                     embed.add_field(name=key.replace("_", " ").title(), value=value)
                 species_list.append(embed)
-            species_list.sort(key=lambda x: int([field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0]["value"]))
+            species_list.sort(
+                key=lambda x: int(
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
+                )
+            )
         await menu(ctx, species_list, DEFAULT_CONTROLS)

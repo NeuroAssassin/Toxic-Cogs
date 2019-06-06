@@ -361,6 +361,8 @@ class Args(Converter):
 
 
 class Targeter(commands.Cog):
+    """Target members and get a list of them based on the passed arguments"""
+
     def __init__(self, bot):
         self.bot = bot
         self.conv = Args()  # For evals

@@ -1,9 +1,11 @@
-from redbot.core.utils.chat_formatting import pagify
-from redbot.core import commands
-from prettytable import PrettyTable
-from fuzzywuzzy import process
+from typing import Optional, Union
+
 import discord
-from typing import Union, Optional
+from fuzzywuzzy import process
+from redbot.core import commands
+from redbot.core.utils.chat_formatting import pagify
+
+from prettytable import PrettyTable
 
 
 class ListPermissions(commands.Cog):
@@ -32,7 +34,12 @@ class ListPermissions(commands.Cog):
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
-        if not rolename.isdigit():
+        try:
+            int(rolename)
+            isint = True
+        except ValueError:
+            isint = False
+        if not isint:
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
@@ -43,6 +50,7 @@ class ListPermissions(commands.Cog):
                 role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
             except IndexError:
                 return await ctx.send("Could not find a role with that ID.")
+            results = [[role.name]]
         t = PrettyTable(["Permission", "Value"])
         for perm, value in role.permissions:
             t.add_row([perm, value])
@@ -114,7 +122,12 @@ class ListPermissions(commands.Cog):
         """
         if not channel:
             channel = ctx.channel
-        if not rolename.isdigit():
+        try:
+            int(rolename)
+            isint = True
+        except ValueError:
+            isint = False
+        if not isint:
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
@@ -125,6 +138,7 @@ class ListPermissions(commands.Cog):
                 role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
             except IndexError:
                 return await ctx.send("Could not find a role with that ID.")
+            results = [[role.name]]
         permissions = channel.overwrites_for(role)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
@@ -153,7 +167,12 @@ class ListPermissions(commands.Cog):
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
-        if not rolename.isdigit():
+        try:
+            int(rolename)
+            isint = True
+        except ValueError:
+            isint = False
+        if not isint:
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
@@ -164,6 +183,7 @@ class ListPermissions(commands.Cog):
                 role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
             except IndexError:
                 return await ctx.send("Could not find a role with that ID.")
+            results = [[role.name]]
         t = PrettyTable(["Permission", "Value"])
         for perm, value in role.permissions:
             if not value:
@@ -241,7 +261,12 @@ class ListPermissions(commands.Cog):
         """
         if not channel:
             channel = ctx.channel
-        if not rolename.isdigit():
+        try:
+            int(rolename)
+            isint = True
+        except ValueError:
+            isint = False
+        if not isint:
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
@@ -252,6 +277,7 @@ class ListPermissions(commands.Cog):
                 role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
             except IndexError:
                 return await ctx.send("Could not find a role with that ID.")
+            results = [[role.name]]
         permissions = channel.overwrites_for(role)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:
@@ -282,7 +308,12 @@ class ListPermissions(commands.Cog):
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
-        if not rolename.isdigit():
+        try:
+            int(rolename)
+            isint = True
+        except ValueError:
+            isint = False
+        if not isint:
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
@@ -293,6 +324,7 @@ class ListPermissions(commands.Cog):
                 role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
             except IndexError:
                 return await ctx.send("Could not find a role with that ID.")
+            results = [[role.name]]
         t = PrettyTable(["Permission", "Value"])
         for perm, value in role.permissions:
             if value:
@@ -370,7 +402,12 @@ class ListPermissions(commands.Cog):
         """
         if not channel:
             channel = ctx.channel
-        if not rolename.isdigit():
+        try:
+            int(rolename)
+            isint = True
+        except ValueError:
+            isint = False
+        if not isint:
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
@@ -381,6 +418,7 @@ class ListPermissions(commands.Cog):
                 role = [role for role in ctx.guild.roles if role.id == int(rolename)][0]
             except IndexError:
                 return await ctx.send("Could not find a role with that ID.")
+            results = [[role.name]]
         permissions = channel.overwrites_for(role)
         t = PrettyTable(["Permission", "Value"])
         for perm, value in permissions:

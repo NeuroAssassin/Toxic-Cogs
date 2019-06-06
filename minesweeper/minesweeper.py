@@ -340,10 +340,6 @@ class Minesweeper(commands.Cog):
                 await ctx.send("Canceling game due to inactivity.")
                 return
             else:
-                try:
-                    await message.delete()
-                except discord.errors.Forbidden:
-                    pass
                 if message.content == "cancel":
                     await ctx.send("Canceling...")
                     return
@@ -374,6 +370,10 @@ class Minesweeper(commands.Cog):
                     if cn > 10 or cn <= 0:
                         await ctx.send("Column number is too high or too low.")
                     else:
+                        try:
+                            await message.delete()
+                        except discord.errors.Forbidden:
+                            pass
                         cn -= 1
                         if answer_board[rn][cn] == ":bomb:":
                             await ctx.send(

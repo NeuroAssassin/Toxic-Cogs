@@ -1460,8 +1460,8 @@ class Sql(commands.Cog):
         else:
             await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
 
-    @sql.command()
-    async def help(self, ctx):
+    @sql.command(name="help")
+    async def _help(self, ctx):
         """Provides information about the cog, because I know this cog seems confusing"""
         await ctx.send(
             (

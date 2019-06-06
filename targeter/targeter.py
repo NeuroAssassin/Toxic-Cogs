@@ -1,13 +1,14 @@
-from redbot.core.commands import BadArgument, Converter, RoleConverter
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
-from redbot.core.utils.chat_formatting import humanize_list, pagify
-from redbot.core import commands, checks
-from datetime import datetime
-import functools
-import aiohttp
 import argparse
-import discord
+import functools
 import re
+from datetime import datetime
+
+import aiohttp
+import discord
+from redbot.core import checks, commands
+from redbot.core.commands import BadArgument, Converter, RoleConverter
+from redbot.core.utils.chat_formatting import humanize_list, pagify
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 PERMS = [
     "add_reactions",
@@ -65,6 +66,10 @@ class Args(Converter):
 
         names.add_argument("--a-nick", dest="a-nick", action="store_true")
         names.add_argument("--no-nick", dest="no-nick", action="store_true")
+
+        discs = parser.add_mutually_exclusive_group()
+        discs.add_argument("--disc", nargs="*", dest="disc", default=[])
+        discs.add_argument("--not-disc", nargs="*", dest="ndisc", default=[])
 
         # Roles
         parser.add_argument("--roles", nargs="*", dest="roles", default=[])
@@ -167,6 +172,29 @@ class Args(Converter):
             raise BadArgument(
                 "Invalid status.  Must be either `online`, `dnd`, `idle` or `offline`."
             )
+
+        # Useeeeeeeeeeeeeeeeeeeernames (and Stuff)
+        if vals["disc"]:
+            new = []
+            for disc in vals["disc"]:
+                if len(disc) != 4:
+                    raise BadArgument("Discriminators must have the length of 4")
+                try:
+                    new.append(int(disc))
+                except ValueError:
+                    raise BadArgument("Discriminators must be valid integers")
+            vals["disc"] = new
+
+        if vals["ndisc"]:
+            new = []
+            for disc in vals["ndisc"]:
+                if len(disc) != 4:
+                    raise BadArgument("Discriminators must have the length of 4")
+                try:
+                    new.append(int(disc))
+                except ValueError:
+                    raise BadArgument("Discriminators must be valid integers")
+            vals["ndisc"] = new
 
         # Rooooooooooooooooles
 
@@ -442,6 +470,20 @@ class Targeter(commands.Cog):
             matched_here = []
             for user in matched:
                 if not user.nick:
+                    matched_here.append(user)
+            passed.append(matched_here)
+
+        if args["disc"]:
+            matched_here = []
+            for user in matched:
+                if any([disc == int(user.discriminator) for disc in args["disc"]]):
+                    matched_here.append(user)
+            passed.append(matched_here)
+
+        if args["ndisc"]:
+            matched_here = []
+            for user in matched:
+                if not any([disc == int(user.discriminator) for disc in args["ndisc"]]):
                     matched_here.append(user)
             passed.append(matched_here)
 

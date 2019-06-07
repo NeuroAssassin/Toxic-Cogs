@@ -88,6 +88,7 @@ class Twenty(commands.Cog):
     def execute_move(self, move, pboard):
         board = dc(pboard)
         total = 0
+        nb = None
         if move.lower() == "left":
             nb, total = self.check_left(board)
             for x in range(len(nb)):

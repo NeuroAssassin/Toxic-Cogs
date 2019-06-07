@@ -3,7 +3,6 @@ from redbot.core.data_manager import cog_data_path
 import sqlite3
 import traceback
 import asyncio
-import discord
 
 try:
     from prettytable import PrettyTable
@@ -79,7 +78,6 @@ class Sql(commands.Cog):
     async def show(self, ctx):
         """Shows the settings of the tables that pertain to your server."""
         await ctx.send("Fetching settings...")
-        sent = False
         try:
             self.memsetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
             tables = self.memsetc.fetchall()
@@ -87,15 +85,14 @@ class Sql(commands.Cog):
                 t = PrettyTable(["Table", "Edit Role", "View Role"])
                 for table_data in tables:
                     t.add_row(table_data)
-                await ctx.send("**Memory:**\n```py\n" + str(t) + "```")
-                sent = True
+                sending = "**Memory:**\n```py\n" + str(t) + "```"
+            else:
+                sending = "**Memory:**\n```py\n" + str(tables) + "```"
         except sqlite3.OperationalError:
             # Hasn't created settings for memory yet
-            tables = "ERROR: No tables!"
+            sending = "**Memory:**\n```py\nERROR: No tables!```"
         finally:
-            if not sent:
-                await ctx.send("**Memory:**\n```py\n" + str(tables) + "```")
-        sent = False
+            await ctx.send(sending)
         try:
             self.filesetc.execute(f"SELECT * FROM settings{str(ctx.guild.id)}")
             tables = self.filesetc.fetchall()
@@ -103,14 +100,14 @@ class Sql(commands.Cog):
                 t = PrettyTable(["Table", "Edit Role", "View Role"])
                 for table_data in tables:
                     t.add_row(table_data)
-                await ctx.send("**File:**\n```py\n" + str(t) + "```")
-                sent = True
+                sending = "**File:**\n```py\n" + str(t) + "```"
+            else:
+                sending = "**File:**\n```py\n" + str(tables) + "```"
         except sqlite3.OperationalError:
             # Hasn't created settings for file yet
-            tables = "ERROR: No tables!"
+            sending = "**Files:**\n```py\nERROR: No tables!```"
         finally:
-            if not sent:
-                await ctx.send("**File:**\n```py\n" + str(tables) + "```")
+            await ctx.send(sending)
 
     @checks.guildowner()
     @settings.command(aliases=["wipe"])

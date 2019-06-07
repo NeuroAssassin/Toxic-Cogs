@@ -1,6 +1,5 @@
 from redbot.core.commands import Converter, BadArgument
 import argparse
-import time
 from .utils import convert_time
 from .classes import ScheduledMaintenance
 
@@ -28,19 +27,26 @@ class Margs(Converter):
         whitelist = vals.get("whitelist", [])
         whitelist = list(map(int, whitelist))
         after = True
-        if end_seconds == None:
+        if not end_seconds:
             end_seconds = convert_time(vals.get("endin", None))
             after = False
         if start_seconds:
             if end_seconds:
                 scheduled = ScheduledMaintenance(
-                    start=start_seconds, end=end_seconds, after=after, whitelist=whitelist
+                    start=start_seconds,
+                    end=end_seconds,
+                    after=after,
+                    whitelist=whitelist,
                 )
             else:
-                scheduled = ScheduledMaintenance(start=start_seconds, whitelist=whitelist)
+                scheduled = ScheduledMaintenance(
+                    start=start_seconds, whitelist=whitelist
+                )
         else:
             if end_seconds:
-                scheduled = ScheduledMaintenance(end=end_seconds, after=after, whitelist=whitelist)
+                scheduled = ScheduledMaintenance(
+                    end=end_seconds, after=after, whitelist=whitelist
+                )
             else:
                 scheduled = ScheduledMaintenance(whitelist=whitelist)
         return scheduled

@@ -1,9 +1,10 @@
-from redbot.core.utils.chat_formatting import humanize_list
-from redbot.core import commands, checks, Config
-import time
-import discord
 import asyncio
+import time
 from copy import deepcopy as dc
+
+import discord
+from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import humanize_list
 
 
 class Deleter(commands.Cog):
@@ -68,18 +69,26 @@ class Deleter(commands.Cog):
         
         Wait times must be greater than or equal to 5 seconds, or 0 to disable auto-timed deletion.  Additionally, the wait argument must be in seconds.  For example, 5 minutes would be 300 seconds, so you pass 300, not 5."""
         if wait < 5 and wait != 0:
-            return await ctx.send("Wait times must be greater than or equal to 5 seconds.")
+            return await ctx.send(
+                "Wait times must be greater than or equal to 5 seconds."
+            )
         if not channel.permissions_for(ctx.guild.me).manage_messages:
-            return await ctx.send("I do not have permission to delete messages in that channel.")
+            return await ctx.send(
+                "I do not have permission to delete messages in that channel."
+            )
         if not channel.permissions_for(ctx.author).manage_messages:
-            return await ctx.send("You do not have permission to delete messages in that channel.")
+            return await ctx.send(
+                "You do not have permission to delete messages in that channel."
+            )
         await self.conf.channel(channel).wait.set(str(wait))
         if wait:
             await ctx.send(
                 f"Messages in {channel.mention} will now be deleted after {wait} seconds."
             )
         else:
-            await ctx.send("Messages will not be auto-deleted after a specific amount of time.")
+            await ctx.send(
+                "Messages will not be auto-deleted after a specific amount of time."
+            )
 
     @deleter.command()
     async def remove(self, ctx, channel: discord.TextChannel, *messages: str):
@@ -91,7 +100,7 @@ class Deleter(commands.Cog):
         success = []
         msgs = await self.conf.channel(channel).messages()
         for m in messages:
-            if not m in msgs:
+            if m not in msgs:
                 failed.append(m)
                 continue
             del msgs[m]

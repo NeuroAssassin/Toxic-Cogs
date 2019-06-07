@@ -1,10 +1,10 @@
-from redbot.core import commands, checks, Config
-from discord.ext import commands as dc
 import asyncio
-import time
-import traceback
+
+from discord.ext import commands as dc
+from redbot.core import Config, checks, commands
 
 
+# noinspection PyMissingConstructor
 class Cooldown(commands.Cog):
     """Add or remove cooldowns from/to commands"""
 
@@ -96,23 +96,23 @@ class Cooldown(commands.Cog):
         if not ttype:
             return await ctx.send("Invalid time unit.  Please use S, M, H or D.")
         btype = btype.lower()
-        if not btype in ["user", "channel", "guild", "global"]:
+        if btype not in ["user", "channel", "guild", "global"]:
             return await ctx.send("Invalid bucket type.")
         cmd = self.bot.get_command(command)
-        if cmd == None or not str(cmd) == command:
+        if not cmd or not str(cmd) == command:
             return await ctx.send("Invalid command argument.")
 
-        def check(m):
+        def check(msg):
             return (
-                (m.author.id == ctx.author.id)
-                and (m.channel.id == ctx.channel.id)
-                and (m.content[0].lower() in ["y", "n"])
+                (msg.author.id == ctx.author.id)
+                and (msg.channel.id == ctx.channel.id)
+                and (msg.content[0].lower() in ["y", "n"])
             )
 
         cooldowns = cmd._buckets._cooldown
         all_data = await self.conf.data()
         if cooldowns:
-            if not command in [item[0] for item in all_data]:
+            if command not in [item[0] for item in all_data]:
                 extra = "\nThis command also had an original cooldown.  Cooldowns are typically on commands for certain reasons, and so editing it is not recommended.  Proceed at your own risk."
             else:
                 extra = "\nThis command already had a cooldown from this cog, so its current cooldown will be edited to the new one."
@@ -165,7 +165,7 @@ class Cooldown(commands.Cog):
 
         Note: Does not actually remove the command cooldown (undocumented), so instead it allows for the command to be run 100000 times every 1 second until the next boot up, where it will not be added (unless you are removing a cooldown from outside of this cog, then it will be kept after restart)."""
         cmd = self.bot.get_command(command)
-        if cmd == None or not str(cmd) == command:
+        if not cmd or not str(cmd) == command:
             return await ctx.send("Invalid command argument.")
 
         cooldowns = cmd._buckets._cooldown
@@ -173,18 +173,18 @@ class Cooldown(commands.Cog):
             return await ctx.send("This command does not have any cooldown.")
 
         data = await self.conf.data()
-        if not command in [item[0] for item in data]:
+        if command not in [item[0] for item in data]:
             fromcog = False
             extra = "\nThis command also had an original cooldown.  Cooldowns are typically on commands for certain reasons, and so removing it is not recommended.  Proceed at your own risk."
         else:
             fromcog = True
             extra = ""
 
-        def check(m):
+        def check(msg):
             return (
-                (m.author.id == ctx.author.id)
-                and (m.channel.id == ctx.channel.id)
-                and (m.content[0].lower() in ["y", "n"])
+                (msg.author.id == ctx.author.id)
+                and (msg.channel.id == ctx.channel.id)
+                and (msg.content[0].lower() in ["y", "n"])
             )
 
         await ctx.send(

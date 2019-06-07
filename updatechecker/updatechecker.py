@@ -45,7 +45,7 @@ class UpdateChecker(commands.Cog):
             updated = await self.conf.updated()
             if updated:
                 cog = self.bot.get_cog("Downloader")
-                if cog != None:
+                if cog:
                     repos = await self.conf.repos()
                     auto = await self.conf.auto()
                     channel = await self.conf.gochannel()
@@ -75,7 +75,9 @@ class UpdateChecker(commands.Cog):
                             if not auto:
                                 if (
                                     use_embed
-                                    and channel.permissions_for(channel.guild.me).embed_links
+                                    and channel.permissions_for(
+                                        channel.guild.me
+                                    ).embed_links
                                 ):
                                     e = discord.Embed(
                                         title="[Update Checker]",
@@ -100,7 +102,9 @@ class UpdateChecker(commands.Cog):
                                 try:
                                     if (
                                         use_embed
-                                        and channel.permissions_for(channel.guild.me).embed_links
+                                        and channel.permissions_for(
+                                            channel.guild.me
+                                        ).embed_links
                                     ):
                                         await channel.send(embed=e)
                                     else:
@@ -147,19 +151,29 @@ class UpdateChecker(commands.Cog):
                                     installed_cogs = set(await cog.installed_cogs())
                                     updated = await cog._repo_manager.update_all_repos()
                                     updated_cogs = set(
-                                        cog for repo in updated for cog in repo.available_cogs
+                                        cog
+                                        for repo in updated
+                                        for cog in repo.available_cogs
                                     )
-                                    installed_and_updated = updated_cogs & installed_cogs
+                                    installed_and_updated = (
+                                        updated_cogs & installed_cogs
+                                    )
                                     if installed_and_updated:
-                                        await cog._reinstall_requirements(installed_and_updated)
+                                        await cog._reinstall_requirements(
+                                            installed_and_updated
+                                        )
                                         await cog._reinstall_cogs(installed_and_updated)
-                                        await cog._reinstall_libraries(installed_and_updated)
-                                        cognames = {c.name for c in installed_and_updated}
-                                        message = humanize_list(tuple(map(inline, cognames)))
+                                        await cog._reinstall_libraries(
+                                            installed_and_updated
+                                        )
+                                        cognames = {
+                                            c.name for c in installed_and_updated
+                                        }
+                                        message = humanize_list(
+                                            tuple(map(inline, cognames))
+                                        )
                                 except Exception as error:
-                                    exception_log = (
-                                        "Exception while updating repos in Update Checker \n"
-                                    )
+                                    exception_log = "Exception while updating repos in Update Checker \n"
                                     exception_log += "".join(
                                         traceback.format_exception(
                                             type(error), error, error.__traceback__
@@ -240,7 +254,7 @@ class UpdateChecker(commands.Cog):
             else:
                 try:
                     channel = self.bot.get_channel(channel).name
-                except:
+                except AttributeError:
                     channel = "Unknown"
             e.add_field(name="Update Channel", value=channel)
             await ctx.send(embed=e)
@@ -250,7 +264,7 @@ class UpdateChecker(commands.Cog):
             else:
                 try:
                     channel = self.bot.get_channel(channel).name
-                except:
+                except AttributeError:
                     channel = "Unknown"
             message = (
                 "```css\n"

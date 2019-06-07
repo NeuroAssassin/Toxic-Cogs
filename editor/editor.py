@@ -1,6 +1,7 @@
-from redbot.core import commands, checks
 from typing import Union
+
 import discord
+from redbot.core import checks, commands
 
 
 class Editor(commands.Cog):
@@ -45,7 +46,9 @@ class Editor(commands.Cog):
         if not editchannel.permissions_for(ctx.author).manage_messages and not (
             await self.bot.is_owner(ctx.author)
         ):
-            return await ctx.send("You do not have permission to edit messages in that channel.")
+            return await ctx.send(
+                "You do not have permission to edit messages in that channel."
+            )
         try:
             editmessage = await editchannel.fetch_message(editid)
         except discord.NotFound:
@@ -59,7 +62,9 @@ class Editor(commands.Cog):
         if ccid != 0 and type(content) == int:
             copychannel = self.bot.get_channel(ccid)
             if not copychannel or not type(editchannel) == discord.TextChannel:
-                return await ctx.send("Invalid ID for channel of the message to copy from.")
+                return await ctx.send(
+                    "Invalid ID for channel of the message to copy from."
+                )
             try:
                 copymessage = await copychannel.fetch_message(content)
             except discord.NotFound:
@@ -81,10 +86,14 @@ class Editor(commands.Cog):
                 await editmessage.edit(content=content, embed=embed)
             except discord.errors.Forbidden:
                 return await ctx.send("I can only edit my own messages.")
-            await ctx.send(f"Message successfully edited.  Jump URL: {editmessage.jump_url}")
+            await ctx.send(
+                f"Message successfully edited.  Jump URL: {editmessage.jump_url}"
+            )
         else:
             try:
                 await editmessage.edit(content=content, embed=None)
-                await ctx.send(f"Message successfully edited.  Jump URL: {editmessage.jump_url}")
+                await ctx.send(
+                    f"Message successfully edited.  Jump URL: {editmessage.jump_url}"
+                )
             except discord.errors.Forbidden:
                 await ctx.send("I can only edit my own messages.")

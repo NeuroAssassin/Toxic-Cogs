@@ -24,7 +24,6 @@ class Twenty(commands.Cog):
             ["_", "_", "_", 2],
         ]
         score = 0
-        total = 0
         await ctx.send(
             "Starting game...\nIf a reaction is not received every 5 minutes, the game will time out."
         )
@@ -35,11 +34,11 @@ class Twenty(commands.Cog):
         await message.add_reaction("\u27A1")
         await message.add_reaction("\u274C")
 
-        def check(reaction, user):
+        def check(r, u):
             return (
-                (user.id == ctx.author.id)
-                and (str(reaction.emoji) in ["\u2B06", "\u2B07", "\u2B05", "\u27A1", "\u274C"])
-                and (reaction.message.id == message.id)
+                (u.id == ctx.author.id)
+                and (str(r.emoji) in ["\u2B06", "\u2B07", "\u2B05", "\u27A1", "\u274C"])
+                and (r.message.id == message.id)
             )
 
         while True:
@@ -64,7 +63,7 @@ class Twenty(commands.Cog):
                     msg, nb, total = self.execute_move("left", board)
                 elif str(reaction.emoji) == "\u27A1":
                     msg, nb, total = self.execute_move("right", board)
-                elif str(reaction.emoji) == "\u274C":
+                else:
                     await ctx.send("Ending game")
                     await message.delete()
                     return
@@ -76,9 +75,12 @@ class Twenty(commands.Cog):
                     await message.delete()
                     return
                 board = nb
-                await message.edit(content=f"Score: **{score}**```{self.print_board(board)}```")
+                await message.edit(
+                    content=f"Score: **{score}**```{self.print_board(board)}```"
+                )
 
-    def print_board(self, board):
+    @staticmethod
+    def print_board(board):
         col_width = max(len(str(word)) for row in board for word in row) + 2  # padding
         whole_thing = ""
         for row in board:
@@ -91,7 +93,9 @@ class Twenty(commands.Cog):
         if move.lower() == "left":
             nb, total = self.check_left(board)
             for x in range(len(nb)):
-                while nb[x][0] == "_" and (nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"):
+                while nb[x][0] == "_" and (
+                    nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"
+                ):
                     nb[x][0] = nb[x][1]
                     nb[x][1] = nb[x][2]
                     nb[x][2] = nb[x][3]
@@ -106,7 +110,9 @@ class Twenty(commands.Cog):
         if move.lower() == "right":
             nb, total = self.check_right(board)
             for x in range(len(nb)):
-                while nb[x][3] == "_" and (nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"):
+                while nb[x][3] == "_" and (
+                    nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"
+                ):
                     nb[x][3] = nb[x][2]
                     nb[x][2] = nb[x][1]
                     nb[x][1] = nb[x][0]
@@ -122,7 +128,9 @@ class Twenty(commands.Cog):
             nb = self.columize(board)
             nb, total = self.check_down(nb)
             for x in range(len(nb)):
-                while nb[x][0] == "_" and (nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"):
+                while nb[x][0] == "_" and (
+                    nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"
+                ):
                     nb[x][0] = nb[x][1]
                     nb[x][1] = nb[x][2]
                     nb[x][2] = nb[x][3]
@@ -139,7 +147,9 @@ class Twenty(commands.Cog):
             nb = self.columize(board)
             nb, total = self.check_up(nb)
             for x in range(len(nb)):
-                while nb[x][3] == "_" and (nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"):
+                while nb[x][3] == "_" and (
+                    nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"
+                ):
                     nb[x][3] = nb[x][2]
                     nb[x][2] = nb[x][1]
                     nb[x][1] = nb[x][0]
@@ -187,7 +197,8 @@ class Twenty(commands.Cog):
         board[row][column] = joining
         return "", board
 
-    def columize(self, board):
+    @staticmethod
+    def columize(board):
         new_board = [[], [], [], []]
         # Make first column
         new_board[0].append(board[3][0])
@@ -212,7 +223,8 @@ class Twenty(commands.Cog):
         board = new_board
         return board
 
-    def rowize(self, board):
+    @staticmethod
+    def rowize(board):
         new_board = [[], [], [], []]
         # Make first row
         new_board[0].append(board[0][3])
@@ -237,7 +249,8 @@ class Twenty(commands.Cog):
         board = new_board
         return board
 
-    def check_left(self, board):
+    @staticmethod
+    def check_left(board):
         total = 0
         for x in range(len(board)):
             for y in range(len(board[x])):
@@ -261,33 +274,8 @@ class Twenty(commands.Cog):
                     pass
         return board, total
 
-    def check_right(self, board):
-        total = 0
-        for x in range(len(board)):
-            board[x].reverse()
-            for y in range(len(board[x])):
-                try:
-                    if board[x][y + 1] != "_":
-                        if board[x][y] == board[x][y + 1]:
-                            board[x][y] = board[x][y] + board[x][y + 1]
-                            total += board[x][y]
-                            board[x][y + 1] = "_"
-                    elif board[x][y + 2] != "_":
-                        if board[x][y] == board[x][y + 2]:
-                            board[x][y] = board[x][y] + board[x][y + 2]
-                            total += board[x][y]
-                            board[x][y + 2] = "_"
-                    elif board[x][y + 3] != "_":
-                        if board[x][y] == board[x][y + 3]:
-                            board[x][y] = board[x][y] + board[x][y + 3]
-                            total += board[x][y]
-                            board[x][y + 3] = "_"
-                except IndexError:
-                    pass
-            board[x].reverse()
-        return board, total
-
-    def check_up(self, board):
+    @staticmethod
+    def check_right(board):
         total = 0
         for x in range(len(board)):
             board[x].reverse()
@@ -313,7 +301,35 @@ class Twenty(commands.Cog):
             board[x].reverse()
         return board, total
 
-    def check_down(self, board):
+    @staticmethod
+    def check_up(board):
+        total = 0
+        for x in range(len(board)):
+            board[x].reverse()
+            for y in range(len(board[x])):
+                try:
+                    if board[x][y + 1] != "_":
+                        if board[x][y] == board[x][y + 1]:
+                            board[x][y] = board[x][y] + board[x][y + 1]
+                            total += board[x][y]
+                            board[x][y + 1] = "_"
+                    elif board[x][y + 2] != "_":
+                        if board[x][y] == board[x][y + 2]:
+                            board[x][y] = board[x][y] + board[x][y + 2]
+                            total += board[x][y]
+                            board[x][y + 2] = "_"
+                    elif board[x][y + 3] != "_":
+                        if board[x][y] == board[x][y + 3]:
+                            board[x][y] = board[x][y] + board[x][y + 3]
+                            total += board[x][y]
+                            board[x][y + 3] = "_"
+                except IndexError:
+                    pass
+            board[x].reverse()
+        return board, total
+
+    @staticmethod
+    def check_down(board):
         total = 0
         for x in range(len(board)):
             for y in range(len(board[x])):

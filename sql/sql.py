@@ -125,7 +125,9 @@ class Sql(commands.Cog):
         elif space == "file":
             self.filesetc.execute(f"DROP TABLE IF EXISTS settings{str(ctx.guild.id)}")
         else:
-            return await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
+            return await ctx.send(
+                "Invalid `space` argument.  Please use 'mem' or 'file'."
+            )
         await ctx.send("Settings have been deleted.  Recreating tables...")
         if space == "mem":
             self.memsetc.execute(
@@ -175,10 +177,14 @@ class Sql(commands.Cog):
                     "Your settings failed to be updated because of an error while updating them.  Please notify the owner of the bot about this issues."
                 )
                 return
-            await ctx.send("Your settings have been updated.  Commit to database? (y/n)")
+            await ctx.send(
+                "Your settings have been updated.  Commit to database? (y/n)"
+            )
 
             def check(m):
-                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                return (m.author.id == ctx.author.id) and (
+                    m.channel.id == ctx.channel.id
+                )
 
             try:
                 message = await self.bot.wait_for("message", check=check, timeout=30.0)
@@ -216,10 +222,14 @@ class Sql(commands.Cog):
                     "Your settings failed to be updated because of an error while updating them.  Please notify the owner of the bot about this issues."
                 )
                 return
-            await ctx.send("Your settings have been updated.  Commit to database? (y/n)")
+            await ctx.send(
+                "Your settings have been updated.  Commit to database? (y/n)"
+            )
 
             def check(m):
-                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                return (m.author.id == ctx.author.id) and (
+                    m.channel.id == ctx.channel.id
+                )
 
             try:
                 message = await self.bot.wait_for("message", check=check, timeout=30.0)
@@ -246,7 +256,9 @@ class Sql(commands.Cog):
         elif space == "file":
             self.fileset.commit()
         else:
-            return await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
+            return await ctx.send(
+                "Invalid `space` argument.  Please use 'mem' or 'file'."
+            )
         await ctx.send("Your changes to the settings have been committed.")
 
     @checks.guildowner()
@@ -261,7 +273,9 @@ class Sql(commands.Cog):
         elif space == "file":
             self.fileset.rollback()
         else:
-            return await ctx.send("Invalid `space` argument.  Please use 'mem' or 'file'.")
+            return await ctx.send(
+                "Invalid `space` argument.  Please use 'mem' or 'file'."
+            )
         await ctx.send(
             "Your changes to the settings have been attempted to have been rolled back, however, it is possible that they were not."
         )
@@ -280,7 +294,9 @@ class Sql(commands.Cog):
         filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
         tables = filec.fetchall()[0]
         if not (table in tables):
-            return await ctx.send("That table is not registered in your server's database file.")
+            return await ctx.send(
+                "That table is not registered in your server's database file."
+            )
         if edit != 0:
             editrole = ctx.guild.get_role(edit)
             if not editrole:
@@ -291,7 +307,8 @@ class Sql(commands.Cog):
                 return await ctx.send("Invalid select id.")
         try:
             self.filesetc.execute(
-                f"INSERT INTO settings{str(ctx.guild.id)} VALUES (?,?,?)", (table, edit, select)
+                f"INSERT INTO settings{str(ctx.guild.id)} VALUES (?,?,?)",
+                (table, edit, select),
             )
         except Exception as e:
             await ctx.send(
@@ -303,7 +320,9 @@ class Sql(commands.Cog):
                 "Your entry failed to be insert into settings because of an error while doing so.  Please notify the owner of the bot about this issues."
             )
             return
-        await ctx.send("Your data has been inserted into settings.  Commit to database? (y/n)")
+        await ctx.send(
+            "Your data has been inserted into settings.  Commit to database? (y/n)"
+        )
 
         def check(m):
             return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
@@ -357,7 +376,9 @@ class Sql(commands.Cog):
                 roles = [role.id for role in ctx.author.roles]
                 roles.append(0)
                 if int(table_settings[1]) in roles:
-                    await ctx.send("Permissions confirmed.  Deleting row from table table...")
+                    await ctx.send(
+                        "Permissions confirmed.  Deleting row from table table..."
+                    )
                 else:
                     await ctx.send(
                         "You do not have permission to delete data from this table.  Please contact someone who has the appropriate edit role in order to delete data from this table."
@@ -369,7 +390,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -381,10 +404,14 @@ class Sql(commands.Cog):
                     )
 
                     def check(m):
-                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                        return (m.author.id == ctx.author.id) and (
+                            m.channel.id == ctx.channel.id
+                        )
 
                     try:
-                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
+                        message = await self.bot.wait_for(
+                            "message", check=check, timeout=30.0
+                        )
                     except asyncio.TimeoutError:
                         await ctx.send("Not committing to database.")
                         return
@@ -394,7 +421,9 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not committing to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
+            filedb = sqlite3.connect(
+                str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            )
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(
@@ -435,7 +464,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -447,10 +478,14 @@ class Sql(commands.Cog):
                     )
 
                     def check(m):
-                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                        return (m.author.id == ctx.author.id) and (
+                            m.channel.id == ctx.channel.id
+                        )
 
                     try:
-                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
+                        message = await self.bot.wait_for(
+                            "message", check=check, timeout=30.0
+                        )
                     except asyncio.TimeoutError:
                         await ctx.send("Not committing to database.")
                         return
@@ -513,7 +548,9 @@ class Sql(commands.Cog):
                 command = "UPDATE " + table + " SET "
                 for column in range(len(columns)):
                     try:
-                        command += columns[column][1] + "='" + values[columns[column][0]] + "'"
+                        command += (
+                            columns[column][1] + "='" + values[columns[column][0]] + "'"
+                        )
                         if column != len(columns) - 1:
                             command += ", "
                     except IndexError:
@@ -527,7 +564,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -539,10 +578,14 @@ class Sql(commands.Cog):
                     )
 
                     def check(m):
-                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                        return (m.author.id == ctx.author.id) and (
+                            m.channel.id == ctx.channel.id
+                        )
 
                     try:
-                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
+                        message = await self.bot.wait_for(
+                            "message", check=check, timeout=30.0
+                        )
                     except asyncio.TimeoutError:
                         await ctx.send("Not committing to database.")
                         return
@@ -552,7 +595,9 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not committing to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
+            filedb = sqlite3.connect(
+                str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            )
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(
@@ -592,7 +637,9 @@ class Sql(commands.Cog):
                 command = "UPDATE " + table + " SET "
                 for column in range(len(columns)):
                     try:
-                        command += columns[column][1] + "='" + values[columns[column][0]] + "'"
+                        command += (
+                            columns[column][1] + "='" + values[columns[column][0]] + "'"
+                        )
                         if column != len(columns) - 1:
                             command += ", "
                     except IndexError:
@@ -606,7 +653,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -618,10 +667,14 @@ class Sql(commands.Cog):
                     )
 
                     def check(m):
-                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                        return (m.author.id == ctx.author.id) and (
+                            m.channel.id == ctx.channel.id
+                        )
 
                     try:
-                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
+                        message = await self.bot.wait_for(
+                            "message", check=check, timeout=30.0
+                        )
                     except asyncio.TimeoutError:
                         await ctx.send("Not committing to database.")
                         return
@@ -654,7 +707,9 @@ class Sql(commands.Cog):
             else:
                 await ctx.send(f"All tables in memory:```python\n{str(tables)}```")
         elif space == "file":
-            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
+            filedb = sqlite3.connect(
+                str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            )
             filec = filedb.cursor()
             filec.execute("SELECT name FROM sqlite_master WHERE type= 'table'")
             tables = filec.fetchall()
@@ -723,7 +778,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -735,10 +792,14 @@ class Sql(commands.Cog):
                     )
 
                     def check(m):
-                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                        return (m.author.id == ctx.author.id) and (
+                            m.channel.id == ctx.channel.id
+                        )
 
                     try:
-                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
+                        message = await self.bot.wait_for(
+                            "message", check=check, timeout=30.0
+                        )
                     except asyncio.TimeoutError:
                         await ctx.send("Not committing to database.")
                         return
@@ -748,7 +809,9 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not committing to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
+            filedb = sqlite3.connect(
+                str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            )
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(
@@ -794,7 +857,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -806,10 +871,14 @@ class Sql(commands.Cog):
                     )
 
                     def check(m):
-                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                        return (m.author.id == ctx.author.id) and (
+                            m.channel.id == ctx.channel.id
+                        )
 
                     try:
-                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
+                        message = await self.bot.wait_for(
+                            "message", check=check, timeout=30.0
+                        )
                     except asyncio.TimeoutError:
                         await ctx.send("Not committing to database.")
                         return
@@ -887,7 +956,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -921,7 +992,9 @@ class Sql(commands.Cog):
                     f"Command completed successfully.  Data returned from command: ```python\n{str(data)}```"
                 )
         elif space == "file":
-            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
+            filedb = sqlite3.connect(
+                str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            )
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(
@@ -975,7 +1048,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -1061,7 +1136,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -1073,12 +1150,15 @@ class Sql(commands.Cog):
                     )
                     try:
                         self.memsetc.execute(
-                            f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?", (table,)
+                            f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?",
+                            (table,),
                         )
                     except Exception as e:
                         await ctx.send(
                             "Error while running sql command:\n```py\n"
-                            + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                            + "".join(
+                                traceback.format_exception(type(e), e, e.__traceback__)
+                            )
                             + "```"
                         )
                         await ctx.send(
@@ -1090,10 +1170,14 @@ class Sql(commands.Cog):
                     )
 
                     def check(m):
-                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                        return (m.author.id == ctx.author.id) and (
+                            m.channel.id == ctx.channel.id
+                        )
 
                     try:
-                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
+                        message = await self.bot.wait_for(
+                            "message", check=check, timeout=30.0
+                        )
                     except asyncio.TimeoutError:
                         await ctx.send("Not committing to database.")
                         return
@@ -1104,7 +1188,9 @@ class Sql(commands.Cog):
                     else:
                         await ctx.send("Not committing to database.")
         elif space == "file":
-            filedb = sqlite3.connect(str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite"))
+            filedb = sqlite3.connect(
+                str(self.cog_path / f"{str(ctx.guild.id)}db.sqlite")
+            )
             filec = filedb.cursor()
             try:
                 self.filesetc.execute(
@@ -1145,7 +1231,9 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     await ctx.send(
@@ -1157,12 +1245,15 @@ class Sql(commands.Cog):
                     )
                     try:
                         self.filesetc.execute(
-                            f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?", (table,)
+                            f"DELETE FROM settings{str(ctx.guild.id)} WHERE name=?",
+                            (table,),
                         )
                     except Exception as e:
                         await ctx.send(
                             "Error while running sql command:\n```py\n"
-                            + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                            + "".join(
+                                traceback.format_exception(type(e), e, e.__traceback__)
+                            )
                             + "```"
                         )
                         await ctx.send(
@@ -1174,10 +1265,14 @@ class Sql(commands.Cog):
                     )
 
                     def check(m):
-                        return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                        return (m.author.id == ctx.author.id) and (
+                            m.channel.id == ctx.channel.id
+                        )
 
                     try:
-                        message = await self.bot.wait_for("message", check=check, timeout=30.0)
+                        message = await self.bot.wait_for(
+                            "message", check=check, timeout=30.0
+                        )
                     except asyncio.TimeoutError:
                         await ctx.send("Not committing to database.")
                         return
@@ -1220,7 +1315,9 @@ class Sql(commands.Cog):
             nex = message.content
             if nex != "exit":
                 categories.append(nex)
-                await ctx.send("Category noted.  Type your next category or type 'exit'")
+                await ctx.send(
+                    "Category noted.  Type your next category or type 'exit'"
+                )
         command = "CREATE TABLE " + name + "(" + ", ".join(categories) + ")"
         if edit != 0:
             editrole = ctx.guild.get_role(edit)
@@ -1240,7 +1337,9 @@ class Sql(commands.Cog):
                     + "```"
                 )
                 return
-            await ctx.send("The CREATE TABLE command has been run.  Updating settings table...")
+            await ctx.send(
+                "The CREATE TABLE command has been run.  Updating settings table..."
+            )
             try:
                 self.memsetc.execute(
                     f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)"
@@ -1259,10 +1358,14 @@ class Sql(commands.Cog):
                     "Your table has been created, but settings have not been registered and changes have not been committed."
                 )
                 return
-            await ctx.send("The settings table has been updated.  Commit to database? (y/n)")
+            await ctx.send(
+                "The settings table has been updated.  Commit to database? (y/n)"
+            )
 
             def check2(m):
-                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                return (m.author.id == ctx.author.id) and (
+                    m.channel.id == ctx.channel.id
+                )
 
             try:
                 message = await self.bot.wait_for("message", check=check2, timeout=30.0)
@@ -1287,7 +1390,9 @@ class Sql(commands.Cog):
                     + "```"
                 )
                 return
-            await ctx.send("The CREATE TABLE command has been run.  Updating settings table...")
+            await ctx.send(
+                "The CREATE TABLE command has been run.  Updating settings table..."
+            )
             try:
                 self.filesetc.execute(
                     f"CREATE TABLE IF NOT EXISTS settings{str(ctx.guild.id)}(name STRING, edit INTEGER, view INTEGER)"
@@ -1306,10 +1411,14 @@ class Sql(commands.Cog):
                     "Your table has been created, but settings have not been registered and changes have not been committed."
                 )
                 return
-            await ctx.send("The settings table has been updated.  Commit to database? (y/n)")
+            await ctx.send(
+                "The settings table has been updated.  Commit to database? (y/n)"
+            )
 
             def check2(m):
-                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                return (m.author.id == ctx.author.id) and (
+                    m.channel.id == ctx.channel.id
+                )
 
             try:
                 message = await self.bot.wait_for("message", check=check2, timeout=30.0)
@@ -1374,19 +1483,25 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     return
                 else:
-                    await ctx.send("Value returned from command:\n```py\n" + str(value) + "```")
+                    await ctx.send(
+                        "Value returned from command:\n```py\n" + str(value) + "```"
+                    )
             else:
                 try:
                     self.memc.execute(command)
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     return
@@ -1395,7 +1510,9 @@ class Sql(commands.Cog):
             await ctx.send("Command has been run.  Commit to database? (y/n)")
 
             def check2(m):
-                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                return (m.author.id == ctx.author.id) and (
+                    m.channel.id == ctx.channel.id
+                )
 
             try:
                 message = await self.bot.wait_for("message", check=check2, timeout=30.0)
@@ -1423,19 +1540,25 @@ class Sql(commands.Cog):
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     return
                 else:
-                    await ctx.send("Value returned from command:\n```py\n" + str(value) + "```")
+                    await ctx.send(
+                        "Value returned from command:\n```py\n" + str(value) + "```"
+                    )
             else:
                 try:
                     filec.execute(command)
                 except Exception as e:
                     await ctx.send(
                         "Error while running sql command:\n```py\n"
-                        + "".join(traceback.format_exception(type(e), e, e.__traceback__))
+                        + "".join(
+                            traceback.format_exception(type(e), e, e.__traceback__)
+                        )
                         + "```"
                     )
                     return
@@ -1444,7 +1567,9 @@ class Sql(commands.Cog):
             await ctx.send("Command has been run.  Commit to database? (y/n)")
 
             def check3(m):
-                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                return (m.author.id == ctx.author.id) and (
+                    m.channel.id == ctx.channel.id
+                )
 
             try:
                 message = await self.bot.wait_for("message", check=check3, timeout=30.0)

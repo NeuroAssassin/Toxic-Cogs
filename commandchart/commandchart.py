@@ -3,22 +3,18 @@ You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/c
 
 This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""
 
-import discord
 import heapq
-from io import BytesIO
-from datetime import datetime, timezone
-import pytz
 import typing
+from io import BytesIO
+
+import discord
+from redbot.core import checks, commands
 
 import matplotlib
-
-matplotlib.use("agg")
-
 import matplotlib.pyplot as plt
 
+matplotlib.use("agg")
 plt.switch_backend("agg")
-
-from redbot.core import commands, checks
 
 
 class CommandChart(commands.Cog):
@@ -45,7 +41,8 @@ class CommandChart(commands.Cog):
 
         return command
 
-    def create_chart(self, top, others, channel):
+    @staticmethod
+    def create_chart(top, others, channel):
         plt.clf()
         sizes = [x[1] for x in top]
         labels = ["{} {:g}%".format(x[0], x[1]) for x in top]
@@ -103,25 +100,32 @@ class CommandChart(commands.Cog):
     @commands.guild_only()
     @commands.command()
     async def commandchart(
-        self, ctx, channel: typing.Optional[discord.TextChannel] = None, number: int = 5000
+        self,
+        ctx,
+        channel: typing.Optional[discord.TextChannel] = None,
+        number: int = 5000,
     ):
         """See the used commands in a certain channel within a certain amount of messages."""
         e = discord.Embed(description="Loading...", color=0x000099)
-        e.set_thumbnail(url="https://cdn.discordapp.com/emojis/544517783224975387.gif?v=1")
+        e.set_thumbnail(
+            url="https://cdn.discordapp.com/emojis/544517783224975387.gif?v=1"
+        )
         em = await ctx.send(embed=e)
 
         if not channel:
             channel = ctx.channel
-        if not channel.permissions_for(ctx.message.author).read_messages == True:
+        if not channel.permissions_for(ctx.message.author).read_messages:
             await em.delete()
-            return await ctx.send("You do not have the proper permissions to access that channel.")
+            return await ctx.send(
+                "You do not have the proper permissions to access that channel."
+            )
 
         message_list = []
         try:
             async for msg in channel.history(limit=number):
                 # Thanks Sinbad
                 com = await self.command_from_message(msg)
-                if com != None:
+                if com:
                     message_list.append(com.qualified_name)
         except discord.errors.Forbidden:
             await em.delete()
@@ -145,7 +149,9 @@ class CommandChart(commands.Cog):
             await em.delete()
             return await ctx.send("No commands have been run in that channel.")
         for command in msg_data["commands"]:
-            pd = float(msg_data["commands"][command]["count"]) / float(msg_data["total count"])
+            pd = float(msg_data["commands"][command]["count"]) / float(
+                msg_data["total count"]
+            )
             msg_data["commands"][command]["percent"] = round(pd * 100, 1)
 
         top_ten = heapq.nlargest(

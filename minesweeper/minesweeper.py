@@ -13,7 +13,8 @@ class Minesweeper(commands.Cog):
 
     __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
-    def generate_map(self, max_counter):
+    @staticmethod
+    def generate_map(max_counter):
         board = [
             ["", "", "", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", "", "", ""],
@@ -40,7 +41,8 @@ class Minesweeper(commands.Cog):
 
         return board
 
-    def add_hints(self, board):
+    @staticmethod
+    def add_hints(board):
         for row in range(len(board)):
             for column in range(len(board[row])):
                 if board[row][column] == ":bomb:":
@@ -270,13 +272,15 @@ class Minesweeper(commands.Cog):
                 board[row][column] = ":" + str(switches[hint]) + ":"
         return board
 
-    def print_board(self, board):
+    @staticmethod
+    def print_board(board):
         whole_thing = ""
         for row in board:
             whole_thing += " ".join(row) + "\n"
         return whole_thing
 
-    def add_desc(self, board):
+    @staticmethod
+    def add_desc(board):
         nb = copy.deepcopy(board)
         letters = [
             ":regional_indicator_a:",
@@ -332,7 +336,9 @@ class Minesweeper(commands.Cog):
         while bombs > 0:
 
             def check(m):
-                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
+                return (m.author.id == ctx.author.id) and (
+                    m.channel.id == ctx.channel.id
+                )
 
             try:
                 message = await self.bot.wait_for("message", check=check, timeout=60.0)

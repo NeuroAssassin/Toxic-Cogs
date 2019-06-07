@@ -22,19 +22,21 @@ class Simon(commands.Cog):
         await ctx.send(
             "Starting game...\n**RULES:**\n```1. When you are ready for the sequence, click the green checkmark.\n2. Watch the sequence carefully, then repeat it back into chat.  For example, if the 1 then the 2 changed, I would type 12.\n3. You are given 10 seconds to repeat the sequence.\n4. When waiting for confirmation for next sequence, click the green check within 5 minutes of the bot being ready.\n5. Answer as soon as you can once the bot adds the stop watch emoji.```"
         )
-        board = [[1, 2], [3, 4]]
+        board = [["1", "2"], ["3", "4"]]
         level = [1, 4]
         points = 0
         message = await ctx.send("```" + self.print_board(board) + "```")
         await message.add_reaction("\u2705")
         await message.add_reaction("\u274C")
-        await ctx.send("Click the Green Check Reaction when you are ready for the sequence.")
+        await ctx.send(
+            "Click the Green Check Reaction when you are ready for the sequence."
+        )
 
-        def check(reaction, user):
+        def check(r, u):
             return (
-                (user.id == ctx.author.id)
-                and (str(reaction.emoji) in ["\u2705", "\u274C"])
-                and (reaction.message.id == message.id)
+                (u.id == ctx.author.id)
+                and (str(r.emoji) in ["\u2705", "\u274C"])
+                and (r.message.id == message.id)
             )
 
         randoms = []
@@ -70,24 +72,32 @@ class Simon(commands.Cog):
                     await asyncio.sleep(1)
                     if x == 1:
                         board[0][0] = "-"
-                        await message.edit(content="```" + self.print_board(board) + "```")
+                        await message.edit(
+                            content="```" + self.print_board(board) + "```"
+                        )
                         await asyncio.sleep(level[0])
-                        board[0][0] = 1
+                        board[0][0] = "1"
                     elif x == 2:
                         board[0][1] = "-"
-                        await message.edit(content="```" + self.print_board(board) + "```")
+                        await message.edit(
+                            content="```" + self.print_board(board) + "```"
+                        )
                         await asyncio.sleep(level[0])
-                        board[0][1] = 2
+                        board[0][1] = "2"
                     elif x == 3:
                         board[1][0] = "-"
-                        await message.edit(content="```" + self.print_board(board) + "```")
+                        await message.edit(
+                            content="```" + self.print_board(board) + "```"
+                        )
                         await asyncio.sleep(level[0])
-                        board[1][0] = 3
+                        board[1][0] = "3"
                     elif x == 4:
                         board[1][1] = "-"
-                        await message.edit(content="```" + self.print_board(board) + "```")
+                        await message.edit(
+                            content="```" + self.print_board(board) + "```"
+                        )
                         await asyncio.sleep(level[0])
-                        board[1][1] = 4
+                        board[1][1] = "4"
                     await message.edit(content="```" + self.print_board(board) + "```")
                 await message.remove_reaction("\u26A0", self.bot.user)
                 answer = "".join(list(map(str, randoms)))
@@ -97,7 +107,9 @@ class Simon(commands.Cog):
                     return (m.author.id == ctx.author.id) and (m.content.isdigit())
 
                 try:
-                    user_answer = await self.bot.wait_for("message", check=check_t, timeout=10.0)
+                    user_answer = await self.bot.wait_for(
+                        "message", check=check_t, timeout=10.0
+                    )
                 except asyncio.TimeoutError:
                     await ctx.send(
                         f"Sorry {ctx.author.mention}!  You took too long to answer.  You got {points} sequence{'s' if points != 1 else ''} correct!"
@@ -128,7 +140,8 @@ class Simon(commands.Cog):
                 level[0] *= 0.90
                 randoms.append(random.randint(1, 4))
 
-    def print_board(self, board):
+    @staticmethod
+    def print_board(board):
         col_width = max(len(str(word)) for row in board for word in row) + 2  # padding
         whole_thing = ""
         for row in board:

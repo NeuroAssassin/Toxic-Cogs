@@ -42,8 +42,12 @@ class Color(commands.Cog):
         embed.add_field(name="Hexadecimal Value:", value=hexa)
         normal = ", ".join([f"{part:.2f}" for part in co.rgb])
         extended = ", ".join([f"{(part*255):.2f}" for part in co.rgb])
-        embed.add_field(name="Red, Green, Blue (RGB) Value: ", value=f"{normal}\n{extended}")
-        embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(co.hsl))
+        embed.add_field(
+            name="Red, Green, Blue (RGB) Value: ", value=f"{normal}\n{extended}"
+        )
+        embed.add_field(
+            name="Hue, Saturation, Luminance (HSL) Value:", value=str(co.hsl)
+        )
         embed.set_thumbnail(url="attachment://picture.png")
         return embed, file
 

@@ -1,11 +1,10 @@
 from redbot.core import commands, Config, checks
 from PIL import Image
-from colour import Color as col
+from colour import Color as Col
 from colour import rgb2hex
 import discord
 import io
 import re
-import functools
 
 
 class Color(commands.Cog):
@@ -23,7 +22,8 @@ class Color(commands.Cog):
 
     __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
-    def have_fun_with_pillow(self, rgb):
+    @staticmethod
+    def have_fun_with_pillow(rgb):
         im = Image.new("RGB", (200, 200), rgb)
         f = io.BytesIO()
         im.save(f, format="png")
@@ -42,12 +42,8 @@ class Color(commands.Cog):
         embed.add_field(name="Hexadecimal Value:", value=hexa)
         normal = ", ".join([f"{part:.2f}" for part in co.rgb])
         extended = ", ".join([f"{(part*255):.2f}" for part in co.rgb])
-        embed.add_field(
-            name="Red, Green, Blue (RGB) Value: ", value=f"{normal}\n{extended}"
-        )
-        embed.add_field(
-            name="Hue, Saturation, Luminance (HSL) Value:", value=str(co.hsl)
-        )
+        embed.add_field(name="Red, Green, Blue (RGB) Value: ", value=f"{normal}\n{extended}")
+        embed.add_field(name="Hue, Saturation, Luminance (HSL) Value:", value=str(co.hsl))
         embed.set_thumbnail(url="attachment://picture.png")
         return embed, file
 
@@ -73,7 +69,7 @@ class Color(commands.Cog):
                 if m.group(1):  # Hex
                     hexa = m.group(1)
                     try:
-                        c = col(f"#{hexa}")
+                        c = Col(f"#{hexa}")
                         embed, file = await self.build_embed(c)
                         await message.channel.send(file=file, embed=embed)
                         counter += 1
@@ -87,7 +83,7 @@ class Color(commands.Cog):
                             tup = tuple([float(item) / 255 for item in tup])
                         tup = tuple(map(float, tup))
                         try:
-                            c = col(rgb=tup)
+                            c = Col(rgb=tup)
                             embed, file = await self.build_embed(c)
                             await message.channel.send(file=file, embed=embed)
                             counter += 1
@@ -98,7 +94,7 @@ class Color(commands.Cog):
                 elif m.group(3):  # Named
                     name = m.group(3)
                     try:
-                        c = col(name)
+                        c = Col(name)
                         embed, file = await self.build_embed(c)
                         await message.channel.send(file=file, embed=embed)
                         counter += 1
@@ -116,7 +112,7 @@ class Color(commands.Cog):
         """Provides the hexadecimal value, RGB value and HSL value of a passed color.  For example, pass `red` or `blue` as the name argument."""
         name = name.lower()
         try:
-            c = col(name)
+            c = Col(name)
             embed, file = await self.build_embed(c)
             await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
@@ -128,7 +124,7 @@ class Color(commands.Cog):
         """Provides the RGB value and HSL value of a passed hexadecimal value.  Hexadecimal value must in the format of something like `#ffffff` or `0xffffff` to be used."""
         try:
             match = re.match(r"(?i)^(?:0x|#|)((?:[a-fA-F0-9]{3}){1,2})$", hexa)
-            c = col("#" + match.group(1))
+            c = Col("#" + match.group(1))
             embed, file = await self.build_embed(c)
             await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
@@ -149,7 +145,7 @@ class Color(commands.Cog):
             g = g / 255
             b = b / 255
         try:
-            c = col(rgb=(r, g, b))
+            c = Col(rgb=(r, g, b))
             embed, file = await self.build_embed(c)
             await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
@@ -160,7 +156,7 @@ class Color(commands.Cog):
     async def hsl(self, ctx, h: float, s: float, l: float):
         """Provides the hexadecimal value and the RGB value of the hsl value given.  Each value must have a space between them."""
         try:
-            c = col(hsl=(h, s, l))
+            c = Col(hsl=(h, s, l))
             embed, file = await self.build_embed(c)
             await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):

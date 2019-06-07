@@ -75,9 +75,9 @@ class Maintenance(commands.Cog):
         """Puts the bot on maintenance, preventing everyone but you and people whitelisted from running commands.  Other people will just be told the bot is currently on maintenance.
         
         You can use the following arguments to specify things:
-            --start-in: Makes the maintenace start in that long.
+            --start-in: Makes the maintenance start in that long.
             --end-in: Schedules the maintenance to end in that long from the current second.
-            --end-after: Schedules the maintenance to end in that long after the maitenance has started.
+            --end-after: Schedules the maintenance to end in that long after the maintenance has started.
             --whitelist: Provide user IDs after this to whitelist people from the maintenance.
             
         Examples:

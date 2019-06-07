@@ -10,7 +10,7 @@ XEMOJI = "\N{NEGATIVE SQUARED CROSS MARK}"
 
 
 class Switcher(commands.Cog):
-    """Switch between bot accounts easily while maintaning the current bot's data"""
+    """Switch between bot accounts easily while maintaining the current bot's data"""
 
     def __init__(self, bot):
         self.bot = bot

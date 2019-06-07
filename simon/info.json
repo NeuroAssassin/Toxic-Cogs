@@ -3,7 +3,7 @@
     "install_msg" : "Thank you for downloading this cog.\n\n***WARNING***: This cog relies heavily on sending messages, editing emojis and messages and deleting messages.  It may use up the bot's rate limits while in use.",
     "name" : "simon",
     "short" : "Allows you to play Simon inside of Discord!\nWarning!  This cog uses a major portion of the bot's rate limits.",
-    "description" : "This cog allows a Discord User to play the game Simon inside of a text channel.\nWarning!  This cog uses a major portion of the bot's rate limits.  This may prevent the bot from sending messages, adding emojis or deleting messages in specific peroids of time.",
+    "description" : "This cog allows a Discord User to play the game Simon inside of a text channel.\nWarning!  This cog uses a major portion of the bot's rate limits.  This may prevent the bot from sending messages, adding emojis or deleting messages in specific periods of time.",
     "tags" : ["fun"],
     "requirements" : [],
     "hidden" : true

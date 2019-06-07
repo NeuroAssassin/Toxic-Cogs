@@ -336,9 +336,7 @@ class Minesweeper(commands.Cog):
         while bombs > 0:
 
             def check(m):
-                return (m.author.id == ctx.author.id) and (
-                    m.channel.id == ctx.channel.id
-                )
+                return (m.author.id == ctx.author.id) and (m.channel.id == ctx.channel.id)
 
             try:
                 message = await self.bot.wait_for("message", check=check, timeout=60.0)

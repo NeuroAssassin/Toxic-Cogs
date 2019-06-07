@@ -75,9 +75,7 @@ class Twenty(commands.Cog):
                     await message.delete()
                     return
                 board = nb
-                await message.edit(
-                    content=f"Score: **{score}**```{self.print_board(board)}```"
-                )
+                await message.edit(content=f"Score: **{score}**```{self.print_board(board)}```")
 
     @staticmethod
     def print_board(board):
@@ -93,9 +91,7 @@ class Twenty(commands.Cog):
         if move.lower() == "left":
             nb, total = self.check_left(board)
             for x in range(len(nb)):
-                while nb[x][0] == "_" and (
-                    nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"
-                ):
+                while nb[x][0] == "_" and (nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"):
                     nb[x][0] = nb[x][1]
                     nb[x][1] = nb[x][2]
                     nb[x][2] = nb[x][3]
@@ -110,9 +106,7 @@ class Twenty(commands.Cog):
         if move.lower() == "right":
             nb, total = self.check_right(board)
             for x in range(len(nb)):
-                while nb[x][3] == "_" and (
-                    nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"
-                ):
+                while nb[x][3] == "_" and (nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"):
                     nb[x][3] = nb[x][2]
                     nb[x][2] = nb[x][1]
                     nb[x][1] = nb[x][0]
@@ -128,9 +122,7 @@ class Twenty(commands.Cog):
             nb = self.columize(board)
             nb, total = self.check_down(nb)
             for x in range(len(nb)):
-                while nb[x][0] == "_" and (
-                    nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"
-                ):
+                while nb[x][0] == "_" and (nb[x][1] != "_" or nb[x][2] != "_" or nb[x][3] != "_"):
                     nb[x][0] = nb[x][1]
                     nb[x][1] = nb[x][2]
                     nb[x][2] = nb[x][3]
@@ -147,9 +139,7 @@ class Twenty(commands.Cog):
             nb = self.columize(board)
             nb, total = self.check_up(nb)
             for x in range(len(nb)):
-                while nb[x][3] == "_" and (
-                    nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"
-                ):
+                while nb[x][3] == "_" and (nb[x][2] != "_" or nb[x][1] != "_" or nb[x][0] != "_"):
                     nb[x][3] = nb[x][2]
                     nb[x][2] = nb[x][1]
                     nb[x][1] = nb[x][0]

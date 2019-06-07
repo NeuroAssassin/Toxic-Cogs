@@ -33,20 +33,13 @@ class Margs(Converter):
         if start_seconds:
             if end_seconds:
                 scheduled = ScheduledMaintenance(
-                    start=start_seconds,
-                    end=end_seconds,
-                    after=after,
-                    whitelist=whitelist,
+                    start=start_seconds, end=end_seconds, after=after, whitelist=whitelist
                 )
             else:
-                scheduled = ScheduledMaintenance(
-                    start=start_seconds, whitelist=whitelist
-                )
+                scheduled = ScheduledMaintenance(start=start_seconds, whitelist=whitelist)
         else:
             if end_seconds:
-                scheduled = ScheduledMaintenance(
-                    end=end_seconds, after=after, whitelist=whitelist
-                )
+                scheduled = ScheduledMaintenance(end=end_seconds, after=after, whitelist=whitelist)
             else:
                 scheduled = ScheduledMaintenance(whitelist=whitelist)
         return scheduled

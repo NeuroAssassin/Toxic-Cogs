@@ -43,9 +43,7 @@ class ListPermissions(commands.Cog):
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
-                return await ctx.send(
-                    "Match was too low to be sure the role was found."
-                )
+                return await ctx.send("Match was too low to be sure the role was found.")
             role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
         else:
             try:
@@ -83,9 +81,7 @@ class ListPermissions(commands.Cog):
         self,
         ctx,
         member: discord.Member = None,
-        channel: Union[
-            discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel
-        ] = None,
+        channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
     ):
         """Generates the permissions for a member in a channel.
         
@@ -135,9 +131,7 @@ class ListPermissions(commands.Cog):
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
-                return await ctx.send(
-                    "Match was too low to be sure the role was found."
-                )
+                return await ctx.send("Match was too low to be sure the role was found.")
             role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
         else:
             try:
@@ -182,9 +176,7 @@ class ListPermissions(commands.Cog):
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
-                return await ctx.send(
-                    "Match was too low to be sure the role was found."
-                )
+                return await ctx.send("Match was too low to be sure the role was found.")
             role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
         else:
             try:
@@ -226,9 +218,7 @@ class ListPermissions(commands.Cog):
         self,
         ctx,
         member: discord.Member = None,
-        channel: Union[
-            discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel
-        ] = None,
+        channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
     ):
         """Generates the permissions for a member in a channel.
         
@@ -280,9 +270,7 @@ class ListPermissions(commands.Cog):
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
-                return await ctx.send(
-                    "Match was too low to be sure the role was found."
-                )
+                return await ctx.send("Match was too low to be sure the role was found.")
             role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
         else:
             try:
@@ -329,9 +317,7 @@ class ListPermissions(commands.Cog):
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
-                return await ctx.send(
-                    "Match was too low to be sure the role was found."
-                )
+                return await ctx.send("Match was too low to be sure the role was found.")
             role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
         else:
             try:
@@ -373,9 +359,7 @@ class ListPermissions(commands.Cog):
         self,
         ctx,
         member: discord.Member = None,
-        channel: Union[
-            discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel
-        ] = None,
+        channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
     ):
         """Generates the permissions for a member in a channel.
         
@@ -427,9 +411,7 @@ class ListPermissions(commands.Cog):
             roles = [role.name for role in ctx.guild.roles]
             results = process.extract(rolename, roles, limit=1)
             if results[0][1] <= 70:
-                return await ctx.send(
-                    "Match was too low to be sure the role was found."
-                )
+                return await ctx.send("Match was too low to be sure the role was found.")
             role = [role for role in ctx.guild.roles if role.name == results[0][0]][0]
         else:
             try:

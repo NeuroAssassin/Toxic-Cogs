@@ -28,9 +28,7 @@ class Simon(commands.Cog):
         message = await ctx.send("```" + self.print_board(board) + "```")
         await message.add_reaction("\u2705")
         await message.add_reaction("\u274C")
-        await ctx.send(
-            "Click the Green Check Reaction when you are ready for the sequence."
-        )
+        await ctx.send("Click the Green Check Reaction when you are ready for the sequence.")
 
         def check(r, u):
             return (
@@ -72,30 +70,22 @@ class Simon(commands.Cog):
                     await asyncio.sleep(1)
                     if x == 1:
                         board[0][0] = "-"
-                        await message.edit(
-                            content="```" + self.print_board(board) + "```"
-                        )
+                        await message.edit(content="```" + self.print_board(board) + "```")
                         await asyncio.sleep(level[0])
                         board[0][0] = "1"
                     elif x == 2:
                         board[0][1] = "-"
-                        await message.edit(
-                            content="```" + self.print_board(board) + "```"
-                        )
+                        await message.edit(content="```" + self.print_board(board) + "```")
                         await asyncio.sleep(level[0])
                         board[0][1] = "2"
                     elif x == 3:
                         board[1][0] = "-"
-                        await message.edit(
-                            content="```" + self.print_board(board) + "```"
-                        )
+                        await message.edit(content="```" + self.print_board(board) + "```")
                         await asyncio.sleep(level[0])
                         board[1][0] = "3"
                     elif x == 4:
                         board[1][1] = "-"
-                        await message.edit(
-                            content="```" + self.print_board(board) + "```"
-                        )
+                        await message.edit(content="```" + self.print_board(board) + "```")
                         await asyncio.sleep(level[0])
                         board[1][1] = "4"
                     await message.edit(content="```" + self.print_board(board) + "```")
@@ -107,9 +97,7 @@ class Simon(commands.Cog):
                     return (m.author.id == ctx.author.id) and (m.content.isdigit())
 
                 try:
-                    user_answer = await self.bot.wait_for(
-                        "message", check=check_t, timeout=10.0
-                    )
+                    user_answer = await self.bot.wait_for("message", check=check_t, timeout=10.0)
                 except asyncio.TimeoutError:
                     await ctx.send(
                         f"Sorry {ctx.author.mention}!  You took too long to answer.  You got {points} sequence{'s' if points != 1 else ''} correct!"

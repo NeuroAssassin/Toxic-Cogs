@@ -115,9 +115,7 @@ class Evolution(commands.Cog):
             total += normal + level_tax + tax + (x * 300)
         return total
 
-    async def shop_control_callback(
-        self, ctx, pages, controls, message, page, timeout, emoji
-    ):
+    async def shop_control_callback(self, ctx, pages, controls, message, page, timeout, emoji):
         description = message.embeds[0].description
         level = int(description.split(" ")[1])
         await ctx.invoke(self.buy, level=level)
@@ -174,21 +172,15 @@ class Evolution(commands.Cog):
         if balance < price:
             return await ctx.send("You don't have enough credits!")
         if prev >= 6:
-            return await ctx.send(
-                "You have too many of those!  Evolve some of them already."
-            )
+            return await ctx.send("You have too many of those!  Evolve some of them already.")
         if prev + amount > 6:
-            return await ctx.send(
-                "You'd have too many of those!  Evolve some of them already."
-            )
+            return await ctx.send("You'd have too many of those!  Evolve some of them already.")
         if level < 1:
             return await ctx.send("Ya cant buy a negative level!")
         if amount < 1:
             return await ctx.send("Ya cant buy a negative amount!")
         if (level > int(highest) - 3) and (level > 1):
-            return await ctx.send(
-                "Please get higher animals to buy higher levels of them."
-            )
+            return await ctx.send("Please get higher animals to buy higher levels of them.")
         m = await ctx.send(
             f"Are you sure you want to buy {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}?  This will cost you {str(price)}."
         )
@@ -203,17 +195,11 @@ class Evolution(commands.Cog):
             )
 
         try:
-            reaction, user = await self.bot.wait_for(
-                "reaction_add", check=check, timeout=60.0
-            )
+            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
         except asyncio.TimeoutError:
-            return await ctx.send(
-                f"You left the {animal} shop without buying anything."
-            )
+            return await ctx.send(f"You left the {animal} shop without buying anything.")
         if str(reaction.emoji) == "\N{CROSS MARK}":
-            return await ctx.send(
-                f"You left the {animal} shop without buying anything."
-            )
+            return await ctx.send(f"You left the {animal} shop without buying anything.")
         animals[str(level)] = prev + amount
         await self.conf.user(ctx.author).animals.set(animals)
         await bank.withdraw_credits(ctx.author, price)
@@ -235,16 +221,12 @@ class Evolution(commands.Cog):
         embed_list = []
         for x in list(animals.keys()):
             embed = discord.Embed(
-                title=f"{animal.title()} Shop",
-                description=f"Level {str(x)}",
-                color=0xD2B48C,
+                title=f"{animal.title()} Shop", description=f"Level {str(x)}", color=0xD2B48C
             )
             embed.add_field(name="You currently own", value=animals[x])
             current = int(bought.get(str(x), 0))
             embed.add_field(name="You have bought", value=str(current))
-            embed.add_field(
-                name="Price", value=str(self.get_total_price(int(x), current, 1))
-            )
+            embed.add_field(name="Price", value=str(self.get_total_price(int(x), current, 1)))
             last = 0
             chances = []
             try:
@@ -281,8 +263,7 @@ class Evolution(commands.Cog):
             await menu(ctx, embed_list, DEFAULT_CONTROLS)
         else:
             embed = discord.Embed(
-                title=f"The amount of {animal}s you have in your backyard.",
-                color=0xD2B48C,
+                title=f"The amount of {animal}s you have in your backyard.", color=0xD2B48C
             )
             for level, amount in animals.items():
                 if amount == 0:

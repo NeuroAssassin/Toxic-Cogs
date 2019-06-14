@@ -1,6 +1,6 @@
 {
     "author" : ["Neuro Assassin"],
-    "install_msg" : "Thank you for downloading this cog.  In-message shortcuts are enabled by guild by default.  An administrator can change this rule by running `[p]color msgshort false`",
+    "install_msg" : "Thank you for downloading this cog.  In-message shortcuts are disabled by guild by default.  An administrator can change this rule by running `[p]color msgshort true`",
     "name" : "color",
     "short" : "Tells you the hexadecimal values, rgb values and names of colors",
     "description" : "This cog will tell you the hexadecimal value, rgb value and the name of the color that is supplied to it.",

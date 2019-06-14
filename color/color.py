@@ -15,7 +15,7 @@ class Color(commands.Cog):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
 
-        self.conf.register_guild(enabled=True)
+        self.conf.register_guild(enabled=False)
 
         self.r = re.compile(
             r"(?i)^(?:(?:(?:0x|#|)((?:[a-fA-F0-9]{3}){1,2}$))|(?:([+-]?(?:[0-9]*[.])?[0-9]+,[+-]?(?:[0-9]*[.])?[0-9]+,[+-]?(?:[0-9]*[.])?[0-9]+))|(?:(\S+)))"

@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.  All settings are disabled by default.  Run `[p]scanner settings`.",
+    "name" : "scanner",
+    "short" : "Detects images being sent and checks whether they are inappropriate based on the set filters.",
+    "description" : "This cog will send a report to a channel with details of an image violating the set conditions, and will auto delete the message if set to.",
+    "tags" : ["tools"],
+    "requirements" : [],
+    "hidden" : false
+}

@@ -47,6 +47,7 @@ These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot)
 | Deleter | <details><summary>Auto-delete messages after a certain amount of time</summary>Delete messages after a certain amount of specified time, after the message was sent</details> |
 | Editor | <details><summary>Edit messages sent by the bot</summary>Allows an administrator to edit one of the bot's messages, by either copying the content and/or embed from a previously sent message from the bot, or by the specified content</details> |
 | Targeter | <details><summary>Target users in the guild based upon the passed arguments</summary>Allows arguments for dates, roles, names, activities, statuses or devices.</details> |
+| Scanner | <details><summmary>Auto-delete and report messages that are considered inappropriate</summary>Bot Owner must set credentials first before use</details> |
 
 [Back to Table of Contents](#table-of-contents)
 ****

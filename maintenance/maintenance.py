@@ -102,7 +102,7 @@ class Maintenance(commands.Cog):
             setting = [True, num, whitelist]
             await self.conf.on.set(setting)
         else:
-            scheduled.append([start, args.end, whitelist])
+            scheduled.append([start, num, whitelist])
             await self.conf.scheduledmaintenance.set(scheduled)
         await ctx.tick()
 

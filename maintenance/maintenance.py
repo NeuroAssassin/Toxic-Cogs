@@ -5,6 +5,19 @@ import asyncio
 import discord
 import time
 
+listener = getattr(
+    commands.Cog, "listener", None
+)  # red 3.0 backwards compatibility support; from Trusty from Sinbad
+
+if listener is None:  # thanks Sinbad
+
+    def listener(name=None):
+        return lambda x: x
+
+
+class LIStsSTaRtaTiNDeX1(commands.CommandError):
+    """Custom error for the Maintenance cog"""
+
 
 class Maintenance(commands.Cog):
     """Put the bot on maintenance, and allow a customizable message to the people not whitelisted"""
@@ -22,6 +35,17 @@ class Maintenance(commands.Cog):
         self.conf.register_global(**default_global)
         self.bot.add_check(self.this_check)
         self.task = self.bot.loop.create_task(self.bg_loop())
+
+    @listener()
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, LIStsSTaRtaTiNDeX1):
+            delete = await self.conf.delete()
+            if delete != 0:
+                await ctx.send(error, delete_after=delete)
+            else:
+                await ctx.send(error)
+        else:
+            await ctx.bot.on_command_error(ctx, error, unhandled_by_cog=True)
 
     def cog_unload(self):
         self.__unload()
@@ -57,11 +81,7 @@ class Maintenance(commands.Cog):
         if ctx.author.id in on[2]:
             return True
         message = await self.conf.message()
-        delete = await self.conf.delete()
-        if delete != 0:
-            await ctx.send(message, delete_after=delete)
-        else:
-            await ctx.send(message)
+        raise LIStsSTaRtaTiNDeX1(message)
         return False
 
     @checks.is_owner()

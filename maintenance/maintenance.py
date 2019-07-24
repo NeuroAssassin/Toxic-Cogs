@@ -44,8 +44,6 @@ class Maintenance(commands.Cog):
                 await ctx.send(error, delete_after=delete)
             else:
                 await ctx.send(error)
-        else:
-            await ctx.bot.on_command_error(ctx, error, unhandled_by_cog=True)
 
     def cog_unload(self):
         self.__unload()

@@ -4,6 +4,7 @@ import aiohttp
 import contextlib
 import io
 import traceback
+import copy
 
 URL = "https://api.sightengine.com/1.0/check.json"
 
@@ -27,6 +28,8 @@ class Scanner(commands.Cog):
             "channel": 0,
             "percent": 70,
             "autodelete": True,
+            "showpic": False,
+            "roles": [],
         }
         self.conf.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -101,8 +104,9 @@ class Scanner(commands.Cog):
                     if json["scam"]["prob"] * 100 >= settings["percent"]:
                         scammer = True
                 if nudity or partial or wad or offensive or scammer:
-                    b = io.BytesIO(await attach.read())
-                    f = discord.File(filename=attach.filename, fp=b)
+                    if settings["showpic"]:
+                        b = io.BytesIO(await attach.read())
+                        f = discord.File(filename=attach.filename, fp=b)
                     deleted = False
                     if settings["autodelete"]:
                         with contextlib.suppress(discord.HTTPException):
@@ -114,7 +118,8 @@ class Scanner(commands.Cog):
                             title="Scanner detected a violating image.",
                             description=f"Author: {message.author.mention}\nChannel: {message.channel.mention}",
                         )
-                        embed.set_image(url=f"attachment://{attach.filename}")
+                        if settings["showpic"]:
+                            embed.set_image(url=f"attachment://{attach.filename}")
                         violating = (
                             "Nudity\n"
                             if nudity
@@ -134,7 +139,19 @@ class Scanner(commands.Cog):
                                 name="Message was not deleted",
                                 value=f"Here's a jump url: [Click Here]({message.jump_url})",
                             )
-                        await channel.send(embed=embed, file=f)
+                        content = None
+                        if settings["roles"]:
+                            content = ", ".join(
+                                [
+                                    message.guild.get_role(r).mention
+                                    for r in settings["roles"]
+                                    if message.guild.get_role(r)
+                                ]
+                            )
+                        if settings["showpic"]:
+                            await channel.send(content=content, embed=embed, file=f)
+                        else:
+                            await channel.send(content=content, embed=embed)
         except Exception as error:
             await message.channel.send("Error")
             await message.channel.send(
@@ -176,29 +193,74 @@ class Scanner(commands.Cog):
     @checks.is_owner()
     @scanner.command()
     async def creds(self, ctx, user, secret):
-        """Set the API user and API secret to use with requests."""
+        """Set the API user and API secret to use with requests from sightengine.com."""
         await self.conf.userkey.set(user)
         await self.conf.secret.set(secret)
         await ctx.tick()
 
-    @scanner.group(invoke_without_command=True)
+    @scanner.group()
     async def settings(self, ctx):
-        """Group command for setting what filters to look for."""
-        settings = await self.conf.guild(ctx.guild).all()
-        channel = self.bot.get_channel(settings["channel"])
-        s = (
-            f"Channel: {channel.mention if channel else 'None set'}\n"
-            f"Percent: {settings['percent']}\n"
-            f"Auto Deleting: {settings['autodelete']}\n"
-            f"Checking for Nudes: {settings['nude']}\n"
-            f"Checking for Partials: {settings['partial']}\n"
-            f"Checking for WAD: {settings['wad']}\n"
-            f"Checking for Offensive: {settings['offensive']}\n"
-            f"Checking for Scammers: {settings['scammer']}\n"
-        )
-        await ctx.send("```" + s + "```")
+        """Group command for settings with the scanner cog."""
+        if ctx.invoked_subcommand is None:
+            settings = await self.conf.guild(ctx.guild).all()
+            channel = self.bot.get_channel(settings["channel"])
+            s = (
+                f"Channel: {channel.mention if channel else 'None set'}\n"
+                f"Percent: {settings['percent']}\n"
+                f"Auto Deleting: {settings['autodelete']}\n"
+                f"Checking for Nudes: {settings['nude']}\n"
+                f"Checking for Partials: {settings['partial']}\n"
+                f"Checking for WAD: {settings['wad']}\n"
+                f"Checking for Offensive: {settings['offensive']}\n"
+                f"Checking for Scammers: {settings['scammer']}\n"
+            )
+            await ctx.send("```py\n" + s + "```")
 
     @settings.command()
+    async def showpic(self, ctx, yes_or_no: bool):
+        """Set whether or not to show the violating picture in the report."""
+        await self.conf.guild(ctx.guild).showpic.set(yes_or_no)
+        if yes_or_no:
+            await ctx.send("Pictures will now be shown in the report.")
+        else:
+            await ctx.send("Messages will now not be shown in the report.")
+
+    @settings.command()
+    async def pingrole(self, ctx, *, role: discord.Role = None):
+        """Add or remove roles from being pinged when a report is sent."""
+        if role:
+            async with self.conf.guild(ctx.guild).roles() as roles:
+                if role.id in roles:
+                    roles.remove(role.id)
+                    await ctx.send(f"The {role.name} role has been removed.")
+                else:
+                    roles.append(role.id)
+                    await ctx.send(f"The {role.name} role has been added.")
+        else:
+            roles = await self.conf.guild(ctx.guild).roles()
+            new = copy.deepcopy(roles)
+            if not roles:
+                await ctx.send("No roles are set for ping right now.")
+                return
+            e = discord.Embed(
+                title="The following roles are pinged when a report comes in.", description=""
+            )
+            for r in roles:
+                ro = ctx.guild.get_role(r)
+                if ro:
+                    e.description += ro.mention + "\n"
+                else:
+                    new.remove(r)
+            if new != roles:
+                await self.conf.guild(ctx.guild).roles.set(new)
+            await ctx.send(embed=e)
+
+    @settings.group()
+    async def detect(self, ctx):
+        """Group command for changing what the scanner cog detects."""
+        pass
+
+    @detect.command()
     async def nude(self, ctx, yes_or_no: bool):
         """Set whether or not to check for nude content in images."""
         await self.conf.guild(ctx.guild).nude.set(yes_or_no)
@@ -207,7 +269,7 @@ class Scanner(commands.Cog):
         else:
             await ctx.send("Messages will now not be reported even if they violate the nude rule.")
 
-    @settings.command()
+    @detect.command()
     async def partial(self, ctx, yes_or_no: bool):
         """Set whether or not messages will be reported be they contain partial nudity.
 
@@ -222,7 +284,7 @@ class Scanner(commands.Cog):
                 "Messages will now not be reported even if they are marked as having partial nudity."
             )
 
-    @settings.command()
+    @detect.command()
     async def wad(self, ctx, yes_or_no: bool):
         """Set whether or not to check for WAD content in images.
 
@@ -233,7 +295,7 @@ class Scanner(commands.Cog):
         else:
             await ctx.send("Messages will now not be reported even if they violate the WAD rule.")
 
-    @settings.command()
+    @detect.command()
     async def offensive(self, ctx, yes_or_no: bool):
         """Set whether or not to check for offensive content in images.
 
@@ -246,7 +308,7 @@ class Scanner(commands.Cog):
                 "Messages will now not be reported even if they violate the offensive rule."
             )
 
-    @settings.command()
+    @detect.command()
     async def scammer(self, ctx, yes_or_no: bool):
         """Set whether or not to check for scammer content in images.
 

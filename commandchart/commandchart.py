@@ -6,8 +6,6 @@ This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""
 import discord
 import heapq
 from io import BytesIO
-from datetime import datetime, timezone
-import pytz
 import typing
 
 import matplotlib

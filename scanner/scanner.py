@@ -5,6 +5,7 @@ import contextlib
 import io
 import traceback
 import copy
+import re
 
 URL = "https://api.sightengine.com/1.0/check.json"
 
@@ -33,6 +34,8 @@ class Scanner(commands.Cog):
         }
         self.conf.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
+
+        self.regex = re.compile(r"^.*\.(.*)")
 
     def cog_unload(self):
         self.session.detach()
@@ -71,6 +74,12 @@ class Scanner(commands.Cog):
             s = s[:-1]  # Remove the extra ,
 
             for attach in message.attachments:
+                match = self.regex.match(attach.filename)
+                if not match:
+                    continue
+                ext = match.group(1)
+                if not ext.lower() in ["jpg", "png", "webp", "jpeg"]:
+                    continue
                 nudity = False
                 partial = False
                 wad = False

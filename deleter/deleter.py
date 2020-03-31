@@ -67,6 +67,8 @@ class Deleter(commands.Cog):
             sending = ""
             for c, data in channels.items():
                 c = self.bot.get_channel(int(c))
+                if c is None:
+                    continue
                 if c.guild.id == ctx.guild.id and int(data["wait"]) != 0:
                     sending += f"{c.mention}: {data['wait']} seconds\n"
             if sending:

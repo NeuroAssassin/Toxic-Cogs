@@ -55,6 +55,7 @@ class Deleter(commands.Cog):
             await self.conf.channel(message.channel).messages.set(c["messages"])
 
     @commands.group()
+    @commands.guild_only()
     @checks.mod_or_permissions(manage_messages=True)
     async def deleter(self, ctx):
         """Group command for commands dealing with auto-timed deletion.

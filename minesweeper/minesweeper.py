@@ -344,6 +344,7 @@ class Minesweeper(commands.Cog):
                     await ctx.send("Canceling...")
                     return
                 msg = message.content.split(" ")
+                to_del = False
                 for x in msg:
                     rl = x[0]
                     cn = x[1:]
@@ -370,10 +371,7 @@ class Minesweeper(commands.Cog):
                     if cn > 10 or cn <= 0:
                         await ctx.send("Column number is too high or too low.")
                     else:
-                        try:
-                            await message.delete()
-                        except discord.errors.Forbidden:
-                            pass
+                        to_del = True
                         cn -= 1
                         if answer_board[rn][cn] == ":bomb:":
                             await ctx.send(
@@ -384,6 +382,11 @@ class Minesweeper(commands.Cog):
                             return
                         else:
                             showing_board[rn][cn] = answer_board[rn][cn]
+                if to_del:
+                    try:
+                        await message.delete()
+                    except (discord.errors.Forbidden, discord.errors.NotFound):
+                        pass
                 sending_board = self.print_board(self.add_desc(showing_board))
                 await bm.edit(content=sending_board)
 

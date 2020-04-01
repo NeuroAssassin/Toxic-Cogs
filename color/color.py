@@ -31,15 +31,20 @@ class Color(commands.Cog):
         file = discord.File(f, filename="picture.png")
         return file
 
+    def rgb_to_decimal(self, rgb):
+        return (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]
+
     async def build_embed(self, co):
         rgb = [int(c * 255) for c in co.rgb]
         rgb = tuple(rgb)
         file = await self.bot.loop.run_in_executor(None, self.have_fun_with_pillow, rgb)
         hexa = rgb2hex(co.rgb, force_long=True)
+        decimal = self.rgb_to_decimal(rgb)
         embed = discord.Embed(
             title=f"Color Embed for: {hexa}", color=int(hexa.replace("#", "0x"), 0)
         )
         embed.add_field(name="Hexadecimal Value:", value=hexa)
+        embed.add_field(name="Decimal Value:", value=decimal)
         normal = ", ".join([f"{part:.2f}" for part in co.rgb])
         extended = ", ".join([f"{(part*255):.2f}" for part in co.rgb])
         embed.add_field(name="Red, Green, Blue (RGB) Value: ", value=f"{normal}\n{extended}")

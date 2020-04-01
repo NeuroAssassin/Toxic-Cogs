@@ -34,9 +34,16 @@ class Color(commands.Cog):
     def rgb_to_decimal(self, rgb):
         return (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]
 
+    def decimal_to_rgb(self, d):
+        return ((d >> 16) & 255, (d >> 8) & 255, d & 255)
+
     async def build_embed(self, co):
-        rgb = [int(c * 255) for c in co.rgb]
-        rgb = tuple(rgb)
+        if isinstance(co, int):
+            rgb = self.decimal_to_rgb(co)
+            r, g, b = rgb[0] / 255, rgb[1] / 255, rgb[2] / 255
+            co = col(rgb=(r, g, b))
+        else:
+            rgb = tuple([int(c * 255) for c in co.rgb])
         file = await self.bot.loop.run_in_executor(None, self.have_fun_with_pillow, rgb)
         hexa = rgb2hex(co.rgb, force_long=True)
         decimal = self.rgb_to_decimal(rgb)
@@ -166,6 +173,16 @@ class Color(commands.Cog):
             await ctx.send(file=file, embed=embed)
         except (ValueError, AttributeError):
             await ctx.send("That hsl number is not recognized.")
+
+    @checks.bot_has_permissions(embed_links=True)
+    @color.command()
+    async def decimal(self, ctx, decimal: int):
+        """Provides the RGB value of the decimal value given."""
+        try:
+            embed, file = await self.build_embed(decimal)
+            await ctx.send(file=file, embed=embed)
+        except (ValueError, AttributeError):
+            await ctx.send("That decimal value is not recognized.")
 
     @checks.admin()
     @color.command()

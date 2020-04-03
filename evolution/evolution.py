@@ -165,7 +165,7 @@ class Evolution(commands.Cog):
     @evolution.command()
     async def buy(self, ctx, level: int, amount: int = 1):
         """Buy those animals to get more economy credits"""
-        if self.lock.locked:
+        if self.lock.locked():
             await ctx.send("Hold on just one second, a delivery is going out at the moment... "
                            "This shouldn't be any longer than a minute.")
         async with self.lock:
@@ -224,7 +224,7 @@ class Evolution(commands.Cog):
     @evolution.command()
     async def shop(self, ctx):
         """View them animals in a nice little buying menu"""
-        if self.lock.locked:
+        if self.lock.locked():
             await ctx.send("Hold on just one second, a delivery is going out at the moment... "
                            "This shouldn't be any longer than a minute.")
         async with self.lock:
@@ -260,7 +260,7 @@ class Evolution(commands.Cog):
     @evolution.command()
     async def backyard(self, ctx, use_menu: bool = False):
         """Where ya animals live!  Pass 1 or true to put it in a menu."""
-        if self.lock.locked:
+        if self.lock.locked():
             await ctx.send("Hold on just one second, a delivery is going out at the moment... "
                            "This shouldn't be any longer than a minute.")
         async with self.lock:
@@ -300,7 +300,7 @@ class Evolution(commands.Cog):
             return await ctx.send("Too low!")
         if amount > 3:
             return await ctx.send("Too high!")
-        if self.lock.locked:
+        if self.lock.locked():
             await ctx.send("Hold on just one second, a delivery is going out at the moment... "
                            "This shouldn't be any longer than a minute.")
         async with self.lock:

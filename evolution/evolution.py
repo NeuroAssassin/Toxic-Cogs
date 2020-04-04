@@ -59,12 +59,7 @@ class Evolution(commands.Cog):
                     prev = int(animals.get("1", 0))
                     if prev < 6:
                         animals["1"] = prev + 1
-                    try:
-                        user = await self.bot.get_user_info(user)
-                    except AttributeError:
-                        user = await self.bot.fetch_user(user)
-                    if user:
-                        await self.conf.user(user).animals.set(animals)
+                    await self.conf.user(u).animals.set(animals)
                 await asyncio.sleep(0.2)
             await asyncio.sleep(600)
 

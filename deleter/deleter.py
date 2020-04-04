@@ -58,8 +58,24 @@ class Deleter(commands.Cog):
     @commands.guild_only()
     @checks.mod_or_permissions(manage_messages=True)
     async def deleter(self, ctx):
-        """Group command for commands dealing with auto-timed deletion"""
-        pass
+        """Group command for commands dealing with auto-timed deletion.
+
+        To see what channels are currently being tracked, use this command with no subcommands passed."""
+        if ctx.invoked_subcommand is None:
+            async with self.lock:
+                channels = await self.conf.all_channels()
+            sending = ""
+            for c, data in channels.items():
+                c = self.bot.get_channel(int(c))
+                if c is None:
+                    continue
+                if c.guild.id == ctx.guild.id and int(data["wait"]) != 0:
+                    sending += f"{c.mention}: {data['wait']} seconds\n"
+            if sending:
+                await ctx.send(sending)
+            else:
+                await ctx.send(f"No channels are currently being tracked.  Add one by using `{ctx.prefix}deleter channel`.")
+
 
     @deleter.command()
     async def channel(self, ctx, channel: discord.TextChannel, wait: int):

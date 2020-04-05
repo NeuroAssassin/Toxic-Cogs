@@ -63,22 +63,18 @@ class Evolution(commands.Cog):
         await self.bot.wait_until_ready()
         while True:
             async with self.lock:
-                users = await self.conf.all_users()
-                for user, data in users.items():
-                    animals = data["animals"]
-                    animal = data["animal"]
+            users = [user for user in self.bot.users if not user.bot]
+            for u in users:
+                async with self.lock:
+                    animals = await self.conf.user(u).animals()
+                    animal = await self.conf.user(u).animal()
                     if animal == "":
                         continue
                     prev = int(animals.get("1", 0))
                     if prev < 6:
                         animals["1"] = prev + 1
-                    await asyncio.sleep(0.1)
-                    try:
-                        user = await self.bot.get_user_info(user)
-                    except AttributeError:
-                        user = await self.bot.fetch_user(user)
-                    if user:
-                        await self.conf.user(user).animals.set(animals)
+                   await self.conf.user(u).animals.set(animals)
+                await asyncio.sleep(0.2)
             await asyncio.sleep(600)
 
     async def bg_task(self):

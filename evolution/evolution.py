@@ -62,7 +62,6 @@ class Evolution(commands.Cog):
     async def gain_bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            async with self.lock:
             users = [user for user in self.bot.users if not user.bot]
             for u in users:
                 async with self.lock:
@@ -73,7 +72,7 @@ class Evolution(commands.Cog):
                     prev = int(animals.get("1", 0))
                     if prev < 6:
                         animals["1"] = prev + 1
-                   await self.conf.user(u).animals.set(animals)
+                    await self.conf.user(u).animals.set(animals)
                 await asyncio.sleep(0.2)
             await asyncio.sleep(600)
 

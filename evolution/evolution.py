@@ -49,23 +49,18 @@ class Evolution(commands.Cog):
     async def gain_bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            async with self.lock:
-                users = await self.conf.all_users()
-                for user, data in users.items():
-                    animals = data["animals"]
-                    animal = data["animal"]
+            users = [user for user in self.bot.users if not user.bot]
+            for u in users:
+                async with self.lock:
+                    animals = await self.conf.user(u).animals()
+                    animal = await self.conf.user(u).animal()
                     if animal == "":
                         continue
                     prev = int(animals.get("1", 0))
                     if prev < 6:
                         animals["1"] = prev + 1
-                    await asyncio.sleep(0.1)
-                    try:
-                        user = await self.bot.get_user_info(user)
-                    except AttributeError:
-                        user = await self.bot.fetch_user(user)
-                    if user:
-                        await self.conf.user(user).animals.set(animals)
+                    await self.conf.user(u).animals.set(animals)
+                await asyncio.sleep(0.2)
             await asyncio.sleep(600)
 
     async def bg_task(self):
@@ -165,7 +160,7 @@ class Evolution(commands.Cog):
     @evolution.command()
     async def buy(self, ctx, level: int, amount: int = 1):
         """Buy those animals to get more economy credits"""
-        if self.lock.locked:
+        if self.lock.locked():
             await ctx.send("Hold on just one second, a delivery is going out at the moment... "
                            "This shouldn't be any longer than a minute.")
         async with self.lock:
@@ -224,7 +219,7 @@ class Evolution(commands.Cog):
     @evolution.command()
     async def shop(self, ctx):
         """View them animals in a nice little buying menu"""
-        if self.lock.locked:
+        if self.lock.locked():
             await ctx.send("Hold on just one second, a delivery is going out at the moment... "
                            "This shouldn't be any longer than a minute.")
         async with self.lock:
@@ -260,7 +255,7 @@ class Evolution(commands.Cog):
     @evolution.command()
     async def backyard(self, ctx, use_menu: bool = False):
         """Where ya animals live!  Pass 1 or true to put it in a menu."""
-        if self.lock.locked:
+        if self.lock.locked():
             await ctx.send("Hold on just one second, a delivery is going out at the moment... "
                            "This shouldn't be any longer than a minute.")
         async with self.lock:
@@ -300,7 +295,7 @@ class Evolution(commands.Cog):
             return await ctx.send("Too low!")
         if amount > 3:
             return await ctx.send("Too high!")
-        if self.lock.locked:
+        if self.lock.locked():
             await ctx.send("Hold on just one second, a delivery is going out at the moment... "
                            "This shouldn't be any longer than a minute.")
         async with self.lock:

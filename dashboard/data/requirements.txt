@@ -1,0 +1,6 @@
+flask
+requests
+Flask-Session
+cryptography
+werkzeug==0.16.0
+websocket-client

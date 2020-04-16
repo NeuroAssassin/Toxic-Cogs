@@ -76,14 +76,6 @@ def logout():
     del session['id']
     return redirect(url_for('base_blueprint.login'))
 
-@blueprint.route('/shutdown')
-def shutdown():
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
-    return 'Server shutting down...'
-
 ## Errors
 
 @blueprint.errorhandler(403)

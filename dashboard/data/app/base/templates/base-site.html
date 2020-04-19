@@ -72,7 +72,12 @@
 
   <!-- Specific Page JS goes HERE  -->
   {% block javascripts %}{% endblock javascripts %}
-
+  <script>
+    $(document).ready(function() {
+      var path = window.location.pathname.slice(1)
+      $("#nav" + path).addClass("active")
+    })
+  </script>
 </body>
 
 </html>

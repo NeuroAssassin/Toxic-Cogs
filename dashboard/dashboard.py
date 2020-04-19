@@ -12,7 +12,7 @@ from .rpc import DashboardRPC
 
 class Dashboard(commands.Cog):
 
-    __version__ = "0.0.2a"
+    __version__ = "0.0.3a"
 
     def __init__(self, bot):
         self.bot = bot
@@ -71,19 +71,22 @@ class Dashboard(commands.Cog):
     async def view(self, ctx):
         """View the current dashboard settings."""
         embed = discord.Embed(title="Red V3 Dashboard Settings", color=0x0000FF)
-        log = await self.conf.logerrors()
+        redirect = await self.conf.redirect()
         if ctx.guild:
             secret = "[REDACTED]"
+            if not ("127.0.0.1" in redirect or "localhost" in redirect or "192.168" in redirect):
+                redirect = "[REDACTED]"
         else:
-            secret = await self.conf.secret()
-        redirect = await self.conf.redirect()
+            secret =  await self.conf.secret()
+        if not secret:
+            secret = "[Not set]"
         support = await self.conf.support()
         description = (
-            f"Error logging enabled: |  {log}\n"
             f"Client Secret:         |  {secret}\n"
             f"Redirect URI:          |  {redirect}\n"
             f"Support Server:        |  {support}"
         )
-        embed.description = "```py\n" + description + "```"
+        embed.description = "```ini\n" + description + "```"
+        embed.add_field(name="Dashboard Version", value=f"```ini\n[{self.__version__}]```")
         embed.set_footer(text="Dashboard created by Neuro Assassin")
         await ctx.send(embed=embed)

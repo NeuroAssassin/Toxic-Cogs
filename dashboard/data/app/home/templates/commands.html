@@ -10,11 +10,65 @@
     <div class="row">
         <div class="col-md-12">
             <div class="card card-profile">
-                <div class="card-body">
+                <div class="card-header">
                     <h6 class="card-category text-gray">Commands</h6>
-                    <h4 class="card-title">
-                        This page isn't finished yet.  Check back later!
-                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if data %}
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="nav nav-pills flex-column" id="commandtabs" role="tablist" aria-orientation="vertical">
+                                    {% for cog in cogs %}
+                                        <a class="nav-link" id="admin-tab" data-toggle="pill" href="#{{ cog }}" role="tab" aria-controls="admin" aria-selected="false">{{ cog }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-10">
+                                <div class="tab-content" id="myTabContent">
+                                    {% for cog, commands in data.items() %}
+                                        <div class="tab-pane fade" id="{{ cog }}" role="tabpanel" aria-labelledby="{{ cog }}-tab">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="card">
+                                                        <div class="card-header">
+                                                            <h4 class="card-title">{{ cog }}</h4>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="table-responsive">
+                                                                <table class="table tablesorter">
+                                                                    <thead class="text-primary">
+                                                                        <tr>
+                                                                            <th>Command</th>
+                                                                            <th>Description</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {%- for command in commands recursive %}
+                                                                            <tr>
+                                                                            <th style="padding-left: {{ loop.depth0 * 40 + 7 }}px">
+                                                                                    <code>{{ prefix }}{{ command.name }}</code>
+                                                                                </th>
+                                                                                <th>{{ command.desc }}</th>
+                                                                            </tr>
+                                                                            {%- if command.subs -%}
+                                                                                {{ loop(command.subs) }}
+                                                                            {%- endif %}
+                                                                        {%- endfor %}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {%- endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <h4 class="card-title">Loading data... Please wait a few seconds then reload</h4>
+                    {% endif %}
                 </div>
             </div>
         </div>

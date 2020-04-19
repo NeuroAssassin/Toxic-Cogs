@@ -25,7 +25,7 @@
                 <img src="{{ botavatar }}" style="height: 200px; width: 200px; border-radius: 50%; margin: auto; display: block;">
               </div>
               <div class="col-lg-8">
-                <h4>{{ botinfo }}</h4>
+                <h4>{{ botinfo|safe }}</h4>
                 <br />
                 {% if redirect %}
                   <a href="https://discordapp.com/oauth2/authorize?client_id={{ botid }}&scope=bot&permissions=0">Invite</a>
@@ -76,6 +76,7 @@
 
   <script>
     $(document).ready(function() {
+      // RPC Connecting
       var ws = new WebSocket("ws://localhost:6133")
       var ready = true
       ws.onmessage = function(event) {

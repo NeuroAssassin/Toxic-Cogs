@@ -3,10 +3,12 @@
 License: MIT
 Copyright (c) 2019 - present AppSeed.us
 """
-
+from app import app
 from app.home import blueprint
 from flask import render_template, redirect, url_for, session, request, jsonify
 from jinja2 import TemplateNotFound
+import websocket
+import json
 
 @blueprint.route('/index')
 def index():
@@ -14,6 +16,16 @@ def index():
     #if not current_user.is_authenticated:
     #    return redirect(url_for('base_blueprint.login'))
     return render_template('index.html')
+
+@blueprint.route('/commands')
+def commands():
+    if not session.get("id"):
+        return redirect(url_for('base_blueprint.login'))
+    
+    data = app.commanddata
+    prefix = app.variables.get("prefix", None)
+
+    return render_template("commands.html", cogs=data.keys(), data=data, prefix=prefix)
 
 @blueprint.route('/credits')
 def credits():

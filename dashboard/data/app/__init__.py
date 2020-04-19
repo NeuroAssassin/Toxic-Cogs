@@ -36,7 +36,7 @@ global app
 app = None
 
 def update_thread():
-    def update_variables():
+    def update_variables(method):
         global app
         ws = websocket.WebSocket()
         try:
@@ -48,7 +48,7 @@ def update_thread():
         request = {
             "jsonrpc": "2.0",
             "id": 0,
-            "method": "DASHBOARDRPC__GET_VARIABLES",
+            "method": method,
             "params": []
         }
         try:
@@ -65,8 +65,9 @@ def update_thread():
             ws.close()
             return
         if 'error' in result:
-            if result['error']['code'] == -32601:
-                app.variables = {}
+            if result['error']['message'] == "Method not found":
+                if method == "DASHBOARDRPC__GET_VARIABLES":
+                    app.variables = {}
                 ws.close()
                 return
             print(result['error'])
@@ -74,15 +75,20 @@ def update_thread():
             return
         if result['result'].get("disconnected", False):
             # Dashboard cog unloaded, disconnect
-            app.variables = {}
+            if method == "DASHBOARDRPC__GET_VARIABLES":
+                app.variables = {}
             ws.close()
             return
-        app.variables = result['result']
+        if method == "DASHBOARDRPC__GET_VARIABLES":
+            app.variables = result['result']
+        else:
+            app.commanddata = result['result']
         app.variables["disconnected"] = False
         ws.close()
 
     while running:
-        update_variables()
+        update_variables("DASHBOARDRPC__GET_VARIABLES")
+        update_variables("DASHBOARDRPC__GET_COMMANDS")
         time.sleep(5)
 
 def register_blueprints(app):
@@ -136,6 +142,7 @@ def create_app(host, port, rpcport, instance, selenium=False):
 
     app = Flask(__name__, static_folder='base/static')
     app.variables = {}
+    app.commanddata = {}
     app.config.from_object(__name__)
     app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = secret_key

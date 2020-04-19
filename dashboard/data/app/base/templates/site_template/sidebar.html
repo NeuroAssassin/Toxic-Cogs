@@ -7,31 +7,31 @@
             <i class="tim-icons icon-atom"></i>
           </a>
           <a href="https://github.com/NeuroAssassin/Toxic-Cogs/" class="simple-text logo-normal" target="_blank">
-            Redbot Dashboard
+            Dashboard
           </a>
         </div>
 
         {% if session.get("id") %}
         <ul class="nav">
-          <li class="active ">
+          <li id="navindex">
             <a href="/index">
               <i class="tim-icons icon-chart-pie-36"></i>
               <p>Home</p>
             </a>
           </li>
-          <li>
+          <li id="navcommands">
             <a href="/commands">
               <i class="tim-icons icon-molecule-40"></i>
               <p>Commands</p>
             </a>
           </li>
-          <li>
+          <li id="navdashboard">
             <a href="/dashboard">
               <i class="tim-icons icon-controller"></i>
               <p>Dashboard</p>
             </a>
           </li>
-          <li>
+          <li id="navcredits">
             <a href="/credits">
               <i class="tim-icons icon-book-bookmark"></i>
               <p>Credits</p>
@@ -46,19 +46,19 @@
         </ul>
         {% else %}
         <ul class="nav">
-          <li class="active ">
+          <li id="navindex">
             <a href="/index">
               <i class="tim-icons icon-chart-pie-36"></i>
               <p>Home</p>
             </a>
           </li>
-          <li>
+          <li id="navcredits">
             <a href="/credits">
               <i class="tim-icons icon-book-bookmark"></i>
               <p>Credits</p>
             </a>
           </li>
-          <li class="">
+          <li id="navlogin">
             <a href="/login">
               <i class="tim-icons icon-key-25"></i>
               <p>Login</p>

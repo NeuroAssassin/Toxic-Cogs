@@ -185,14 +185,34 @@ sup {
 }
 
 a {
-  color: #e14eca;
   text-decoration: none;
   background-color: transparent;
 }
 
 a:hover {
-  color: #c221a9;
   text-decoration: none;
+}
+
+a[data="primary"], a[data="primary"]:hover {
+  color: #e14eca;
+}
+
+a[data="blue"], a[data="blue"]:hover {
+  color: #1d8cf9;
+}
+
+a[data="blue"].active {
+  color: #ffffff !important;
+  background-color: #1d8cf9 !important;
+}
+
+a[data="green"], a[data="green"]:hover {
+  color: #00dff0;
+}
+
+a[data="green"].active {
+  color: #ffffff !important;
+  background-color: #00dff0 !important;
 }
 
 a:not([href]):not([tabindex]) {
@@ -266,6 +286,18 @@ button {
 button:focus {
   outline: 1px dotted;
   outline: 5px auto -webkit-focus-ring-color;
+}
+
+button[data="primary"], button[data="primary"]:hover, button[data="primary"]:active {
+  background: #e14eca !important;
+}
+
+button[data="blue"], button[data="blue"]:hover, button[data="blue"]:active {
+  background: #1d8cf8 !important;
+}
+
+button[data="green"], button[data="green"]:hover, button[data="green"]:active {
+  background: #00dff0 !important;
 }
 
 input,
@@ -2627,7 +2659,6 @@ textarea.form-control.is-invalid {
 }
 
 .btn:hover {
-  color: #525f7f;
   text-decoration: none;
 }
 
@@ -12795,14 +12826,6 @@ a.text-darker:focus {
   transition: 0.3s ease-in-out;
 }
 
-.btn:hover,
-.btn:focus,
-.btn:active,
-.btn.active,
-.btn:active:focus,
-.btn:active:hover,
-.btn.active:focus,
-.btn.active:hover,
 .navbar .navbar-nav>a.btn:hover,
 .navbar .navbar-nav>a.btn:focus,
 .navbar .navbar-nav>a.btn:active,

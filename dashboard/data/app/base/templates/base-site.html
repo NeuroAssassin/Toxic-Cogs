@@ -74,8 +74,13 @@
   {% block javascripts %}{% endblock javascripts %}
   <script>
     $(document).ready(function() {
+      // Sidebar active
       var path = window.location.pathname.slice(1)
       $("#nav" + path).addClass("active")
+
+      // Add data attributes to button's and a's
+      $('button').attr("data", "{{ session.get('sidebarcolor', 'primary') }}")
+      $('a').attr("data", "{{ session.get('sidebarcolor', 'primary') }}")
     })
   </script>
 </body>

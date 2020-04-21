@@ -5,6 +5,8 @@
         $sidebar = $('.sidebar');
         $navbar = $('.navbar');
         $main_panel = $('.main-panel');
+        $buttons = $('button');
+        $as = $('a')
 
         $full_page = $('.full-page');
 
@@ -65,6 +67,9 @@
           if ($sidebar_responsive.length != 0) {
             $sidebar_responsive.attr('data', new_color);
           }
+
+          $buttons.attr('data', new_color)
+          $as.attr('data', new_color)
 
           var xhr = new XMLHttpRequest();
           var url = "/changetheme"

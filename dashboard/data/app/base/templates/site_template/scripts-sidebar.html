@@ -115,6 +115,7 @@
             setTimeout(function() {
               $('body').removeClass('change-background');
               $('body').removeClass('white-content');
+              $('.dropdown-menu').removeClass('white-content')
             }, 900);
             white_color = false;
           } else {
@@ -123,6 +124,7 @@
             setTimeout(function() {
               $('body').removeClass('change-background');
               $('body').addClass('white-content');
+              $('.dropdown-menu').addClass('white-content')
             }, 900);
 
             white_color = true;
@@ -131,6 +133,7 @@
 
         $('.light-badge').click(function() {
           $('body').addClass('white-content');
+          $('.dropdown-menu').addClass('white-content')
 
           var xhr = new XMLHttpRequest();
           var url = "/changetheme"
@@ -146,6 +149,7 @@
 
         $('.dark-badge').click(function() {
           $('body').removeClass('white-content');
+          $('.dropdown-menu').removeClass('white-content')
 
           var xhr = new XMLHttpRequest();
           var url = "/changetheme"

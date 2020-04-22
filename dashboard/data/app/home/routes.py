@@ -23,9 +23,9 @@ def commands():
         return redirect(url_for('base_blueprint.login'))
     
     data = app.commanddata
-    prefix = app.variables.get("prefix", None)
+    prefix = app.variables.get("prefix", ["[p]"])
 
-    return render_template("commands.html", cogs=data.keys(), data=data, prefix=prefix)
+    return render_template("commands.html", cogs=[k['name'] for k in data], data=data, prefixes=prefix)
 
 @blueprint.route('/credits')
 def credits():

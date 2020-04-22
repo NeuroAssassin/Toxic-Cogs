@@ -43,7 +43,7 @@ class DashboardRPC:
                 'botavatar': str(self.bot.user.avatar_url),
                 'botid': self.bot.user.id,
                 'botinfo': markdown2.markdown(botinfo),
-                'prefix': (await self.bot.get_valid_prefixes())[0],
+                'prefix': await self.bot.get_valid_prefixes(),
                 'redirect': await self.cog.conf.redirect(),
                 'support': await self.cog.conf.support(),
                 'servers': humanize_number(len(self.bot.guilds)),
@@ -64,16 +64,18 @@ class DashboardRPC:
 
     async def get_commands(self):
         if self.bot.get_cog("Dashboard"):
-            returning = {}
+            returning = []
             for name, cog in self.bot.cogs.items():
                 stripped = []
                 for c in cog.__cog_commands__:
                     if not c.parent:
                         stripped.append(c)
-                returning[name] = self.build_cmd_list(stripped)
-            new = {}
-            for key in sorted(returning.keys()):
-                new[key] = returning[key]
-            return new
+                returning.append({
+                    "name": name,
+                    "desc": cog.__doc__,
+                    "cmds": self.build_cmd_list(stripped)
+                })
+            returning = sorted(returning, key=lambda k: k['name'])
+            return returning
         else:
             return {"disconnected": True}

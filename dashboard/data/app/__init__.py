@@ -73,7 +73,7 @@ def update_thread():
             print(result['error'])
             ws.close()
             return
-        if result['result'].get("disconnected", False):
+        if type(result['result']) is dict and result['result'].get("disconnected", False):
             # Dashboard cog unloaded, disconnect
             if method == "DASHBOARDRPC__GET_VARIABLES":
                 app.variables = {}

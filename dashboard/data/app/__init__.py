@@ -17,6 +17,10 @@ import websocket
 import json
 import sys
 
+global __version__
+__version__ = "0.0.5a"
+__author__ = "Neuro Assassin#4779"
+
 # In case the dashboard cog isn't loaded
 global defaults
 defaults = {
@@ -26,70 +30,71 @@ defaults = {
     'owner': 'Cog Creators'
 }
 
-global running
-running = True
-
 global url
 url = "ws://localhost:"
 
 global app
 app = None
 
-def update_thread():
-    def update_variables(method):
-        global app
-        ws = websocket.WebSocket()
-        try:
-            ws.connect(url)
-        except ConnectionRefusedError:
-            ws.close()
-            return
+def update_variables(method):
+    try:
+        while True:
+            # Different wait times based on method, commands should be called less due to how much data it is
+            if method == "DASHBOARDRPC__GET_VARIABLES":
+                time.sleep(0.5)
+            else:
+                time.sleep(5)
 
-        request = {
-            "jsonrpc": "2.0",
-            "id": 0,
-            "method": method,
-            "params": []
-        }
-        try:
-            ws.send(json.dumps(request))
-        except ConnectionResetError:
-            print("Connection reset")
-            ws.close()
-            return
-            
-        try:
-            result = json.loads(ws.recv())
-        except ConnectionResetError:
-            print("Connection reset")
-            ws.close()
-            return
-        if 'error' in result:
-            if result['error']['message'] == "Method not found":
+            global app
+            ws = websocket.WebSocket()
+            try:
+                ws.connect(url)
+            except ConnectionRefusedError:
+                ws.close()
+                continue
+
+            request = {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": method,
+                "params": []
+            }
+            try:
+                ws.send(json.dumps(request))
+            except ConnectionResetError:
+                print("Connection reset")
+                ws.close()
+                continue
+                
+            try:
+                result = json.loads(ws.recv())
+            except ConnectionResetError:
+                print("Connection reset")
+                ws.close()
+                continue
+            if 'error' in result:
+                if result['error']['message'] == "Method not found":
+                    if method == "DASHBOARDRPC__GET_VARIABLES":
+                        app.variables = {}
+                    ws.close()
+                    continue
+                print(result['error'])
+                ws.close()
+                continue
+            if type(result['result']) is dict and result['result'].get("disconnected", False):
+                # Dashboard cog unloaded, disconnect
                 if method == "DASHBOARDRPC__GET_VARIABLES":
                     app.variables = {}
                 ws.close()
-                return
-            print(result['error'])
-            ws.close()
-            return
-        if type(result['result']) is dict and result['result'].get("disconnected", False):
-            # Dashboard cog unloaded, disconnect
+                continue
             if method == "DASHBOARDRPC__GET_VARIABLES":
-                app.variables = {}
+                app.variables = result['result']
+            else:
+                app.commanddata = result['result']
+            app.variables["disconnected"] = False
             ws.close()
-            return
-        if method == "DASHBOARDRPC__GET_VARIABLES":
-            app.variables = result['result']
-        else:
-            app.commanddata = result['result']
-        app.variables["disconnected"] = False
-        ws.close()
-
-    while running:
-        update_variables("DASHBOARDRPC__GET_VARIABLES")
-        update_variables("DASHBOARDRPC__GET_COMMANDS")
-        time.sleep(5)
+    except Exception as e:
+        print(traceback.format_exception(type(e), e, e.__traceback__))
 
 def register_blueprints(app):
     for module_name in ('base', 'home'):
@@ -128,9 +133,10 @@ def apply_themes(app):
 def add_constants(app):
     @app.context_processor
     def inject_variables():
+        global __version__
         if not app.variables:
-            return dict(**defaults)
-        return dict(**app.variables)
+            return dict(version=__version__, **defaults)
+        return dict(version=__version__, **app.variables)
 
 def create_app(host, port, rpcport, instance, selenium=False):
     global url
@@ -171,7 +177,9 @@ def create_app(host, port, rpcport, instance, selenium=False):
     apply_themes(app)
     add_constants(app)
 
-    ut = threading.Thread(target=update_thread, daemon=True)
-    ut.start()
+    vt = threading.Thread(target=update_variables, args=["DASHBOARDRPC__GET_VARIABLES"], daemon=True)
+    vt.start()
+    ct = threading.Thread(target=update_variables, args=["DASHBOARDRPC__GET_COMMANDS"], daemon=True)
+    ct.start()
 
     app.run(host=host, port=port)

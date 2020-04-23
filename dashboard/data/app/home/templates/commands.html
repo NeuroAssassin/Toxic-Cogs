@@ -42,7 +42,7 @@
                                                                                 Prefix
                                                                             </a>
 
-                                                                            <div class="dropdown-menu dropdown-menu-right {% if session.get('iswhitetheme', false) %} white-content {% endif %}" aria-labelledby="prefixdrop">
+                                                                            <div class="dropdown-menu dropdown-menu-right {% if session.get('iswhitetheme', false) %} white-content {% endif %} prefixdiv" aria-labelledby="prefixdrop">
                                                                                 {% for p in prefixes %}
                                                                                     <a class="dropdown-item prefix-option {% if loop.index == 1 %} active {% endif %}" href="#" data="{{ session.get('sidebarcolor', 'primary') }}">{{ p }}</a>
                                                                                 {% endfor %}
@@ -99,8 +99,14 @@
     <script>
         $(".prefix-option").click(function() {
             var prefix = $(this).text()
-            $(this).addClass('active').siblings().removeClass('active')
             $('.prefix').text(prefix)
+
+            // Change others to inactive, and the correct ones to active
+            $('.prefix-option').removeClass('active')
+            var index = $(this).index()
+            $(".prefixdiv").each(function(someotherindexidontneed) {
+                $(this).children().eq(index).addClass('active')
+            })
         })
         $('.taboption').click(function() {
             var main_panel = document.getElementsByClassName("main-panel")[0]

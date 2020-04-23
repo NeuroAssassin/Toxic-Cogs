@@ -2,6 +2,7 @@ from redbot.core.utils.chat_formatting import humanize_number
 from redbot.core.commands import commands
 import discord
 import markdown2
+import re
 
 class DashboardRPC:
     """RPC server handlers for the dashboard to get special things from the bot"""
@@ -38,12 +39,13 @@ class DashboardRPC:
             botinfo = await self.bot._config.custom_info()
             if botinfo is None:
                 botinfo = f"Hello, welcome to the Red Discord Bot dashboard for {self.bot.user.name}!  {self.bot.user.name} is based off the popular bot Red Discord Bot, an open source, multifunctional bot.  It has tons if features including moderation, audio, economy, fun and more!  Here, you can control and interact with all these things.  So what are you waiting for?  Invite them now!"
+            prefixes = [p for p in await self.bot.get_valid_prefixes() if not re.match(r"<@!?([0-9]+)>", p)]
             returning = {
                 'botname': self.bot.user.name,
                 'botavatar': str(self.bot.user.avatar_url),
                 'botid': self.bot.user.id,
                 'botinfo': markdown2.markdown(botinfo),
-                'prefix': await self.bot.get_valid_prefixes(),
+                'prefix': prefixes,
                 'redirect': await self.cog.conf.redirect(),
                 'support': await self.cog.conf.support(),
                 'servers': humanize_number(len(self.bot.guilds)),

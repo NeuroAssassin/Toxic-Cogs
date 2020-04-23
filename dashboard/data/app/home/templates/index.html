@@ -77,42 +77,12 @@
   <script>
     $(document).ready(function() {
       // RPC Connecting
-      var ws = new WebSocket("ws://localhost:6133")
-      var ready = true
-      ws.onmessage = function(event) {
-        data = JSON.parse(event.data).result
-        if (data === null) {
-          return
-        }
-        $("#servers").text(data.servers)
-        $("#users").text(data.users)
-        $("#onlineusers").text(data.onlineusers)
-        ready = true
-      }
-      var message_id = 0
-
-      function updateVariables() {
-        if (!ready) {
-          return
-        }
-        ready = false
-        var request = {
-          jsonrpc: "2.0",
-          id: message_id,
-          method: "DASHBOARDRPC__GET_VARIABLES",
-          params: []
-        }
-        ws.send(JSON.stringify(request))
-        message_id++
-      }
-
-      ws.addEventListener('open', function (event) {
-        setInterval(updateVariables, 500)
-      })
-
-      window.onbeforeunload = function (e) {
-        ws.onclose = function() {}
-        ws.close()
+      var eventSource = new EventSource("/stream")
+      eventSource.onmessage = function(e) {
+        data = e.data.split(", ")
+        $("#servers").text(data[0])
+        $("#users").text(data[1])
+        $("#onlineusers").text(data[2])
       }
     });
   </script>

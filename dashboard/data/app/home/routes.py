@@ -3,12 +3,25 @@
 License: MIT
 Copyright (c) 2019 - present AppSeed.us
 """
-from app import app
+from app import app, update_variables
 from app.home import blueprint
-from flask import render_template, redirect, url_for, session, request, jsonify
+from flask import render_template, redirect, url_for, session, request, jsonify, Response
 from jinja2 import TemplateNotFound
 import websocket
 import json
+import time
+
+def update_core():
+    while True:
+        time.sleep(0.5)
+        try:
+            yield f"data: {app.variables['servers']}, {app.variables['users']}, {app.variables['onlineusers']}\n\n"
+        except KeyError:
+            yield ""
+
+@blueprint.route('/stream')
+def stream():
+    return Response(update_core(), mimetype="text/event-stream")
 
 @blueprint.route('/index')
 def index():
@@ -18,10 +31,7 @@ def index():
     return render_template('index.html')
 
 @blueprint.route('/commands')
-def commands():
-    if not session.get("id"):
-        return redirect(url_for('base_blueprint.login'))
-    
+def commands():    
     data = app.commanddata
     prefix = app.variables.get("prefix", ["[p]"])
 

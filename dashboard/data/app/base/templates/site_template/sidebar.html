@@ -52,6 +52,14 @@
               <p>Home</p>
             </a>
           </li>
+          {% if redirect %}
+            <li id="navcommands">
+              <a href="/commands">
+                <i class="tim-icons icon-molecule-40"></i>
+                <p>Commands</p>
+              </a>
+            </li>
+          {% endif %}
           <li id="navcredits">
             <a href="/credits">
               <i class="tim-icons icon-book-bookmark"></i>

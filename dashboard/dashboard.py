@@ -12,7 +12,7 @@ from .rpc import DashboardRPC
 
 class Dashboard(commands.Cog):
 
-    __version__ = "0.0.4a"
+    __version__ = "0.0.5a"
 
     def __init__(self, bot):
         self.bot = bot

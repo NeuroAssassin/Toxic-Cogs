@@ -113,6 +113,8 @@ class SW(commands.Cog):
                 if response.status == 404:
                     return await ctx.send("Invalid Person ID.")
                 person = json.loads(await response.text())
+                if person["count"] == 0:
+                    return await ctx.send("No people found")
                 name = person["results"][0]["name"]
                 embed = discord.Embed(title=f"Person: {name}", description=HUMANDESCRIPTION[name], color=0x32CD32)
                 for key, value in person["results"][0].items():
@@ -213,6 +215,8 @@ class SW(commands.Cog):
                 if response.status == 404:
                     return await ctx.send("Invalid Planet ID.")
                 planet = json.loads(await response.text())
+                if planet["count"] == 0:
+                    return await ctx.send("No planets found")
                 name = planet["results"][0]["name"]
                 embed = discord.Embed(title=f"Planet: {name}", description=PLANETDESCRIPTION[name], color=0x800080)
                 for key, value in planet["results"][0].items():
@@ -318,6 +322,8 @@ class SW(commands.Cog):
                 if response.status == 404:
                     return await ctx.send("Invalid Film ID.")
                 film = json.loads(await response.text())
+                if film["count"] == 0:
+                    return await ctx.send("No films found")
                 name = film["results"][0]["title"]
                 embed = discord.Embed(title=f"Film: {name}; Page 1/4", color=0x0000FF)
                 for key, value in film["results"][0].items():
@@ -427,6 +433,8 @@ class SW(commands.Cog):
                 if response.status == 404:
                     return await ctx.send("Invalid Starship ID.")
                 starship = json.loads(await response.text())
+                if starship["count"] == 0:
+                    return await ctx.send("No starships found")
                 name = starship["results"][0]["name"]
                 embed = discord.Embed(title=f"Starship: {name}", description=STARSHIPDESCRIPTIONS[name], color=0x000000)
                 for key, value in starship["results"][0].items():
@@ -491,6 +499,8 @@ class SW(commands.Cog):
                 if response.status == 404:
                     return await ctx.send("Invalid Vehicle ID.")
                 vehicle = json.loads(await response.text())
+                if vehicle["count"] == 0:
+                    return await ctx.send("No vehicles found")
                 name = vehicle["results"][0]["name"]
                 embed = discord.Embed(title=f"Vehicle: {name}", description=VEHICLEDESCRIPTION[name], color=0x228B22)
                 for key, value in vehicle["results"][0].items():
@@ -561,6 +571,8 @@ class SW(commands.Cog):
                 if response.status == 404:
                     return await ctx.send("Invalid Species ID.")
                 species = json.loads(await response.text())
+                if species["count"] == 0:
+                    return await ctx.send("No species found")
                 name = species["results"][0]["name"]
                 embed = discord.Embed(title=f"Species: {name}", description=SPECIESDESCRIPTION[name], color=0xD2B48C)
                 embed.add_field(name="ID:", value=str(species_id))

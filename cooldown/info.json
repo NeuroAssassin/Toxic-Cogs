@@ -1,6 +1,6 @@
 {
     "author" : ["Neuro Assassin"],
-    "install_msg" : "Thank you for downloading this cog.",
+    "install_msg" : "Thank you for downloading this cog.\n\nWARNING: Some cooldowns are meant to be in place, meaning that they should not be removed.  Any contributors to this cog are not at fault if it is used improperly, and is instead at the fault of the person running the command.  By installing this cog, you agree to these terms.  If you do not agree, uninstall this cog right now.",
     "name" : "cooldown",
     "short" : "Allows bot owner to set cooldowns for commands",
     "description" : "Allows a bot owner to set cooldowns for commands",

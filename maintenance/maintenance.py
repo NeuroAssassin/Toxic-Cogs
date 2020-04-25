@@ -15,7 +15,7 @@ if listener is None:  # thanks Sinbad
         return lambda x: x
 
 
-class LIStsSTaRtaTiNDeX1(commands.CommandError):
+class LIStsSTaRtaTiNDeX1(commands.CheckFailure):
     """Custom error for the Maintenance cog"""
 
 
@@ -74,9 +74,9 @@ class Maintenance(commands.Cog):
             setting = [False, 0, []]
             await self.conf.on.set(setting)
             return True
-        on[2].append(self.bot.owner_id)
-        [on[2].append(co) for co in self.bot._co_owners]
-        if ctx.author.id in on[2]:
+        team_ids = () if not self.bot._use_team_features else self.bot.owner_ids
+        whitelist = set((self.bot.owner_id, *self.bot._co_owners, *team_ids, *on[2]))
+        if ctx.author.id in whitelist:
             return True
         message = await self.conf.message()
         raise LIStsSTaRtaTiNDeX1(message)

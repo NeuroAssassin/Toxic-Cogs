@@ -1,5 +1,3 @@
-import contextlib
-
 from redbot.core import commands, Config, bank, checks
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 import copy
@@ -26,17 +24,6 @@ LEVELS = {
     13: {20: 100, 100: 1000},
     14: {10: 100, 100: 1000},
     15: {100: 1000},
-}
-
-IMAGES = {
-    "shark": "https://www.bostonmagazine.com/wp-content/uploads/sites/2/2019/05/Great-white-shark.jpg",
-    "chicken": "https://i1.wp.com/thechickhatchery.com/wp-content/uploads/2018/01/RI-White.jpg?fit=371%2C363&ssl=1",
-    "penguin": "https://cdn.britannica.com/77/81277-050-2A6A35B2/Adelie-penguin.jpg",
-    "dragon": "https://images-na.ssl-images-amazon.com/images/I/61NTUxEnn0L._SL1032_.jpg",
-    "tiger": "https://c402277.ssl.cf1.rackcdn.com/photos/18134/images/hero_small/Medium_WW226365.jpg?1574452099",
-    "cat": "https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png",
-    "dog": "https://d17fnq9dkz9hgj.cloudfront.net/breed-uploads/2018/09/dog-landing-hero-lg.jpg?bust=1536935129&width=1080",
-    "pupper": "https://i.ytimg.com/vi/MPV2METPeJU/maxresdefault.jpg"
 }
 
 
@@ -101,14 +88,13 @@ class Evolution(commands.Cog):
                         except:
                             gaining = 1000
                         gaining *= multiplier
-                        all_gaining += gaining * 0.25
+                        all_gaining += gaining
                 try:
                     user = await self.bot.get_user_info(user)
                 except AttributeError:
                     user = await self.bot.fetch_user(user)
                 if user:
-                    with contextlib.suppress(bank.errors.BalanceTooHigh):
-                        await bank.deposit_credits(user, math.ceil(all_gaining))
+                    await bank.deposit_credits(user, math.ceil(all_gaining))
                 await asyncio.sleep(0.1)
             await asyncio.sleep(60)
 
@@ -170,6 +156,7 @@ class Evolution(commands.Cog):
         await ctx.send(
             f"Your animal has been set to {message.content}.  You have been granted one to start."
         )
+
     @evolution.command()
     async def buy(self, ctx, level: int, amount: int = 1):
         """Buy those animals to get more economy credits"""
@@ -233,8 +220,8 @@ class Evolution(commands.Cog):
     async def shop(self, ctx):
         """View them animals in a nice little buying menu"""
         if self.lock.locked():
-	        await ctx.send("Hold on just one second, a delivery is going out at the moment... "	
-	                        "This shouldn't be any longer than a minute.")
+            await ctx.send("Hold on just one second, a delivery is going out at the moment... "
+                           "This shouldn't be any longer than a minute.")
         async with self.lock:
             animal = await self.conf.user(ctx.author).animal()
             animals = await self.conf.user(ctx.author).animals()
@@ -286,14 +273,12 @@ class Evolution(commands.Cog):
                     description=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''}",
                     color=0xD2B48C,
                 )
-                embed.set_thumbnail(url=IMAGES[animal])
                 embed_list.append(embed)
             await menu(ctx, embed_list, DEFAULT_CONTROLS)
         else:
             embed = discord.Embed(
                 title=f"The amount of {animal}s you have in your backyard.", color=0xD2B48C
             )
-            embed.set_thumbnail(url=IMAGES[animal])
             for level, amount in animals.items():
                 if amount == 0:
                     continue
@@ -353,12 +338,11 @@ class Evolution(commands.Cog):
                 f"**To:** {ctx.author.display_name}\n"
                 f"**Concerning:** Animal experiment #{str(math.ceil(((multiplier - 1) * 5) + 1))}\n"
                 f"**Subject:** Animal experiment concluded.\n\n"
-                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animals to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 500,000,000 credits, remove all of your animals, and give you an extra 0.2% income rate for the next universe from all income.  Congratulations!\n\n"
+                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animals to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 50,000 credits, remove all of your animals, and give you an extra 0.2% income rate for the next universe from all income.  Congratulations!\n\n"
                 f"From, The Head {animal.title()}"
             )
             await ctx.send(new)
-            with contextlib.suppress(bank.errors.BalanceTooHigh):
-                await bank.deposit_credits(ctx.author, 5000000)
+            await bank.deposit_credits(ctx.author, 50000)
             async with self.lock:
                 await self.conf.user(ctx.author).animals.set({1: 1})
                 await self.conf.user(ctx.author).multiplier.set(multiplier + 0.2)

@@ -94,7 +94,7 @@ class Switcher(commands.Cog):
         if str(reaction.emoji) == XEMOJI:
             return await ctx.send("Not running.")
 
-        await self.bot.db.token.set(token)
+        await self.bot._config.token.set(token)
         m = await ctx.send("Token updated.\nWould you like to restart?")
         await self.add_reactions(m)
 

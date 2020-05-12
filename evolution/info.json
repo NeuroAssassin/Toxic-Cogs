@@ -6,5 +6,5 @@
     "description" : "Buy animals using economy credits or get them every 10 minutes, and gain a certain amount of credits every minute!",
     "tags" : ["fun"],
     "requirements" : [],
-    "hidden" : false,
+    "hidden" : false
 }

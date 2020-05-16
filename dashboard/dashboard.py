@@ -43,6 +43,7 @@ class Dashboard(commands.Cog):
 
     async def update_perm_cache(self):
         await self.bot.wait_until_ready()
+        
         while True:
             self.cache = await self.conf.all_guilds()
             await asyncio.sleep(5)

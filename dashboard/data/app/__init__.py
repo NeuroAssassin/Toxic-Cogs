@@ -4,7 +4,7 @@ License: MIT
 Copyright (c) 2019 - present AppSeed.us
 """
 from redbot.core import data_manager
-from flask import Flask, url_for, session
+from flask import Flask, url_for, session, render_template
 from flask_session import Session
 from importlib import import_module
 from os import path
@@ -14,8 +14,20 @@ import base64
 import threading
 import time
 import websocket
+import traceback
 import json
 import sys
+
+
+class Lock:
+    def __init__(self):
+        self.lock = threading.Lock()
+
+    def __enter__(self):
+        self.lock.acquire()
+
+    def __exit__(self, *args):
+        self.lock.release()
 
 global __version__
 __version__ = "0.0.5a"
@@ -36,70 +48,121 @@ url = "ws://localhost:"
 global app
 app = None
 
+global lock
+lock = Lock()
+
 def update_variables(method):
     try:
         while True:
             # Different wait times based on method, commands should be called less due to how much data it is
             if method == "DASHBOARDRPC__GET_VARIABLES":
+                _id = 1
                 time.sleep(0.5)
             else:
+                _id = 2
                 time.sleep(5)
 
             global app
-            ws = websocket.WebSocket()
-            try:
-                ws.connect(url)
-            except ConnectionRefusedError:
-                ws.close()
-                continue
+
+            if not app.ws:
+                app.ws = websocket.WebSocket()
+                try:
+                    app.ws.connect(url)
+                except ConnectionRefusedError:
+                    app.ws.close()
+                    app.ws = None
+                    continue
 
             request = {
                 "jsonrpc": "2.0",
-                "id": 0,
+                "id": _id,
                 "method": method,
                 "params": []
             }
-            try:
-                ws.send(json.dumps(request))
-            except ConnectionResetError:
-                print("Connection reset")
-                ws.close()
-                continue
-                
-            try:
-                result = json.loads(ws.recv())
-            except ConnectionResetError:
-                print("Connection reset")
-                ws.close()
-                continue
+            with app.lock:
+                try:
+                    app.ws.send(json.dumps(request))
+                except ConnectionResetError:
+                    print("Connection reset")
+                    app.ws.close()
+                    app.ws = None
+                    continue
+                    
+                try:
+                    result = json.loads(app.ws.recv())
+                except ConnectionResetError:
+                    print("Connection reset")
+                    app.ws.close()
+                    app.ws = None
+                    continue
             if 'error' in result:
                 if result['error']['message'] == "Method not found":
                     if method == "DASHBOARDRPC__GET_VARIABLES":
                         app.variables = {}
-                    ws.close()
+                    app.ws.close()
+                    app.ws = None
                     continue
                 print(result['error'])
-                ws.close()
+                app.ws.close()
+                app.ws = None
                 continue
-            if type(result['result']) is dict and result['result'].get("disconnected", False):
+            if isinstance(result['result'], dict) and result['result'].get("disconnected", False):
                 # Dashboard cog unloaded, disconnect
                 if method == "DASHBOARDRPC__GET_VARIABLES":
                     app.variables = {}
-                ws.close()
+                app.ws.close()
+                app.ws = None
                 continue
             if method == "DASHBOARDRPC__GET_VARIABLES":
                 app.variables = result['result']
             else:
                 app.commanddata = result['result']
             app.variables["disconnected"] = False
-            ws.close()
     except Exception as e:
-        print(traceback.format_exception(type(e), e, e.__traceback__))
+        print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+
+def update_version():
+    try:
+        while True:
+            time.sleep(1)
+            if app.ws and app.ws.connected:
+                request = {
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                    "method": "DASHBOARDRPC__CHECK_VERSION",
+                    "params": [app.rpcversion]
+                }
+                with app.lock:
+                    try:
+                        app.ws.send(json.dumps(request))
+                    except ConnectionResetError:
+                        continue
+                        
+                    try:
+                        result = json.loads(app.ws.recv())
+                    except ConnectionResetError:
+                        continue
+
+                    if 'error' in result:
+                        continue
+
+                    if result['result']['v'] != app.rpcversion and app.rpcversion != 0:
+                        print("RPC webscocket behind.  Ignore upcoming socket closed messages.  Closing and restarting...")
+                        app.ws.close()
+                        app.ws = websocket.WebSocket()
+                        app.ws.connect(url)
+                    app.rpcversion = result['result']['v']
+    except Exception as e:
+        print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
 def register_blueprints(app):
     for module_name in ('base', 'home'):
         module = import_module('app.{}.routes'.format(module_name))
         app.register_blueprint(module.blueprint)
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('page-404.html'), 404
 
 def apply_themes(app):
     """
@@ -141,18 +204,23 @@ def add_constants(app):
 def create_app(host, port, rpcport, instance, selenium=False):
     global url
     global app
+    global lock
+
     url += str(rpcport)
     
     fernet_key = fernet.Fernet.generate_key()
     secret_key = base64.urlsafe_b64decode(fernet_key)
 
     app = Flask(__name__, static_folder='base/static')
+    app.ws = None
+    app.lock = lock
     app.variables = {}
     app.commanddata = {}
     app.config.from_object(__name__)
     app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = secret_key
-    app.rpcport = rpcport
+    app.rpcport = str(rpcport)
+    app.rpcversion = 0
 
     # I cheat
     stdout = StringIO()
@@ -181,5 +249,7 @@ def create_app(host, port, rpcport, instance, selenium=False):
     vt.start()
     ct = threading.Thread(target=update_variables, args=["DASHBOARDRPC__GET_COMMANDS"], daemon=True)
     ct.start()
+    pt = threading.Thread(target=update_version, daemon=True)
+    pt.start()
 
     app.run(host=host, port=port)

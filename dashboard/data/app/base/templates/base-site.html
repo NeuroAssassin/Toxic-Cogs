@@ -76,7 +76,11 @@
     $(document).ready(function() {
       // Sidebar active
       var path = window.location.pathname.slice(1)
-      $("#nav" + path).addClass("active")
+      try {
+        $("#nav" + path).addClass("active")
+      } catch {
+        $("#navdashboard").addClass("active")
+      }
 
       // Add data attributes to button's and a's
       $('button').attr("data", "{{ session.get('sidebarcolor', 'primary') }}")

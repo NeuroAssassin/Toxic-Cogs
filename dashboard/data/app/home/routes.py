@@ -10,6 +10,7 @@ from jinja2 import TemplateNotFound
 import websocket
 import json
 import time
+import random
 
 def update_core():
     while True:
@@ -23,11 +24,12 @@ def update_core():
 def stream():
     return Response(update_core(), mimetype="text/event-stream")
 
+@blueprint.route('/')
+def root():
+    return redirect('/')
+
 @blueprint.route('/index')
 def index():
-    
-    #if not current_user.is_authenticated:
-    #    return redirect(url_for('base_blueprint.login'))
     return render_template('index.html')
 
 @blueprint.route('/commands')
@@ -39,10 +41,68 @@ def commands():
 
 @blueprint.route('/credits')
 def credits():
+    return render_template("credits.html")
+
+@blueprint.route('/guild/<int:guild>')
+def guild(guild):
+    if not session.get("id"):
+        return redirect(url_for('base_blueprint.login'))
+    # We won't disconnect the websocket here, even if it fails, so that the main updating thread doesnt run into issues
     try:
-        return render_template("credits.html")
-    except TemplateNotFound:
-        return render_template('page-404.html'), 404
+        request = {
+            "jsonrpc": "2.0",
+            "id": random.randint(1, 1000),
+            "method": "DASHBOARDRPC__GET_SERVER",
+            "params": [int(session['id']), int(guild)]
+        }
+        with app.lock:
+            app.ws.send(json.dumps(request))
+            result = json.loads(app.ws.recv())
+            data = {}
+            if 'error' in result:
+                if result['error']['message'] == "Method not found":
+                    data = {"status": 0, "message": "Not connected to bot"}
+                else:
+                    print(result['error'])
+                    data = {"status": 0, "message": "Something went wrong"}
+            if isinstance(result['result'], dict) and result['result'].get("disconnected", False):
+                data = {"status": 0, "message": "Not connected to bot"}
+        if not data:
+            data = {"status": 1, "data": result['result']}
+    except:
+        data = {"status": 0, "message": "Not connected to bot"}
+    return render_template("guild.html", data=data)
+
+@blueprint.route('/getservers')
+def getservers():
+    if not session.get("id"):
+        return jsonify({"status": 0, "message": "Not logged in"})
+    try:
+        ws = websocket.WebSocket()
+        ws.connect("ws://localhost:" + app.rpcport)
+        request = {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "DASHBOARDRPC__GET_USERS_SERVERS",
+            "params": [int(session['id'])]
+        }
+        ws.send(json.dumps(request))
+        result = json.loads(ws.recv())
+        if 'error' in result:
+            if result['error']['message'] == "Method not found":
+                ws.close()
+                return jsonify({"status": 0, "message": "Not connected to bot"})
+            print(result['error'])
+            ws.close()
+            return jsonify({"status": 0, "message": "Something went wrong"})
+        if isinstance(result['result'], dict) and result['result'].get("disconnected", False):
+            ws.close()
+            return jsonify({"status": 0, "message": "Not connected to bot"})
+        ws.close()
+        return jsonify({"status": 1, "data": result['result']})
+    except:
+        ws.close()
+        return jsonify({"status": 0, "message": "Not connected to bot"})
 
 @blueprint.route('/changetheme', methods=['POST'])
 def changetheme():

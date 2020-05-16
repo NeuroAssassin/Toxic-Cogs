@@ -24,6 +24,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-10">
+                                    <span id="topOfTabContent"></span>
                                     <div class="tab-content" id="myTabContent">
                                         {% for cog in data %}
                                             <div class="tab-pane fade" id="{{ cog['name'] }}" role="tabpanel" aria-labelledby="{{ cog['name'] }}-tab">
@@ -44,7 +45,7 @@
 
                                                                             <div class="dropdown-menu dropdown-menu-right {% if session.get('iswhitetheme', false) %} white-content {% endif %} prefixdiv" aria-labelledby="prefixdrop">
                                                                                 {% for p in prefixes %}
-                                                                                    <a class="dropdown-item prefix-option {% if loop.index == 1 %} active {% endif %}" href="#" data="{{ session.get('sidebarcolor', 'primary') }}">{{ p }}</a>
+                                                                                    <a class="dropdown-item prefix-option {% if loop.index == 1 %} active {% endif %}" data="{{ session.get('sidebarcolor', 'primary') }}">{{ p }}</a>
                                                                                 {% endfor %}
                                                                             </div>
                                                                         </div>
@@ -109,8 +110,12 @@
             })
         })
         $('.taboption').click(function() {
-            var main_panel = document.getElementsByClassName("main-panel")[0]
-            main_panel.scrollTop = 0
+            if ($(document).width() >= 768) {
+                var main_panel = document.getElementsByClassName("main-panel")[0]
+                main_panel.scrollTop = 0
+            } else {
+                document.getElementById("topOfTabContent").scrollIntoView()
+            }
         })
     </script>
 {% endblock javascripts %}

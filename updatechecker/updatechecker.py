@@ -21,7 +21,6 @@ class UpdateChecker(commands.Cog):
         self.session = aiohttp.ClientSession()
         self.conf = Config.get_conf(self, identifier=473541068378341376)
         default_global = {
-            "updated": False,
             "repos": {},
             "auto": False,
             "gochannel": 0,
@@ -42,43 +41,44 @@ class UpdateChecker(commands.Cog):
         # Just in case
         await asyncio.sleep(10)
         while True:
-            updated = await self.conf.updated()
-            if updated:
-                cog = self.bot.get_cog("Downloader")
-                if cog != None:
-                    repos = await self.conf.repos()
-                    auto = await self.conf.auto()
-                    channel = await self.conf.gochannel()
-                    use_embed = await self.conf.embed()
-                    if channel == 0:
-                        channel = (await self.bot.application_info()).owner
-                    else:
-                        channel = self.bot.get_channel(channel)
-                    all_repos = cog._repo_manager.get_all_repo_names()
-                    for repo in all_repos:
-                        if not (repo in list(repos.keys())):
-                            repos[repo] = "--default--"
-                            await self.conf.repos.set(repos)
-                    saving_dict = {k: v for k, v in repos.items() if k in all_repos}
-                    for repo_name, commit_saved in saving_dict.items():
-                        repo = cog._repo_manager.get_repo(repo_name)
-                        if not repo:
-                            continue
-                        url = repo.url + r"/commits/" + repo.branch + ".atom"
-                        response = await self.fetch_feed(url)
-                        try:
-                            commit = response.entries[0]["title"]
-                        except AttributeError:
-                            continue
-                        saving_dict[repo_name] = commit
-                        if commit != commit_saved and commit_saved != "--default--":
-                            if not auto:
+            cog = self.bot.get_cog("Downloader")
+            if cog != None:
+                repos = await self.conf.repos()
+                auto = await self.conf.auto()
+                channel = await self.conf.gochannel()
+                use_embed = await self.conf.embed()
+                if channel == 0:
+                    channel = (await self.bot.application_info()).owner
+                else:
+                    channel = self.bot.get_channel(channel)
+
+                all_repos = cog._repo_manager.get_all_repo_names()
+                for repo in all_repos:
+                    if not (repo in list(repos.keys())):
+                        repos[repo] = "--default--"
+                await self.conf.repos.set(repos)
+
+                saving_dict = {k: v for k, v in repos.items() if k in all_repos}
+                for repo_name, commit_saved in saving_dict.items():
+                    repo = cog._repo_manager.get_repo(repo_name)
+                    if not repo:
+                        continue
+                    url = repo.url + r"/commits/" + repo.branch + ".atom"
+                    response = await self.fetch_feed(url)
+                    try:
+                        commit = response.entries[0]["title"]
+                    except AttributeError:
+                        continue
+                    saving_dict[repo_name] = commit
+                    if commit != commit_saved and commit_saved != "--default--":
+                        if True: # KACHOW
+                            try:
                                 if (
                                     use_embed
-                                    and channel.permissions_for(channel.guild.me).embed_links
+                                    and isinstance(channel, discord.User)
                                 ):
                                     e = discord.Embed(
-                                        title="[Update Checker]",
+                                        title="Update Checker",
                                         description=f"Update available for repo: {repo.name}",
                                         timestamp=datetime.utcnow(),
                                         color=0x00FF00,
@@ -86,8 +86,24 @@ class UpdateChecker(commands.Cog):
                                     e.add_field(name="URL", value=repo.url)
                                     e.add_field(name="Branch", value=repo.branch)
                                     e.add_field(name="Commit", value=commit)
+                                    await channel.send(embed=e)
+                                elif (
+                                    use_embed
+                                    and isinstance(channel, discord.TextChannel)
+                                    and channel.permissions_for(channel.guild.me).embed_links
+                                ):
+                                    e = discord.Embed(
+                                        title="Update Checker",
+                                        description=f"Update available for repo: {repo.name}",
+                                        timestamp=datetime.utcnow(),
+                                        color=0x00FF00,
+                                    )
+                                    e.add_field(name="URL", value=repo.url)
+                                    e.add_field(name="Branch", value=repo.branch)
+                                    e.add_field(name="Commit", value=commit)
+                                    await channel.send(embed=e)
                                 else:
-                                    message = (
+                                    e = (
                                         "```css\n"
                                         "[Update Checker]"
                                         "``````css\n"
@@ -97,89 +113,86 @@ class UpdateChecker(commands.Cog):
                                         f"    Time: {datetime.utcnow()}"
                                         "```"
                                     )
+                                    await channel.send(e)
+                            except AttributeError:
+                                owner = (await self.bot.application_info()).owner
+                                await owner.send(
+                                    "[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you."
+                                )
+                                if isinstance(e, discord.Embed):
+                                    await owner.send(embed=e)
+                                else:
+                                    await owner.send(e)
+                                channel = owner
+                                await self.conf.gochannel.set(0)
+                            except discord.errors.Forbidden:
+                                owner = (await self.bot.application_info()).owner
+                                await owner.send(
+                                    "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you."
+                                )
+                                if isinstance(e, discord.Embed):
+                                    await owner.send(embed=e)
+                                else:
+                                    await owner.send(e)
+                                channel = owner
+                                await self.conf.gochannel.set(0)
+                        else:
+                            try:
+                                await channel.send(
+                                    f"[Update Checker] Update found for repo: {repo.name}.  Updating repos..."
+                                )
+                            except AttributeError:
+                                owner = (await self.bot.application_info()).owner
+                                await owner.send(
+                                    "[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you."
+                                )
+                                channel = owner
+                                await self.conf.gochannel.set(0)
+                            except discord.errors.Forbidden:
+                                owner = (await self.bot.application_info()).owner
+                                await owner.send(
+                                    "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you."
+                                )
+                                channel = owner
+                                await self.conf.gochannel.set(0)
+                            # Just a copy of `[p]cog update`, but without using ctx things
+                            try:
+                                installed_cogs = set(await cog.installed_cogs())
+                                updated = await cog._repo_manager.update_all_repos()
+                                updated_cogs = set(
+                                    cog for repo in updated for cog in repo.available_cogs
+                                )
+                                installed_and_updated = updated_cogs & installed_cogs
+                                if installed_and_updated:
+                                    await cog._reinstall_requirements(installed_and_updated)
+                                    await cog._reinstall_cogs(installed_and_updated)
+                                    await cog._reinstall_libraries(installed_and_updated)
+                                    cognames = {c.name for c in installed_and_updated}
+                                    message = humanize_list(tuple(map(inline, cognames)))
+                            except Exception as error:
+                                exception_log = (
+                                    "Exception while updating repos in Update Checker \n"
+                                )
+                                exception_log += "".join(
+                                    traceback.format_exception(
+                                        type(error), error, error.__traceback__
+                                    )
+                                )
                                 try:
-                                    if (
-                                        use_embed
-                                        and channel.permissions_for(channel.guild.me).embed_links
-                                    ):
-                                        await channel.send(embed=e)
-                                    else:
-                                        await channel.send(message)
-                                except AttributeError:
-                                    owner = (await self.bot.application_info()).owner
-                                    await owner.send(
-                                        "[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you."
+                                    await channel.send(
+                                        f"[Update Checker]: Error while updating repos.\n\n{exception_log}"
                                     )
-                                    if use_embed:
-                                        await owner.send(embed=e)
-                                    else:
-                                        await channel.send(message)
-                                    channel = owner
-                                    await self.conf.gochannel.set(0)
                                 except discord.errors.Forbidden:
-                                    owner = (await self.bot.application_info()).owner
-                                    await owner.send(
-                                        "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you."
-                                    )
-                                    channel = owner
-                                    await self.conf.gochannel.set(0)
+                                    pass
                             else:
                                 try:
                                     await channel.send(
-                                        f"[Update Checker] Update found for repo: {repo.name}.  Updating repos..."
+                                        f"[Update Checker]: Ran cog update.  Updated cogs: {message}"
                                     )
-                                except AttributeError:
-                                    owner = (await self.bot.application_info()).owner
-                                    await owner.send(
-                                        "[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you."
-                                    )
-                                    channel = owner
-                                    await self.conf.gochannel.set(0)
                                 except discord.errors.Forbidden:
-                                    owner = (await self.bot.application_info()).owner
-                                    await owner.send(
-                                        "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you."
-                                    )
-                                    channel = owner
-                                    await self.conf.gochannel.set(0)
-                                # Just a copy of `[p]cog update`, but without using ctx things
-                                try:
-                                    installed_cogs = set(await cog.installed_cogs())
-                                    updated = await cog._repo_manager.update_all_repos()
-                                    updated_cogs = set(
-                                        cog for repo in updated for cog in repo.available_cogs
-                                    )
-                                    installed_and_updated = updated_cogs & installed_cogs
-                                    if installed_and_updated:
-                                        await cog._reinstall_requirements(installed_and_updated)
-                                        await cog._reinstall_cogs(installed_and_updated)
-                                        await cog._reinstall_libraries(installed_and_updated)
-                                        cognames = {c.name for c in installed_and_updated}
-                                        message = humanize_list(tuple(map(inline, cognames)))
-                                except Exception as error:
-                                    exception_log = (
-                                        "Exception while updating repos in Update Checker \n"
-                                    )
-                                    exception_log += "".join(
-                                        traceback.format_exception(
-                                            type(error), error, error.__traceback__
-                                        )
-                                    )
-                                    try:
-                                        await channel.send(
-                                            f"[Update Checker]: Error while updating repos.\n\n{exception_log}"
-                                        )
-                                    except discord.errors.Forbidden:
-                                        pass
-                                else:
-                                    try:
-                                        await channel.send(
-                                            f"[Update Checker]: Ran cog update.  Updated cogs: {message}"
-                                        )
-                                    except discord.errors.Forbidden:
-                                        pass
-                    await self.conf.repos.set(saving_dict)
-            await asyncio.sleep(60)
+                                    pass
+                await self.conf.repos.set(saving_dict)
+            await asyncio.sleep(10)
 
     async def fetch_feed(self, url: str) -> Optional[feedparser.FeedParserDict]:
         # Thank's to Sinbad's rss cog after which I copied this
@@ -196,7 +209,7 @@ class UpdateChecker(commands.Cog):
         return ret
 
     @checks.is_owner()
-    @commands.group(name="cogupdater")
+    @commands.group(name="cogupdater", aliases=['cu'])
     async def update(self, ctx):
         """Group command for controlling the update checker cog."""
         pass
@@ -205,10 +218,13 @@ class UpdateChecker(commands.Cog):
     @update.command()
     async def auto(self, ctx):
         """Changes automatic cog updates to the opposite setting."""
-        auto = await self.conf.auto()
-        await self.conf.auto.set(not auto)
-        status = "disabled" if auto else "enabled"
-        await ctx.send(f"Auto cog updates are now {status}")
+        if False: # KACHOW
+            auto = await self.conf.auto()
+            await self.conf.auto.set(not auto)
+            status = "disabled" if auto else "enabled"
+            await ctx.send(f"Auto cog updates are now {status}")
+        else:
+            await ctx.send("This command is disabled for the time being.  Cog updates will not run automatically, however notifications will still send.")
 
     @checks.is_owner()
     @update.command()

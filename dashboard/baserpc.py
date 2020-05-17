@@ -2,6 +2,7 @@ from redbot.core.commands.requires import PrivilegeLevel as PL
 from redbot.core.utils.chat_formatting import humanize_number, humanize_list
 from redbot.core.commands import commands
 from redbot.core.utils import AsyncIter
+from collections import Counter
 import markdown2
 import discord
 import random
@@ -72,8 +73,18 @@ class DashboardRPC:
         if self.bot.get_cog("Dashboard") and self.bot.is_ready():
             botinfo = await self.bot._config.custom_info()
             if botinfo is None:
-                botinfo = f"Hello, welcome to the Red Discord Bot dashboard for {self.bot.user.name}!  {self.bot.user.name} is based off the popular bot Red Discord Bot, an open source, multifunctional bot.  It has tons if features including moderation, audio, economy, fun and more!  Here, you can control and interact with all these things.  So what are you waiting for?  Invite them now!"
+                botinfo = (
+                    f"Hello, welcome to the Red Discord Bot dashboard for {self.bot.user.name}! "
+                    f"{self.bot.user.name} is based off the popular bot Red Discord Bot, an open source, multifunctional bot. "
+                    "It has tons if features including moderation, audio, economy, fun and more! Here, you can control and interact with all these things. "
+                    "So what are you waiting for? Invite them now!"
+                )
             prefixes = [p for p in await self.bot.get_valid_prefixes() if not re.match(r"<@!?([0-9]+)>", p)]
+            count = Counter()
+            async for member in AsyncIter(self.bot.get_all_members(), steps=1500):
+                count["users"] += 1
+                if member.status is not discord.Status.offline:
+                    count["onlineusers"] += 1
             returning = {
                 'botname': self.bot.user.name,
                 'botavatar': str(self.bot.user.avatar_url_as(static_format="png")),
@@ -83,8 +94,8 @@ class DashboardRPC:
                 'redirect': await self.cog.conf.redirect(),
                 'support': await self.cog.conf.support(),
                 'servers': humanize_number(len(self.bot.guilds)),
-                'users': humanize_number(len([member for member in self.bot.get_all_members()])),
-                'onlineusers': humanize_number(len([user for user in self.bot.get_all_members() if user.status is not discord.Status.offline]))
+                'users': humanize_number(count['users']),
+                'onlineusers': humanize_number(count['onlineusers'])
             }
             app_info = await self.bot.application_info()
             if app_info.team:

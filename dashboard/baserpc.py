@@ -96,8 +96,8 @@ class DashboardRPC:
                 "botid": self.bot.user.id,
                 "botinfo": markdown2.markdown(botinfo),
                 "prefix": prefixes,
-                "redirect": await self.cog.conf.redirect(),
-                "support": await self.cog.conf.support(),
+                "redirect": await self.cog.config.redirect(),
+                "support": await self.cog.config.support(),
                 "servers": humanize_number(len(self.bot.guilds)),
                 "users": humanize_number(count["users"]),
                 "onlineusers": humanize_number(count["onlineusers"]),
@@ -113,7 +113,7 @@ class DashboardRPC:
 
     async def get_secret(self):
         if self.bot.get_cog("Dashboard") and self.bot.is_ready():
-            return {'secret': await self.cog.conf.secret()}
+            return {'secret': await self.cog.config.secret()}
         else:
             return {"disconnected": True}
 

@@ -194,7 +194,7 @@ class UpdateChecker(commands.Cog):
                 await self.conf.repos.set(saving_dict)
             await asyncio.sleep(10)
 
-    async def fetch_feed(self, url: str) -> Optional[feedparser.FeedParserDict]:
+    async def fetch_feed(self, url: str):
         # Thank's to Sinbad's rss cog after which I copied this
         timeout = aiohttp.client.ClientTimeout(total=15)
         try:

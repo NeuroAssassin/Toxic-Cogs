@@ -8,14 +8,14 @@ import discord
 import random
 import re
 
-HUMANIZED_PERMISSIONS = {
-    "view": "View server"
-}
+HUMANIZED_PERMISSIONS = {"view": "View server"}
+
 
 class DashboardRPC:
     """RPC server handlers for the dashboard to get special things from the bot.
     
     This class contains the basic RPC functions, that don't belong to any other cog"""
+
     def __init__(self, cog):
         self.cog = cog
         self.bot = cog.bot
@@ -45,23 +45,23 @@ class DashboardRPC:
             details = {
                 "name": f"{cmd.qualified_name} {cmd.signature}",
                 "desc": cmd.short_doc,
-                "subs": []
+                "subs": [],
             }
             if isinstance(cmd, commands.Group):
-                details['subs'] = self.build_cmd_list(cmd.commands)
+                details["subs"] = self.build_cmd_list(cmd.commands)
             final.append(details)
         return final
 
     def get_perms(self, guildid, m):
         try:
-            role_data = self.cog.cache[guildid]['roles']
+            role_data = self.cog.configcache[guildid]["roles"]
         except KeyError:
             return None
         roles = [r.id for r in m.roles]
         perms = []
         for role in role_data:
-            if role['roleid'] in roles:
-                perms += role['perms']
+            if role["roleid"] in roles:
+                perms += role["perms"]
         return perms
 
     async def check_version(self, version):
@@ -82,36 +82,38 @@ class DashboardRPC:
                     "It has tons if features including moderation, audio, economy, fun and more! Here, you can control and interact with all these things. "
                     "So what are you waiting for? Invite them now!"
                 )
-            prefixes = [p for p in await self.bot.get_valid_prefixes() if not re.match(r"<@!?([0-9]+)>", p)]
+            prefixes = [
+                p for p in await self.bot.get_valid_prefixes() if not re.match(r"<@!?([0-9]+)>", p)
+            ]
             count = Counter()
             async for member in AsyncIter(self.bot.get_all_members(), steps=1500):
                 count["users"] += 1
                 if member.status is not discord.Status.offline:
                     count["onlineusers"] += 1
             returning = {
-                'botname': self.bot.user.name,
-                'botavatar': str(self.bot.user.avatar_url_as(static_format="png")),
-                'botid': self.bot.user.id,
-                'botinfo': markdown2.markdown(botinfo),
-                'prefix': prefixes,
-                'redirect': await self.cog.conf.redirect(),
-                'support': await self.cog.conf.support(),
-                'servers': humanize_number(len(self.bot.guilds)),
-                'users': humanize_number(count['users']),
-                'onlineusers': humanize_number(count['onlineusers'])
+                "botname": self.bot.user.name,
+                "botavatar": str(self.bot.user.avatar_url_as(static_format="png")),
+                "botid": self.bot.user.id,
+                "botinfo": markdown2.markdown(botinfo),
+                "prefix": prefixes,
+                "redirect": await self.cog.config.redirect(),
+                "support": await self.cog.config.support(),
+                "servers": humanize_number(len(self.bot.guilds)),
+                "users": humanize_number(count["users"]),
+                "onlineusers": humanize_number(count["onlineusers"]),
             }
             app_info = await self.bot.application_info()
             if app_info.team:
-                returning['owner'] = str(app_info.team.name)
+                returning["owner"] = str(app_info.team.name)
             else:
-                returning['owner'] = str(app_info.owner)
+                returning["owner"] = str(app_info.owner)
             return returning
         else:
             return {"disconnected": True}
 
     async def get_secret(self):
         if self.bot.get_cog("Dashboard") and self.bot.is_ready():
-            return {'secret': await self.cog.conf.secret()}
+            return {'secret': await self.cog.config.secret()}
         else:
             return {"disconnected": True}
 
@@ -123,12 +125,10 @@ class DashboardRPC:
                 for c in cog.__cog_commands__:
                     if not c.parent:
                         stripped.append(c)
-                returning.append({
-                    "name": name,
-                    "desc": cog.__doc__,
-                    "cmds": self.build_cmd_list(stripped)
-                })
-            returning = sorted(returning, key=lambda k: k['name'])
+                returning.append(
+                    {"name": name, "desc": cog.__doc__, "cmds": self.build_cmd_list(stripped)}
+                )
+            returning = sorted(returning, key=lambda k: k["name"])
             return returning
         else:
             return {"disconnected": True}
@@ -150,9 +150,10 @@ class DashboardRPC:
                     "name": guild.name,
                     "id": str(guild.id),
                     "owner": str(guild.owner),
-                    "icon": str(guild.icon_url_as(format="png"))[:-13] or "https://cdn.discordapp.com/embed/avatars/1.",
+                    "icon": str(guild.icon_url_as(format="png"))[:-13]
+                    or "https://cdn.discordapp.com/embed/avatars/1.",
                     "animated": guild.is_icon_animated(),
-                    "go": False
+                    "go": False,
                 }
                 if is_owner:
                     guilds.append(sgd)
@@ -170,7 +171,7 @@ class DashboardRPC:
                 if perms is None:
                     continue
 
-                if 'view' in perms:
+                if "view" in perms:
                     guilds.append(sgd)
                     continue
 
@@ -196,14 +197,14 @@ class DashboardRPC:
                     return {"status": 0}
 
             if is_owner:
-                humanized = ['Everything (Bot Owner)']
+                humanized = ["Everything (Bot Owner)"]
                 joined = None
             elif guild.owner.id == userid:
                 humanized = ["Everything (Guild Owner)"]
                 joined = user.joined_at.strftime("%B %d, %Y")
             else:
                 perms = self.get_perms(serverid, user)
-                if perms is None or 'view' not in perms:
+                if perms is None or "view" not in perms:
                     return {"status": 0}
 
                 humanized = []
@@ -212,22 +213,17 @@ class DashboardRPC:
 
                 joined = user.joined_at.strftime("%B %d, %Y")
 
-            stats = {
-                "o": 0,
-                "i": 0,
-                "d": 0,
-                "f": 0
-            }
+            stats = {"o": 0, "i": 0, "d": 0, "f": 0}
 
             for m in guild.members:
                 if m.status is discord.Status.online:
-                    stats['o'] += 1
+                    stats["o"] += 1
                 elif m.status is discord.Status.idle:
-                    stats['i'] += 1
+                    stats["i"] += 1
                 elif m.status is discord.Status.dnd:
-                    stats['d'] += 1
+                    stats["d"] += 1
                 elif m.status is discord.Status.offline:
-                    stats['f'] += 1
+                    stats["f"] += 1
 
             if guild.verification_level is discord.VerificationLevel.none:
                 vl = "None"
@@ -248,7 +244,7 @@ class DashboardRPC:
                     parts[i] = p.title()
             region = " ".join(parts)
 
-            if serverid not in self.cog.cache:
+            if serverid not in self.cog.configcache:
                 warn = True
             else:
                 warn = False
@@ -258,13 +254,14 @@ class DashboardRPC:
                 "name": guild.name,
                 "id": guild.id,
                 "owner": str(guild.owner),
-                "icon": str(guild.icon_url_as(format="png"))[:-13] or "https://cdn.discordapp.com/embed/avatars/1",
+                "icon": str(guild.icon_url_as(format="png"))[:-13]
+                or "https://cdn.discordapp.com/embed/avatars/1.",
                 "animated": guild.is_icon_animated(),
                 "members": humanize_number(len(guild.members)),
-                "online": humanize_number(stats['o']),
-                "idle": humanize_number(stats['i']),
-                "dnd": humanize_number(stats['d']),
-                "offline": humanize_number(stats['f']),
+                "online": humanize_number(stats["o"]),
+                "idle": humanize_number(stats["i"]),
+                "dnd": humanize_number(stats["d"]),
+                "offline": humanize_number(stats["f"]),
                 "bots": humanize_number(len([user for user in guild.members if user.bot])),
                 "humans": humanize_number(len([user for user in guild.members if not user.bot])),
                 "perms": humanize_list(humanized),
@@ -272,9 +269,7 @@ class DashboardRPC:
                 "joined": joined,
                 "roleswarn": warn,
                 "vl": vl,
-                "region": region
+                "region": region,
             }
 
             return guild_data
-        else:
-            return {"disconnected": True}

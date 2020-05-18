@@ -95,24 +95,24 @@ def update_variables(method):
                     app.ws.close()
                     app.ws = None
                     continue
-            if 'error' in result:
-                if result['error']['message'] == "Method not found":
+                if 'error' in result:
+                    if result['error']['message'] == "Method not found":
+                        if method == "DASHBOARDRPC__GET_VARIABLES":
+                            app.variables = {}
+                        app.ws.close()
+                        app.ws = None
+                        continue
+                    print(result['error'])
+                    app.ws.close()
+                    app.ws = None
+                    continue
+                if isinstance(result['result'], dict) and result['result'].get("disconnected", False):
+                    # Dashboard cog unloaded, disconnect
                     if method == "DASHBOARDRPC__GET_VARIABLES":
                         app.variables = {}
                     app.ws.close()
                     app.ws = None
                     continue
-                print(result['error'])
-                app.ws.close()
-                app.ws = None
-                continue
-            if isinstance(result['result'], dict) and result['result'].get("disconnected", False):
-                # Dashboard cog unloaded, disconnect
-                if method == "DASHBOARDRPC__GET_VARIABLES":
-                    app.variables = {}
-                app.ws.close()
-                app.ws = None
-                continue
             if method == "DASHBOARDRPC__GET_VARIABLES":
                 app.variables = result['result']
             else:

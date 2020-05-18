@@ -155,7 +155,11 @@ class Dashboard(commands.Cog):
     async def list(self, ctx: commands.Context):
         """List roles registered with dashboard"""
         data = await self.config.guild(ctx.guild).roles()
-        roles = [role.mention for role in data if ctx.guild.get_role(role["role_id"])]
+        roles = [
+            ctx.guild.get_role(role["roleid"]).mention
+            for role in data
+            if ctx.guild.get_role(role["roleid"])
+        ]
         if not roles:
             return await ctx.send("No roles set.")
         e = discord.Embed(title="Registered roles", description="\n".join(roles), color=0x0000FF)

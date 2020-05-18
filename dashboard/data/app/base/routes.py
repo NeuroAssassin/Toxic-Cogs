@@ -29,19 +29,26 @@ def callback():
     try:
         code = request.args.get("code")
     except KeyError:
-        return jsonify(str(request.args))
+        return jsonify({"msg": "Missing code argument", "args": str(request.args)})
     redirectstr = app.variables['redirect']
-    ws = websocket.WebSocket()
-    ws.connect("ws://localhost:" + str(app.rpcport))
     requestobj = {
         "jsonrpc": "2.0",
         "id": 0,
         "method": "DASHBOARDRPC__GET_SECRET",
         "params": []
     }
-    ws.send(json.dumps(requestobj))
-    result = json.loads(ws.recv())
-    secret = result['result']['secret']
+    with app.lock:
+        app.ws.send(json.dumps(requestobj))
+        result = json.loads(app.ws.recv())
+        if 'error' in result:
+            if result['error']['message'] == "Method not found":
+                data = {"msg": "Not connected to bot"}
+            else:
+                print(result['error'])
+                data = {"msg": "Something went wrong"}
+        if isinstance(result['result'], dict) and result['result'].get("disconnected", False):
+            data = {"msg": "Not connected to bot"}
+        secret = result['result']['secret']
     data = {
         "client_id": int(app.variables['botid']),
         "client_secret": secret,
@@ -55,7 +62,7 @@ def callback():
     try:
         token = response.json()["access_token"]
     except KeyError:
-        return jsonify(response.json())
+        return jsonify({"msg": "Failed to obtain token", "returned": response.json()})
     new = requests.get("https://discordapp.com/api/v6/users/@me", headers={"Authorization": f"Bearer {token}"})
     new_data = new.json()
     if "id" in new_data:
@@ -63,7 +70,7 @@ def callback():
         session['avatar'] = f"https://cdn.discordapp.com/avatars/{new_data['id']}/{new_data['avatar']}.png"
         session['username'] = new_data['username']
         return redirect(url_for('home_blueprint.index'))
-    return jsonify(new.json())
+    return jsonify({"msg": "Failed to obtain user profile", "returned": new.json()})
 
 @blueprint.route('/login', methods=['GET', 'POST'])
 def login():

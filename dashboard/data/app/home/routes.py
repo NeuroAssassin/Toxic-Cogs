@@ -78,30 +78,24 @@ def getservers():
     if not session.get("id"):
         return jsonify({"status": 0, "message": "Not logged in"})
     try:
-        ws = websocket.WebSocket()
-        ws.connect("ws://localhost:" + app.rpcport)
         request = {
             "jsonrpc": "2.0",
             "id": 0,
             "method": "DASHBOARDRPC__GET_USERS_SERVERS",
             "params": [int(session['id'])]
         }
-        ws.send(json.dumps(request))
-        result = json.loads(ws.recv())
-        if 'error' in result:
-            if result['error']['message'] == "Method not found":
-                ws.close()
+        with app.lock:
+            app.ws.send(json.dumps(request))
+            result = json.loads(app.ws.recv())
+            if 'error' in result:
+                if result['error']['message'] == "Method not found":
+                    return jsonify({"status": 0, "message": "Not connected to bot"})
+                print(result['error'])
+                return jsonify({"status": 0, "message": "Something went wrong"})
+            if isinstance(result['result'], dict) and result['result'].get("disconnected", False):
                 return jsonify({"status": 0, "message": "Not connected to bot"})
-            print(result['error'])
-            ws.close()
-            return jsonify({"status": 0, "message": "Something went wrong"})
-        if isinstance(result['result'], dict) and result['result'].get("disconnected", False):
-            ws.close()
-            return jsonify({"status": 0, "message": "Not connected to bot"})
-        ws.close()
-        return jsonify({"status": 1, "data": result['result']})
+            return jsonify({"status": 1, "data": result['result']})
     except:
-        ws.close()
         return jsonify({"status": 0, "message": "Not connected to bot"})
 
 @blueprint.route('/changetheme', methods=['POST'])

@@ -11,7 +11,7 @@ import sys
 from .baserpc import DashboardRPC
 
 HUMANIZED_PERMISSIONS = {
-    "view": "View server"
+    "view": "View server",
 }
 
 class Dashboard(commands.Cog):
@@ -43,10 +43,14 @@ class Dashboard(commands.Cog):
 
     async def update_perm_cache(self):
         await self.bot.wait_until_ready()
-        
-        while True:
-            self.cache = await self.conf.all_guilds()
-            await asyncio.sleep(5)
+        self.cache = await self.conf.all_guilds()
+
+    def get_guild_roles(self, guildid):
+        try:
+            return self.cache[guildid]['roles']
+        except KeyError:
+            self.cache[guildid] = {"roles": []}
+            return []
 
     @commands.group()
     async def dashboard(self, ctx):
@@ -62,7 +66,7 @@ class Dashboard(commands.Cog):
     @roles.command()
     async def create(self, ctx, role: discord.Role, *permissions):
         """Register a new discord role to access certain parts of the dashboard"""
-        roles = await self.conf.guild(ctx.guild).roles()
+        roles = self.get_guild_roles(ctx.guild.id)
         if role.id in [r['roleid'] for r in roles]:
             await ctx.send(f"That role is already registered.  Please edit with `{ctx.prefix}dashboard roles edit`.")
             return
@@ -74,11 +78,11 @@ class Dashboard(commands.Cog):
             else:
                 missing.append(p)
         if assigning:
-            async with self.conf.guild(ctx.guild).roles() as data:
-                data.append({
-                    "roleid": role.id,
-                    "perms": assigning
-                })
+            self.cache[ctx.guild.id]['roles'].append({
+                "roleid": role.id,
+                "perms": assigning
+            })
+            await self.conf.guild(ctx.guild).roles.set(self.cache[ctx.guild.id]['roles'])
         else:
             await ctx.send("Failed to identify any permissions in list.  Please try again.")
             return
@@ -105,7 +109,7 @@ class Dashboard(commands.Cog):
             await ctx.send("Failed to identify any permissions in list.  Please try again.")
             return
 
-        roles = await self.conf.guild(ctx.guild).roles()
+        roles = self.get_guild_roles(ctx.guild.id)
         ro = None
         for r in roles:
             if r['roleid'] == role.id:
@@ -131,7 +135,8 @@ class Dashboard(commands.Cog):
             return
 
         roles.append(ro)
-        await self.conf.guild(ctx.guild).roles.set(roles)
+        self.cache[ctx.guild.id]['roles'] = roles
+        await self.conf.guild(ctx.guild).roles.set(self.cache[ctx.guild.id]['roles'])
 
         if missing == []:
             missing = "None"
@@ -153,7 +158,7 @@ class Dashboard(commands.Cog):
     @roles.command()
     async def delete(self, ctx, *, role: discord.Role):
         """Unregister a role from the dashboard"""
-        roles = await self.conf.guild(ctx.guild).roles()
+        roles = self.get_guild_roles(ctx.guild.id)
         ro = None
         for r in roles:
             if r['roleid'] == role.id:
@@ -163,14 +168,15 @@ class Dashboard(commands.Cog):
             return
 
         del roles[roles.index(ro)]
-        await self.conf.guild(ctx.guild).roles.set(roles)
+        self.cache[ctx.guild.id]['roles'] = roles
+        await self.conf.guild(ctx.guild).roles.set(self.cache[ctx.guild.id]['roles'])
 
         await ctx.send("Successfully deleted role.")
 
     @roles.command()
     async def list(self, ctx):
         """List roles registered with dashboard"""
-        roles = await self.conf.guild(ctx.guild).roles()
+        roles = self.get_guild_roles(ctx.guild.id)
         e = discord.Embed(title="Registered roles", color=0x0000FF)
         e.description = ""
         for r in roles:
@@ -184,7 +190,7 @@ class Dashboard(commands.Cog):
     @roles.command()
     async def info(self, ctx, *, role: discord.Role):
         """List permissions for a registered role"""
-        roles = await self.conf.guild(ctx.guild).roles()
+        roles = self.get_guild_roles(ctx.guild.id)
         try:
             r = [ro for ro in roles if ro['roleid'] == role.id][0]
         except IndexError:

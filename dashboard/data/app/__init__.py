@@ -30,7 +30,7 @@ class Lock:
         self.lock.release()
 
 global __version__
-__version__ = "0.0.5a"
+__version__ = "0.0.6a"
 __author__ = "Neuro Assassin#4779"
 
 # In case the dashboard cog isn't loaded
@@ -144,6 +144,9 @@ def update_version():
                         continue
 
                     if 'error' in result:
+                        continue
+
+                    if "disconnected" in result['result']:
                         continue
 
                     if result['result']['v'] != app.rpcversion and app.rpcversion != 0:

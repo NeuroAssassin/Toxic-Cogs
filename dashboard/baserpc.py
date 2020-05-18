@@ -66,7 +66,10 @@ class DashboardRPC:
 
     async def check_version(self, version):
         # Since self.version could possibly be cached, lets do something different
-        return {"v": self.bot.get_cog("Dashboard").rpc.version}
+        if self.bot.get_cog("Dashboard") and self.bot.is_ready():
+            return {"v": self.bot.get_cog("Dashboard").rpc.version}
+        else:
+            return {"disconnected": True}
 
     async def get_variables(self):
         # Because RPC decides to keep this even when unloaded ¯\_(ツ)_/¯
@@ -107,7 +110,10 @@ class DashboardRPC:
             return {"disconnected": True}
 
     async def get_secret(self):
-        return {'secret': await self.cog.conf.secret()}
+        if self.bot.get_cog("Dashboard") and self.bot.is_ready():
+            return {'secret': await self.cog.conf.secret()}
+        else:
+            return {"disconnected": True}
 
     async def get_commands(self):
         if self.bot.get_cog("Dashboard") and self.bot.is_ready():
@@ -174,98 +180,101 @@ class DashboardRPC:
             return {"disconnected": True}
 
     async def get_server(self, userid, serverid):
-        guild = self.bot.get_guild(serverid)
-        if not guild:
-            return {"status": 0}
-
-        user = guild.get_member(userid)
-        baseuser = self.bot.get_user(userid)
-        is_owner = False
-        if await self.bot.is_owner(baseuser):
-            is_owner = True
-
-        if not user:
-            if not baseuser and not is_owner:
+        if self.bot.get_cog("Dashboard") and self.bot.is_ready():
+            guild = self.bot.get_guild(serverid)
+            if not guild:
                 return {"status": 0}
 
-        if is_owner:
-            humanized = ['Everything (Bot Owner)']
-            joined = None
-        elif guild.owner.id == userid:
-            humanized = ["Everything (Guild Owner)"]
-            joined = user.joined_at.strftime("%B %d, %Y")
-        else:
-            perms = self.get_perms(serverid, user)
-            if perms is None or 'view' not in perms:
-                return {"status": 0}
+            user = guild.get_member(userid)
+            baseuser = self.bot.get_user(userid)
+            is_owner = False
+            if await self.bot.is_owner(baseuser):
+                is_owner = True
 
-            humanized = []
-            for p in perms:
-                humanized.append(HUMANIZED_PERMISSIONS[p])
+            if not user:
+                if not baseuser and not is_owner:
+                    return {"status": 0}
 
-            joined = user.joined_at.strftime("%B %d, %Y")
-
-        stats = {
-            "o": 0,
-            "i": 0,
-            "d": 0,
-            "f": 0
-        }
-
-        for m in guild.members:
-            if m.status is discord.Status.online:
-                stats['o'] += 1
-            elif m.status is discord.Status.idle:
-                stats['i'] += 1
-            elif m.status is discord.Status.dnd:
-                stats['d'] += 1
-            elif m.status is discord.Status.offline:
-                stats['f'] += 1
-
-        if guild.verification_level is discord.VerificationLevel.none:
-            vl = "None"
-        elif guild.verification_level is discord.VerificationLevel.low:
-            vl = "1 - Low"
-        elif guild.verification_level is discord.VerificationLevel.medium:
-            vl = "2 - Medium"
-        elif guild.verification_level is discord.VerificationLevel.high:
-            vl = "3 - High"
-        elif guild.verification_level is discord.VerificationLevel.extreme:
-            vl = "4 - Extreme"
-
-        parts = guild.region.name.split("_")
-        for i, p in enumerate(parts):
-            if p in ["eu", "us", "vip"]:
-                parts[i] = p.upper()
+            if is_owner:
+                humanized = ['Everything (Bot Owner)']
+                joined = None
+            elif guild.owner.id == userid:
+                humanized = ["Everything (Guild Owner)"]
+                joined = user.joined_at.strftime("%B %d, %Y")
             else:
-                parts[i] = p.title()
-        region = " ".join(parts)
+                perms = self.get_perms(serverid, user)
+                if perms is None or 'view' not in perms:
+                    return {"status": 0}
 
-        if serverid not in self.cog.cache:
-            warn = True
+                humanized = []
+                for p in perms:
+                    humanized.append(HUMANIZED_PERMISSIONS[p])
+
+                joined = user.joined_at.strftime("%B %d, %Y")
+
+            stats = {
+                "o": 0,
+                "i": 0,
+                "d": 0,
+                "f": 0
+            }
+
+            for m in guild.members:
+                if m.status is discord.Status.online:
+                    stats['o'] += 1
+                elif m.status is discord.Status.idle:
+                    stats['i'] += 1
+                elif m.status is discord.Status.dnd:
+                    stats['d'] += 1
+                elif m.status is discord.Status.offline:
+                    stats['f'] += 1
+
+            if guild.verification_level is discord.VerificationLevel.none:
+                vl = "None"
+            elif guild.verification_level is discord.VerificationLevel.low:
+                vl = "1 - Low"
+            elif guild.verification_level is discord.VerificationLevel.medium:
+                vl = "2 - Medium"
+            elif guild.verification_level is discord.VerificationLevel.high:
+                vl = "3 - High"
+            elif guild.verification_level is discord.VerificationLevel.extreme:
+                vl = "4 - Extreme"
+
+            parts = guild.region.name.split("_")
+            for i, p in enumerate(parts):
+                if p in ["eu", "us", "vip"]:
+                    parts[i] = p.upper()
+                else:
+                    parts[i] = p.title()
+            region = " ".join(parts)
+
+            if serverid not in self.cog.cache:
+                warn = True
+            else:
+                warn = False
+
+            guild_data = {
+                "status": 1,
+                "name": guild.name,
+                "id": guild.id,
+                "owner": str(guild.owner),
+                "icon": str(guild.icon_url_as(format="png"))[:-13] or "https://cdn.discordapp.com/embed/avatars/1",
+                "animated": guild.is_icon_animated(),
+                "members": humanize_number(len(guild.members)),
+                "online": humanize_number(stats['o']),
+                "idle": humanize_number(stats['i']),
+                "dnd": humanize_number(stats['d']),
+                "offline": humanize_number(stats['f']),
+                "bots": humanize_number(len([user for user in guild.members if user.bot])),
+                "humans": humanize_number(len([user for user in guild.members if not user.bot])),
+                "perms": humanize_list(humanized),
+                "created": guild.created_at.strftime("%B %d, %Y"),
+                "joined": joined,
+                "roleswarn": warn,
+                "vl": vl,
+                "region": region
+            }
+
+            return guild_data
         else:
-            warn = False
-
-        guild_data = {
-            "status": 1,
-            "name": guild.name,
-            "id": guild.id,
-            "owner": str(guild.owner),
-            "icon": str(guild.icon_url_as(format="png"))[:-13] or "https://cdn.discordapp.com/embed/avatars/1",
-            "animated": guild.is_icon_animated(),
-            "members": humanize_number(len(guild.members)),
-            "online": humanize_number(stats['o']),
-            "idle": humanize_number(stats['i']),
-            "dnd": humanize_number(stats['d']),
-            "offline": humanize_number(stats['f']),
-            "bots": humanize_number(len([user for user in guild.members if user.bot])),
-            "humans": humanize_number(len([user for user in guild.members if not user.bot])),
-            "perms": humanize_list(humanized),
-            "created": guild.created_at.strftime("%B %d, %Y"),
-            "joined": joined,
-            "roleswarn": warn,
-            "vl": vl,
-            "region": region
-        }
-
-        return guild_data
+            return {"disconnected": True}

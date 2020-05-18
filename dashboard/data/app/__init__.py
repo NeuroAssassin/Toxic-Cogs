@@ -57,21 +57,12 @@ def update_variables(method):
             # Different wait times based on method, commands should be called less due to how much data it is
             if method == "DASHBOARDRPC__GET_VARIABLES":
                 _id = 1
-                time.sleep(0.5)
+                time.sleep(5)
             else:
                 _id = 2
-                time.sleep(5)
+                time.sleep(10)
 
             global app
-
-            if not app.ws:
-                app.ws = websocket.WebSocket()
-                try:
-                    app.ws.connect(url)
-                except ConnectionRefusedError:
-                    app.ws.close()
-                    app.ws = None
-                    continue
 
             request = {
                 "jsonrpc": "2.0",
@@ -80,9 +71,18 @@ def update_variables(method):
                 "params": []
             }
             with app.lock:
+                # This needs to be inside the lock, or both threads will create a websocket
+                if not app.ws:
+                    app.ws = websocket.WebSocket()
+                    try:
+                        app.ws.connect(url)
+                    except (ConnectionRefusedError, websocket._exceptions.WebSocketConnectionClosedException):
+                        app.ws.close()
+                        app.ws = None
+                        continue
                 try:
                     app.ws.send(json.dumps(request))
-                except ConnectionResetError:
+                except (ConnectionRefusedError, websocket._exceptions.WebSocketConnectionClosedException):
                     print("Connection reset")
                     app.ws.close()
                     app.ws = None
@@ -90,7 +90,7 @@ def update_variables(method):
                     
                 try:
                     result = json.loads(app.ws.recv())
-                except ConnectionResetError:
+                except (ConnectionRefusedError, websocket._exceptions.WebSocketConnectionClosedException):
                     print("Connection reset")
                     app.ws.close()
                     app.ws = None
@@ -135,12 +135,12 @@ def update_version():
                 with app.lock:
                     try:
                         app.ws.send(json.dumps(request))
-                    except ConnectionResetError:
+                    except (ConnectionRefusedError, websocket._exceptions.WebSocketConnectionClosedException):
                         continue
                         
                     try:
                         result = json.loads(app.ws.recv())
-                    except ConnectionResetError:
+                    except (ConnectionRefusedError, websocket._exceptions.WebSocketConnectionClosedException):
                         continue
 
                     if 'error' in result:

@@ -150,7 +150,7 @@ class DashboardRPC:
                     "name": guild.name,
                     "id": str(guild.id),
                     "owner": str(guild.owner),
-                    "icon": str(guild.icon_url_as(format="png"))[:-13] or "https://cdn.discordapp.com/embed/avatars/1",
+                    "icon": str(guild.icon_url_as(format="png"))[:-13] or "https://cdn.discordapp.com/embed/avatars/1.",
                     "animated": guild.is_icon_animated(),
                     "go": False
                 }

@@ -151,7 +151,7 @@ class DashboardRPC:
                     "id": str(guild.id),
                     "owner": str(guild.owner),
                     "icon": str(guild.icon_url_as(format="png"))[:-13]
-                    or "https://cdn.discordapp.com/embed/avatars/1",
+                    or "https://cdn.discordapp.com/embed/avatars/1.",
                     "animated": guild.is_icon_animated(),
                     "go": False,
                 }
@@ -255,7 +255,7 @@ class DashboardRPC:
                 "id": guild.id,
                 "owner": str(guild.owner),
                 "icon": str(guild.icon_url_as(format="png"))[:-13]
-                or "https://cdn.discordapp.com/embed/avatars/1",
+                or "https://cdn.discordapp.com/embed/avatars/1.",
                 "animated": guild.is_icon_animated(),
                 "members": humanize_number(len(guild.members)),
                 "online": humanize_number(stats["o"]),

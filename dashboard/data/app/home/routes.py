@@ -98,19 +98,6 @@ def getservers():
     except:
         return jsonify({"status": 0, "message": "Not connected to bot"})
 
-@blueprint.route('/changetheme', methods=['POST'])
-def changetheme():
-    obj = request.json
-    if "iswhite" in obj:
-        session['iswhitetheme'] = obj['iswhite']
-    if "sidebarcolor" in obj:
-        session['sidebarcolor'] = obj['sidebarcolor']
-    return jsonify({"success": True})
-
-@blueprint.route('/gettheme', methods=['GET'])
-def gettheme():
-    return jsonify({"iswhitetheme": session.get('iswhitetheme', False), "sidebarcolor": session.get('sidebarcolor', 'primary')})
-
 @blueprint.route('/<template>')
 def route_template(template):
 

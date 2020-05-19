@@ -43,12 +43,12 @@
 
 </head>
 
-<body class="{% if session.get('iswhitetheme', false) %} white-content {% endif %}">
+<body>
   <div class="wrapper">
 
     {% include 'site_template/sidebar.html' %}
 
-    <div class="main-panel" data="{{ session.get('sidebarcolor', 'primary') }}">
+    <div class="main-panel">
 
       {% include 'site_template/navigation.html' %}
 
@@ -81,11 +81,17 @@
       } catch {
         $("#navdashboard").addClass("active")
       }
-
-      // Add data attributes to button's and a's
-      $('button').attr("data", "{{ session.get('sidebarcolor', 'primary') }}")
-      $('a').attr("data", "{{ session.get('sidebarcolor', 'primary') }}")
     })
+    // Add data attributes to button's and a's
+    $('button').attr("data", localStorage.getItem("theme") || 'primary')
+    $('a').attr("data", localStorage.getItem("theme") || 'primary')
+    $('.main-panel').attr("data", localStorage.getItem("theme") || 'primary')
+    $('.sidebar').attr("data", localStorage.getItem("theme") || 'primary')
+    if (localStorage.getItem("color") === "white") {
+      $('body').addClass("white-content")
+      $('nav').addClass("white-content")
+      $('.prefixdiv').addClass("white-content")
+    }
   </script>
 </body>
 

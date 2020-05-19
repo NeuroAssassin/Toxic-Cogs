@@ -17,6 +17,7 @@ import websocket
 import traceback
 import json
 import sys
+import os
 
 
 class Lock:
@@ -204,7 +205,7 @@ def add_constants(app):
             return dict(version=__version__, **defaults)
         return dict(version=__version__, **app.variables)
 
-def create_app(host, port, rpcport, instance, selenium=False):
+def create_app(host, port, rpcport, selenium=False):
     global url
     global app
     global lock
@@ -220,34 +221,16 @@ def create_app(host, port, rpcport, instance, selenium=False):
     app.variables = {}
     app.commanddata = {}
     app.config.from_object(__name__)
-    #app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = secret_key
     app.rpcport = str(rpcport)
     app.rpcversion = 0
-
-    # I cheat
-    stdout = StringIO()
-    sys.stdout = stdout
-
-    try:
-        data_manager.load_basic_configuration(instance)
-    except (SystemExit, KeyError):
-        sys.stdout = sys.__stdout__
-        raise RuntimeError("Invalid instance name.  Please provide a correct one")
-    finally:
-        sys.stdout = sys.__stdout__
-        del stdout
-
-    p = data_manager.cog_data_path(raw_name="Dashboard")
-    app.config['SESSION_FILE_DIR'] = str(p)
     
-    #Session(app)
     if selenium:
         app.config['LOGIN_DISABLED'] = True
     register_blueprints(app)
     apply_themes(app)
     add_constants(app)
-
+    
     vt = threading.Thread(target=update_variables, args=["DASHBOARDRPC__GET_VARIABLES"], daemon=True)
     vt.start()
     ct = threading.Thread(target=update_variables, args=["DASHBOARDRPC__GET_COMMANDS"], daemon=True)

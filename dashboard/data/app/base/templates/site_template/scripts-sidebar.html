@@ -74,16 +74,7 @@
           $bcitems.attr('data', new_color)
           
 
-          var xhr = new XMLHttpRequest();
-          var url = "/changetheme"
-          xhr.open("POST", url, true)
-          xhr.setRequestHeader("Content-Type", "application/json")
-          var data = JSON.stringify({"sidebarcolor": new_color})
-          try {
-            xhr.send(data)
-          } catch(error) {
-            console.log(error)
-          }
+          localStorage.setItem("theme", new_color)
         });
 
         $('.switch-sidebar-mini input').on("switchChange.bootstrapSwitch", function() {
@@ -147,16 +138,7 @@
           $('ol.breadcrumb').addClass('white-content')
           $('.navbar').addClass('white-content')
 
-          var xhr = new XMLHttpRequest();
-          var url = "/changetheme"
-          xhr.open("POST", url, true)
-          xhr.setRequestHeader("Content-Type", "application/json")
-          var data = JSON.stringify({"iswhite": true})
-          try {
-            xhr.send(data)
-          } catch(error) {
-            console.log(error)
-          }
+          localStorage.setItem("color", "white")
         });
 
         $('.dark-badge').click(function() {
@@ -166,16 +148,7 @@
           $('ol.breadcrumb').removeClass('white-content')
           $('.navbar').removeClass('white-content')
 
-          var xhr = new XMLHttpRequest();
-          var url = "/changetheme"
-          xhr.open("POST", url, true)
-          xhr.setRequestHeader("Content-Type", "application/json")
-          var data = JSON.stringify({"iswhite": false})
-          try {
-            xhr.send(data)
-          } catch(error) {
-            console.log(error)
-          }
+          localStorage.setItem("color", "black")
         });
       });
     });

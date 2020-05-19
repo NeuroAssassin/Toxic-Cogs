@@ -76,7 +76,7 @@ class Dashboard(commands.Cog):
         if assigning:
             async with self.config.guild(ctx.guild).roles() as data:
                 data.append({"roleid": role.id, "perms": assigning})
-            self.configcache[ctx.guild.id]["roles"] = {"roleid": role.id, "perms": assigning}
+            self.configcache[ctx.guild.id]["roles"].append({"roleid": role.id, "perms": assigning})
         else:
             await ctx.send("Failed to identify any permissions in list.  Please try again.")
             return

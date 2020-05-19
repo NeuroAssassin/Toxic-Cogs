@@ -5,7 +5,7 @@ Copyright (c) 2019 - present AppSeed.us
 """
 from redbot.core import data_manager
 from flask import Flask, url_for, session, render_template
-from flask_session import Session
+#from flask_session import Session
 from importlib import import_module
 from os import path
 from cryptography import fernet
@@ -220,7 +220,7 @@ def create_app(host, port, rpcport, instance, selenium=False):
     app.variables = {}
     app.commanddata = {}
     app.config.from_object(__name__)
-    app.config['SESSION_TYPE'] = 'filesystem'
+    #app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = secret_key
     app.rpcport = str(rpcport)
     app.rpcversion = 0
@@ -241,7 +241,7 @@ def create_app(host, port, rpcport, instance, selenium=False):
     p = data_manager.cog_data_path(raw_name="Dashboard")
     app.config['SESSION_FILE_DIR'] = str(p)
     
-    Session(app)
+    #Session(app)
     if selenium:
         app.config['LOGIN_DISABLED'] = True
     register_blueprints(app)

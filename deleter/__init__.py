@@ -2,4 +2,5 @@ from .deleter import Deleter
 
 
 def setup(bot):
-    bot.add_cog(Deleter(bot))
+    cog = Deleter(bot)
+    bot.add_cog(cog)

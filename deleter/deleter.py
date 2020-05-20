@@ -1,5 +1,7 @@
 from redbot.core.utils.chat_formatting import humanize_list
+from redbot.core.utils import AsyncIter
 from redbot.core import commands, checks, Config
+from collections import defaultdict
 import time
 import discord
 import asyncio
@@ -7,7 +9,9 @@ from copy import deepcopy as dc
 
 
 class Deleter(commands.Cog):
-    """Set channels for their messages to be auto-deleted after a specified amount of time"""
+    """Set channels for their messages to be auto-deleted after a specified amount of time.
+    
+    WARNING: This cog has potential API abuse AND SHOULD BE USED CAREFULLY!  If you see any issues arise due to this, please report to Neuro Assassin or bot owner ASAP!"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -25,7 +29,7 @@ class Deleter(commands.Cog):
         while True:
             async with self.lock:
                 cs = await self.conf.all_channels()
-                for channel, data in cs.items():
+                async for channel, data in AsyncIter(cs.items()):
                     if int(data["wait"]) == 0:
                         continue
                     c = self.bot.get_channel(int(channel))
@@ -33,7 +37,7 @@ class Deleter(commands.Cog):
                         continue
                     old = dc(data)
                     ms = dc(data["messages"])
-                    for message, wait in ms.items():
+                    async for message, wait in AsyncIter(ms.items()):
                         if int(wait) <= time.time():
                             try:
                                 m = await c.fetch_message(int(message))
@@ -43,7 +47,7 @@ class Deleter(commands.Cog):
                             del data["messages"][str(message)]
                     if old != data:
                         await self.conf.channel(c).messages.set(data["messages"])
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -78,22 +82,56 @@ class Deleter(commands.Cog):
 
 
     @deleter.command()
-    async def channel(self, ctx, channel: discord.TextChannel, wait: int):
+    async def channel(self, ctx, channel: discord.TextChannel, wait):
         """Set the amount of time after a message sent in the specified channel is supposed to be deleted.
 
-        There may be about an approximate 5 second difference between the wait and the actual time the message is deleted, due to rate limiting and cooldowns.
+        There may be about an approximate 10 second difference between the wait and the actual time the message is deleted, due to rate limiting and cooldowns.
         
-        Wait times must be greater than or equal to 5 seconds, or 0 to disable auto-timed deletion.  Additionally, the wait argument must be in seconds.  For example, 5 minutes would be 300 seconds, so you pass 300, not 5."""
-        if wait < 5 and wait != 0:
+        Wait times must be greater than or equal to 5 seconds, or 0 to disable auto-timed deletion.  If you would like to use time specifications other than seconds, suffix the wait argument with one below:
+        
+        s => seconds (ex. 5s => 5 seconds)
+        m => minutes (ex. 5m => 5 minutes)
+        h => hours   (ex. 5h => 5 hours)
+        d => days    (ex. 5d => 5 days)
+        w => weeks   (ex. 5w => 5 weeks"""
+        if wait != "0":
+            ttype = None
+            wait = wait.lower()
+            wt = wait[:-1]
+            og = wait[:-1]
+            if not wt.isdigit():
+                return await ctx.send(
+                    "Invalid amount of time.  There is a non-number in your `wait` argument, not including the time type."
+                )
+            wt = int(wt)
+            if wait.endswith("s"):
+                ttype = "second"
+            elif wait.endswith("m"):
+                ttype = "minute"
+                wt *= 60
+            elif wait.endswith("h"):
+                ttype = "hour"
+                wt *= 3600
+            elif wait.endswith("d"):
+                ttype = "day"
+                wt *= 86400
+            elif wait.endswith("w"):
+                ttype = "week"
+                wt *= 604800
+            if not ttype:
+                return await ctx.send("Invalid time unit.  Please use S, M, H, D or W.")
+        else:
+            wt = 0
+        if wt < 5 and wt != 0:
             return await ctx.send("Wait times must be greater than or equal to 5 seconds.")
         if not channel.permissions_for(ctx.guild.me).manage_messages:
             return await ctx.send("I do not have permission to delete messages in that channel.")
         if not channel.permissions_for(ctx.author).manage_messages:
             return await ctx.send("You do not have permission to delete messages in that channel.")
-        await self.conf.channel(channel).wait.set(str(wait))
-        if wait:
+        await self.conf.channel(channel).wait.set(str(wt))
+        if wt:
             await ctx.send(
-                f"Messages in {channel.mention} will now be deleted after {wait} seconds."
+                f"Messages in {channel.mention} will now be deleted after {og} {ttype}{'s' if og != '1' else ''}."
             )
         else:
             await ctx.send("Messages will not be auto-deleted after a specific amount of time.")

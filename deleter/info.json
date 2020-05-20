@@ -3,7 +3,7 @@
     "install_msg" : "Thank you for downloading this cog.",
     "name" : "deleter",
     "short" : "Allows for the auto-deletion of messages in a channel after a specified wait time.",
-    "description" : "Allows moderators to make messages be auto-deleted after a certain amount of time in a certain channel.",
+    "description" : "Allows moderators to make messages be auto-deleted after a certain amount of time in a certain channel.  WARNING: This cog has potential API abuse AND SHOULD BE USED CAREFULLY!  If you see any issues arise due to this, please report to Neuro Assassin or bot owner ASAP!",
     "tags" : ["tools"],
     "requirements" : [],
     "hidden" : false

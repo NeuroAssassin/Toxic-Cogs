@@ -308,7 +308,7 @@ class UpdateChecker(commands.Cog):
                 message += "running."
         try:
             self.task.exception()
-        except asyncio.base_futures.InvalidStateError:
+        except asyncio.exceptions.InvalidStateError:
             message += "  No error has been encountered."
         else:
             message += "  An error has been encountered.  Please run `[p]cogupdater task error` and report it to Neuro Assassin on the help server."
@@ -319,7 +319,7 @@ class UpdateChecker(commands.Cog):
         """Gets the latest error of the update task."""
         try:
             e = self.task.exception()
-        except asyncio.base_futures.InvalidStateError:
+        except asyncio.exceptions.InvalidStateError:
             message = "No error has been encountered."
         else:
             ex = traceback.format_exception(type(e), e, e.__traceback__)

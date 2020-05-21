@@ -24,7 +24,7 @@ class Dashboard(commands.Cog):
 
         self.config = Config.get_conf(self, identifier=473541068378341376)
         self.config.register_global(
-            secret="",
+            secret="[Not set]",
             redirect="http://127.0.0.1:42356",
             owner_perm=15,
             widgets=[],
@@ -214,22 +214,22 @@ class Dashboard(commands.Cog):
     @oauth.command()
     async def redirect(self, ctx: commands.Context, redirect: str):
         """Set the redirect for after logging in via Discord OAuth."""
+        if not redirect.endswith("/callback"):
+            await ctx.send("Redirect must end with `/callback`")
+            return
         await self.config.redirect.set(redirect)
         await ctx.tick()
 
+    @commands.dm_only()
     @settings.command()
     async def view(self, ctx: commands.Context):
         """View the current dashboard settings."""
-        redirect = await self.config.redirect()
-        if ctx.guild:
-            secret = "[REDACTED]"
-            if not ("127.0.0.1" in redirect or "localhost" in redirect or "192.168" in redirect):
-                redirect = "[REDACTED]"
-        else:
-            secret = await self.config.secret()
-        if not secret:
-            secret = "[Not set]"
-        support = await self.config.support()
+        data = await self.config.all()
+        redirect = data['redirect']
+        secret = data['secret']
+        support = data['support']
+        if not support:
+            support = "[Not set]"
         description = (
             f"Client Secret:         |  {secret}\n"
             f"Redirect URI:          |  {redirect}\n"

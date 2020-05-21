@@ -55,15 +55,14 @@ lock = Lock()
 def update_variables(method):
     try:
         while True:
+            global app
             # Different wait times based on method, commands should be called less due to how much data it is
             if method == "DASHBOARDRPC__GET_VARIABLES":
                 _id = 1
-                time.sleep(5)
+                time.sleep(app.interval)
             else:
                 _id = 2
-                time.sleep(10)
-
-            global app
+                time.sleep(app.interval * 2)
 
             request = {
                 "jsonrpc": "2.0",
@@ -205,7 +204,7 @@ def add_constants(app):
             return dict(version=__version__, **defaults)
         return dict(version=__version__, **app.variables)
 
-def create_app(host, port, rpcport, selenium=False):
+def create_app(host, port, rpcport, interval, selenium=False):
     global url
     global app
     global lock
@@ -224,6 +223,7 @@ def create_app(host, port, rpcport, selenium=False):
     app.secret_key = secret_key
     app.rpcport = str(rpcport)
     app.rpcversion = 0
+    app.interval = interval
     
     if selenium:
         app.config['LOGIN_DISABLED'] = True

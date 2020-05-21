@@ -116,7 +116,7 @@ class Args(Converter):
         parser.add_argument("--not-any-perm", nargs="*", dest="not-any-perm", default=[])
 
         # Extra
-        parser.add_argument("--format", nargs="*", dest="format", default=["page"])
+        parser.add_argument("--format", nargs="*", dest="format", default=["menu"])
 
         try:
             vals = vars(parser.parse_args(argument.split(" ")))

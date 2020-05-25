@@ -17,15 +17,21 @@ class Gargs(Converter):
         parser.add_argument("--spelled-like", "--sp", nargs="?", dest="sp", default=[])
         parser.add_argument("--sounds-like", "--sl", nargs="?", dest="sl", default=[])
         parser.add_argument("--rhymes-with", "--rw", nargs="?", dest="rw", default=[])
-        parser.add_argument("--adjectives-for", "--af", nargs="?", dest="af", default=[])
+        parser.add_argument(
+            "--adjectives-for", "--af", nargs="?", dest="af", default=[]
+        )
         parser.add_argument("--nouns-for", "--nf", nargs="?", dest="nf", default=[])
         parser.add_argument("--comes-before", "--cb", nargs="*", dest="ca", default=[])
         parser.add_argument("--comes-after", "--ca", nargs="*", dest="cb", default=[])
         parser.add_argument("--topics", "--t", nargs="*", dest="t", default=[])
         parser.add_argument("--synonyms-for", "--sf", nargs="*", dest="sf", default=[])
-        parser.add_argument("--antonyms-for", "--anf", nargs="*", dest="anf", default=[])
+        parser.add_argument(
+            "--antonyms-for", "--anf", nargs="*", dest="anf", default=[]
+        )
         parser.add_argument("--kind-of", "--ko", nargs="?", dest="ko", default=[])
-        parser.add_argument("--more-specific-than", "--mst", nargs="?", dest="mso", default=[])
+        parser.add_argument(
+            "--more-specific-than", "--mst", nargs="?", dest="mso", default=[]
+        )
         parser.add_argument("--homophones", "--h", nargs="?", dest="h", default=[])
 
         try:

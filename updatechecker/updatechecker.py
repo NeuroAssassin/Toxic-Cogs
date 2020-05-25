@@ -27,7 +27,7 @@ class UpdateChecker(commands.Cog):
             "gochannel": 0,
             "embed": True,
             "whitelist": [],
-            "blacklist": []
+            "blacklist": [],
         }
         self.conf.register_global(**default_global)
         self.task = self.bot.loop.create_task(self.bg_task())
@@ -47,12 +47,12 @@ class UpdateChecker(commands.Cog):
             cog = self.bot.get_cog("Downloader")
             if cog != None:
                 data = await self.conf.all()
-                repos = data['repos']
-                auto = data['auto']
-                channel = data['gochannel']
-                use_embed = data['embed']
-                whitelist = data['whitelist']
-                blacklist = data['blacklist']
+                repos = data["repos"]
+                auto = data["auto"]
+                channel = data["gochannel"]
+                use_embed = data["embed"]
+                whitelist = data["whitelist"]
+                blacklist = data["blacklist"]
                 if channel == 0:
                     channel = (await self.bot.application_info()).owner
                 else:
@@ -73,7 +73,7 @@ class UpdateChecker(commands.Cog):
                     response = await self.fetch_feed(url)
                     try:
                         commit = response.entries[0]["id"][33:]
-                        cn = response.entries[0]['title']
+                        cn = response.entries[0]["title"]
                     except AttributeError:
                         continue
                     saving_dict[repo_name] = commit
@@ -83,13 +83,14 @@ class UpdateChecker(commands.Cog):
                     if repo_name in blacklist:
                         continue
                     # CN is used here for backwards compatability, don't want people to get an update for each and every one of their cogs when updating this cog
-                    if commit != commit_saved and cn != commit_saved and commit_saved != "--default--":
-                        if True: # KACHOW
+                    if (
+                        commit != commit_saved
+                        and cn != commit_saved
+                        and commit_saved != "--default--"
+                    ):
+                        if True:  # KACHOW
                             try:
-                                if (
-                                    use_embed
-                                    and isinstance(channel, discord.User)
-                                ):
+                                if use_embed and isinstance(channel, discord.User):
                                     e = discord.Embed(
                                         title="Update Checker",
                                         description=f"Update available for repo: {repo.name}",
@@ -104,7 +105,9 @@ class UpdateChecker(commands.Cog):
                                 elif (
                                     use_embed
                                     and isinstance(channel, discord.TextChannel)
-                                    and channel.permissions_for(channel.guild.me).embed_links
+                                    and channel.permissions_for(
+                                        channel.guild.me
+                                    ).embed_links
                                 ):
                                     e = discord.Embed(
                                         title="Update Checker",
@@ -176,19 +179,25 @@ class UpdateChecker(commands.Cog):
                                 installed_cogs = set(await cog.installed_cogs())
                                 updated = await cog._repo_manager.update_all_repos()
                                 updated_cogs = set(
-                                    cog for repo in updated for cog in repo.available_cogs
+                                    cog
+                                    for repo in updated
+                                    for cog in repo.available_cogs
                                 )
                                 installed_and_updated = updated_cogs & installed_cogs
                                 if installed_and_updated:
-                                    await cog._reinstall_requirements(installed_and_updated)
+                                    await cog._reinstall_requirements(
+                                        installed_and_updated
+                                    )
                                     await cog._reinstall_cogs(installed_and_updated)
-                                    await cog._reinstall_libraries(installed_and_updated)
+                                    await cog._reinstall_libraries(
+                                        installed_and_updated
+                                    )
                                     cognames = {c.name for c in installed_and_updated}
-                                    message = humanize_list(tuple(map(inline, cognames)))
+                                    message = humanize_list(
+                                        tuple(map(inline, cognames))
+                                    )
                             except Exception as error:
-                                exception_log = (
-                                    "Exception while updating repos in Update Checker \n"
-                                )
+                                exception_log = "Exception while updating repos in Update Checker \n"
                                 exception_log += "".join(
                                     traceback.format_exception(
                                         type(error), error, error.__traceback__
@@ -225,7 +234,7 @@ class UpdateChecker(commands.Cog):
         return ret
 
     @checks.is_owner()
-    @commands.group(name="cogupdater", aliases=['cu'])
+    @commands.group(name="cogupdater", aliases=["cu"])
     async def update(self, ctx):
         """Group command for controlling the update checker cog."""
         pass
@@ -234,13 +243,15 @@ class UpdateChecker(commands.Cog):
     @update.command()
     async def auto(self, ctx):
         """Changes automatic cog updates to the opposite setting."""
-        if False: # KACHOW
+        if False:  # KACHOW
             auto = await self.conf.auto()
             await self.conf.auto.set(not auto)
             status = "disabled" if auto else "enabled"
             await ctx.send(f"Auto cog updates are now {status}")
         else:
-            await ctx.send("This command is disabled for the time being.  Cog updates will not run automatically, however notifications will still send.")
+            await ctx.send(
+                "This command is disabled for the time being.  Cog updates will not run automatically, however notifications will still send."
+            )
 
     @checks.is_owner()
     @update.command()
@@ -309,9 +320,11 @@ class UpdateChecker(commands.Cog):
         """Whitelist/blacklist certain repositories from which to receive updates."""
         if ctx.invoked_subcommand is None:
             data = await self.conf.all()
-            whitelist = data['whitelist']
-            blacklist = data['blacklist']
-            await ctx.send(f"Whitelisted: {humanize_list(tuple(map(inline, whitelist or ['None'])))}\nBlacklisted: {humanize_list(tuple(map(inline, blacklist or ['None'])))}")
+            whitelist = data["whitelist"]
+            blacklist = data["blacklist"]
+            await ctx.send(
+                f"Whitelisted: {humanize_list(tuple(map(inline, whitelist or ['None'])))}\nBlacklisted: {humanize_list(tuple(map(inline, blacklist or ['None'])))}"
+            )
 
     @whiteblacklist.group()
     async def whitelist(self, ctx):
@@ -326,7 +339,9 @@ class UpdateChecker(commands.Cog):
         ns = set([r.name for r in repos])
         ss = ds | ns
         await self.conf.whitelist.set(list(ss))
-        await ctx.send(f"Whitelist update successful: {humanize_list(tuple(map(inline, ss)))}")
+        await ctx.send(
+            f"Whitelist update successful: {humanize_list(tuple(map(inline, ss)))}"
+        )
 
     @whitelist.command(name="remove")
     async def whitelistremove(self, ctx, *repos: Repo):
@@ -336,7 +351,9 @@ class UpdateChecker(commands.Cog):
         ns = set([r.name for r in repos])
         ss = ds - ns
         await self.conf.whitelist.set(list(ss))
-        await ctx.send(f"Whitelist update successful: {humanize_list(tuple(map(inline, ss or ['None'])))}")
+        await ctx.send(
+            f"Whitelist update successful: {humanize_list(tuple(map(inline, ss or ['None'])))}"
+        )
 
     @whitelist.command(name="clear")
     async def whitelistclear(self, ctx):
@@ -357,7 +374,9 @@ class UpdateChecker(commands.Cog):
         ns = set([r.name for r in repos])
         ss = ds | ns
         await self.conf.blacklist.set(list(ss))
-        await ctx.send(f"Backlist update successful: {humanize_list(tuple(map(inline, ss)))}")
+        await ctx.send(
+            f"Backlist update successful: {humanize_list(tuple(map(inline, ss)))}"
+        )
 
     @blacklist.command(name="remove")
     async def blacklistremove(self, ctx, *repos: Repo):
@@ -367,7 +386,9 @@ class UpdateChecker(commands.Cog):
         ns = set([r.name for r in repos])
         ss = ds - ns
         await self.conf.blacklist.set(list(ss))
-        await ctx.send(f"Blacklist update successful: {humanize_list(tuple(map(inline, ss or ['None'])))}")
+        await ctx.send(
+            f"Blacklist update successful: {humanize_list(tuple(map(inline, ss or ['None'])))}"
+        )
 
     @blacklist.command(name="clear")
     async def blacklistclear(self, ctx):

@@ -45,13 +45,17 @@ class Switcher(commands.Cog):
             if deleted:
                 sending += "Your message was deleted, so it's possible no one saw it, but it's better to be safe than sorry."
             else:
-                sending += "You should also delete your message, as I was unable to do so."
+                sending += (
+                    "You should also delete your message, as I was unable to do so."
+                )
             return await ctx.send(sending)
         new_bot = ext.Bot(command_prefix="Switcher")
         try:
             await new_bot.login(token)
         except discord.errors.LoginFailure:
-            await ctx.send("Invalid token.  Please ensure you typed everything correctly")
+            await ctx.send(
+                "Invalid token.  Please ensure you typed everything correctly"
+            )
         else:
             data = await self.conf.data()
             if bot_name in list(data.keys()):
@@ -79,16 +83,22 @@ class Switcher(commands.Cog):
             await new_bot.login(token)
         except discord.errors.LoginFailure:
             await new_bot.logout()
-            return await ctx.send("Invalid token.  Is it possible you refreshed the token?")
+            return await ctx.send(
+                "Invalid token.  Is it possible you refreshed the token?"
+            )
         await new_bot.logout()
 
         def check(reaction, user):
-            return (user.id == ctx.author.id) and (str(reaction.emoji) in [CHECK, XEMOJI])
+            return (user.id == ctx.author.id) and (
+                str(reaction.emoji) in [CHECK, XEMOJI]
+            )
 
         m = await ctx.send("Are you sure you want to do this?")
         await self.add_reactions(m)
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=30.0)
+            reaction, user = await self.bot.wait_for(
+                "reaction_add", check=check, timeout=30.0
+            )
         except asyncio.TimeoutError:
             return await ctx.send("Not running.")
         if str(reaction.emoji) == XEMOJI:
@@ -99,7 +109,9 @@ class Switcher(commands.Cog):
         await self.add_reactions(m)
 
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=30.0)
+            reaction, user = await self.bot.wait_for(
+                "reaction_add", check=check, timeout=30.0
+            )
         except asyncio.TimeoutError:
             return await ctx.send(
                 "Not restarting.  Bot change will happen on the next restart.  Do not change your token or the bot will fail to start."
@@ -138,13 +150,17 @@ class Switcher(commands.Cog):
             return await ctx.send("That bot isn't stored.")
 
         def check(reaction, user):
-            return (user.id == ctx.author.id) and (str(reaction.emoji) in [CHECK, XEMOJI])
+            return (user.id == ctx.author.id) and (
+                str(reaction.emoji) in [CHECK, XEMOJI]
+            )
 
         m = await ctx.send("Are you sure you want to remove this bot?")
         await self.add_reactions(m)
 
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=30.0)
+            reaction, user = await self.bot.wait_for(
+                "reaction_add", check=check, timeout=30.0
+            )
         except asyncio.TimeoutError:
             return await ctx.send("Not removing bot.")
         if str(reaction.emoji) == XEMOJI:
@@ -169,7 +185,9 @@ class Switcher(commands.Cog):
             if deleted:
                 sending += "Your message was deleted, so it's possible no one saw it, but it's better to be safe than sorry."
             else:
-                sending += "You should also delete your message, as I was unable to do so."
+                sending += (
+                    "You should also delete your message, as I was unable to do so."
+                )
             return await ctx.send(sending)
         data = await self.conf.data()
         if not bot_name in data:
@@ -184,12 +202,16 @@ class Switcher(commands.Cog):
         await new_bot.logout()
 
         def check(reaction, user):
-            return (user.id == ctx.author.id) and (str(reaction.emoji) in [CHECK, XEMOJI])
+            return (user.id == ctx.author.id) and (
+                str(reaction.emoji) in [CHECK, XEMOJI]
+            )
 
         m = await ctx.send("Are you sure you want to do this?")
         await self.add_reactions(m)
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=30.0)
+            reaction, user = await self.bot.wait_for(
+                "reaction_add", check=check, timeout=30.0
+            )
         except asyncio.TimeoutError:
             return await ctx.send("Not changing token.")
         if str(reaction.emoji) == XEMOJI:

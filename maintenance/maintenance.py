@@ -141,7 +141,9 @@ class Maintenance(commands.Cog):
             if len(scheduled) != 0:
                 sending += "  The following maintenances are scheduled for:```\n"
                 for x in scheduled:
-                    starting = str(datetime.fromtimestamp(x[0]).strftime("%A, %B %d, %Y %I:%M:%S"))
+                    starting = str(
+                        datetime.fromtimestamp(x[0]).strftime("%A, %B %d, %Y %I:%M:%S")
+                    )
                     sending += "    • " + starting
                 sending += "```"
             return await ctx.send(sending)
@@ -159,7 +161,10 @@ class Maintenance(commands.Cog):
             users.append(user_profile.display_name) if hasattr(
                 user_profile, "display_name"
             ) else users.append(f"<removed user {user}>")
-        sending += "The bot is currently under maintenance.  " f"It will be done {str(done)}.  "
+        sending += (
+            "The bot is currently under maintenance.  "
+            f"It will be done {str(done)}.  "
+        )
         sending += (
             f"The following users are whitelisted from this current maintenance: `{'` `'.join(users)}`."
             if len(users) != 0
@@ -183,7 +188,9 @@ class Maintenance(commands.Cog):
     async def message(self, ctx, *, message):
         """Set the message sent when the bot is down for maintenance"""
         if len(message) > 1000:
-            return await ctx.send("Maintenance message cannot be above 1000 characters.")
+            return await ctx.send(
+                "Maintenance message cannot be above 1000 characters."
+            )
         await self.conf.message.set(message)
         await ctx.tick()
 

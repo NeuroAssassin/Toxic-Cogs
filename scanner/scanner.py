@@ -85,7 +85,12 @@ class Scanner(commands.Cog):
                 wad = False
                 offensive = False
                 scammer = False
-                params = {"models": s, "url": attach.url, "api_user": user, "api_secret": secret}
+                params = {
+                    "models": s,
+                    "url": attach.url,
+                    "api_user": user,
+                    "api_secret": secret,
+                }
                 returned = await self.session.get(URL, params=params)
                 json = await returned.json()
                 if json.get("nudity"):
@@ -164,7 +169,9 @@ class Scanner(commands.Cog):
         except Exception as error:
             await message.channel.send("Error")
             await message.channel.send(
-                "".join(traceback.format_exception(type(error), error, error.__traceback__))
+                "".join(
+                    traceback.format_exception(type(error), error, error.__traceback__)
+                )
             )
 
     @checks.admin_or_permissions(manage_messages=True)
@@ -252,7 +259,8 @@ class Scanner(commands.Cog):
                 await ctx.send("No roles are set for ping right now.")
                 return
             e = discord.Embed(
-                title="The following roles are pinged when a report comes in.", description=""
+                title="The following roles are pinged when a report comes in.",
+                description="",
             )
             for r in roles:
                 ro = ctx.guild.get_role(r)
@@ -274,9 +282,13 @@ class Scanner(commands.Cog):
         """Set whether or not to check for nude content in images."""
         await self.conf.guild(ctx.guild).nude.set(yes_or_no)
         if yes_or_no:
-            await ctx.send("Messages will now be reported if they violate the nude rule.")
+            await ctx.send(
+                "Messages will now be reported if they violate the nude rule."
+            )
         else:
-            await ctx.send("Messages will now not be reported even if they violate the nude rule.")
+            await ctx.send(
+                "Messages will now not be reported even if they violate the nude rule."
+            )
 
     @detect.command()
     async def partial(self, ctx, yes_or_no: bool):
@@ -300,9 +312,13 @@ class Scanner(commands.Cog):
         WAD stands for Weapons, Alcohol and Drugs"""
         await self.conf.guild(ctx.guild).wad.set(yes_or_no)
         if yes_or_no:
-            await ctx.send("Messages will now be reported if they violate the WAD rule.")
+            await ctx.send(
+                "Messages will now be reported if they violate the WAD rule."
+            )
         else:
-            await ctx.send("Messages will now not be reported even if they violate the WAD rule.")
+            await ctx.send(
+                "Messages will now not be reported even if they violate the WAD rule."
+            )
 
     @detect.command()
     async def offensive(self, ctx, yes_or_no: bool):
@@ -311,7 +327,9 @@ class Scanner(commands.Cog):
         Offensive content includes content such as middle fingers, offensive flags or offensive groups of people."""
         await self.conf.guild(ctx.guild).offensive.set(yes_or_no)
         if yes_or_no:
-            await ctx.send("Messages will now be reported if they violate the offensive rule.")
+            await ctx.send(
+                "Messages will now be reported if they violate the offensive rule."
+            )
         else:
             await ctx.send(
                 "Messages will now not be reported even if they violate the offensive rule."
@@ -324,7 +342,9 @@ class Scanner(commands.Cog):
         By scammer content it checks for verified scammers in the picture."""
         await self.conf.guild(ctx.guild).scammer.set(yes_or_no)
         if yes_or_no:
-            await ctx.send("Messages will now be reported if they violate the scammer rule.")
+            await ctx.send(
+                "Messages will now be reported if they violate the scammer rule."
+            )
         else:
             await ctx.send(
                 "Messages will now not be reported even if they violate the scammer rule."

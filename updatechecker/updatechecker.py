@@ -4,6 +4,7 @@
 
 from redbot.core import commands, Config, checks
 from redbot.core.utils.chat_formatting import humanize_list, inline
+from redbot.cogs.downloader.repo_manager import Repo
 import asyncio
 import aiohttp
 import feedparser
@@ -25,6 +26,8 @@ class UpdateChecker(commands.Cog):
             "auto": False,
             "gochannel": 0,
             "embed": True,
+            "whitelist": [],
+            "blacklist": []
         }
         self.conf.register_global(**default_global)
         self.task = self.bot.loop.create_task(self.bg_task())
@@ -43,10 +46,13 @@ class UpdateChecker(commands.Cog):
         while True:
             cog = self.bot.get_cog("Downloader")
             if cog != None:
-                repos = await self.conf.repos()
-                auto = await self.conf.auto()
-                channel = await self.conf.gochannel()
-                use_embed = await self.conf.embed()
+                data = await self.conf.all()
+                repos = data['repos']
+                auto = data['auto']
+                channel = data['gochannel']
+                use_embed = data['embed']
+                whitelist = data['whitelist']
+                blacklist = data['blacklist']
                 if channel == 0:
                     channel = (await self.bot.application_info()).owner
                 else:
@@ -66,11 +72,18 @@ class UpdateChecker(commands.Cog):
                     url = repo.url + r"/commits/" + repo.branch + ".atom"
                     response = await self.fetch_feed(url)
                     try:
-                        commit = response.entries[0]["title"]
+                        commit = response.entries[0]["id"][33:]
+                        cn = response.entries[0]['title']
                     except AttributeError:
                         continue
                     saving_dict[repo_name] = commit
-                    if commit != commit_saved and commit_saved != "--default--":
+                    if whitelist:
+                        if repo_name not in whitelist:
+                            continue
+                    if repo_name in blacklist:
+                        continue
+                    # CN is used here for backwards compatability, don't want people to get an update for each and every one of their cogs when updating this cog
+                    if commit != commit_saved and cn != commit_saved and commit_saved != "--default--":
                         if True: # KACHOW
                             try:
                                 if (
@@ -85,7 +98,8 @@ class UpdateChecker(commands.Cog):
                                     )
                                     e.add_field(name="URL", value=repo.url)
                                     e.add_field(name="Branch", value=repo.branch)
-                                    e.add_field(name="Commit", value=commit)
+                                    e.add_field(name="Commit", value=cn)
+                                    e.add_field(name="Hash", value=commit)
                                     await channel.send(embed=e)
                                 elif (
                                     use_embed
@@ -100,7 +114,8 @@ class UpdateChecker(commands.Cog):
                                     )
                                     e.add_field(name="URL", value=repo.url)
                                     e.add_field(name="Branch", value=repo.branch)
-                                    e.add_field(name="Commit", value=commit)
+                                    e.add_field(name="Commit", value=cn)
+                                    e.add_field(name="Hash", value=commit)
                                     await channel.send(embed=e)
                                 else:
                                     e = (
@@ -109,7 +124,8 @@ class UpdateChecker(commands.Cog):
                                         "``````css\n"
                                         f"    Repo: {repo.name}\n"
                                         f"     URL: {repo.url}\n"
-                                        f"  Commit: {commit}\n"
+                                        f"  Commit: {cn}\n"
+                                        f"    Hash: {commit}\n"
                                         f"    Time: {datetime.utcnow()}"
                                         "```"
                                     )
@@ -288,7 +304,79 @@ class UpdateChecker(commands.Cog):
         await ctx.send(f"Embeds are now {word}")
 
     @checks.is_owner()
-    @update.group(name="task", hidden=True)
+    @update.group(name="list")
+    async def whiteblacklist(self, ctx):
+        """Whitelist/blacklist certain repositories from which to receive updates."""
+        if ctx.invoked_subcommand is None:
+            data = await self.conf.all()
+            whitelist = data['whitelist']
+            blacklist = data['blacklist']
+            await ctx.send(f"Whitelisted: {humanize_list(tuple(map(inline, whitelist or ['None'])))}\nBlacklisted: {humanize_list(tuple(map(inline, blacklist or ['None'])))}")
+
+    @whiteblacklist.group()
+    async def whitelist(self, ctx):
+        """Whitelist certain repos from which to receive updates."""
+        pass
+
+    @whitelist.command(name="add")
+    async def whitelistadd(self, ctx, *repos: Repo):
+        """Add repos to the whitelist"""
+        data = await self.conf.whitelist()
+        ds = set(data)
+        ns = set([r.name for r in repos])
+        ss = ds | ns
+        await self.conf.whitelist.set(list(ss))
+        await ctx.send(f"Whitelist update successful: {humanize_list(tuple(map(inline, ss)))}")
+
+    @whitelist.command(name="remove")
+    async def whitelistremove(self, ctx, *repos: Repo):
+        """Remove repos from the whitelist"""
+        data = await self.conf.whitelist()
+        ds = set(data)
+        ns = set([r.name for r in repos])
+        ss = ds - ns
+        await self.conf.whitelist.set(list(ss))
+        await ctx.send(f"Whitelist update successful: {humanize_list(tuple(map(inline, ss or ['None'])))}")
+
+    @whitelist.command(name="clear")
+    async def whitelistclear(self, ctx):
+        """Removes all repos from the whitelist"""
+        await self.conf.whitelist.set([])
+        await ctx.send("Whitelist update successful")
+
+    @whiteblacklist.group()
+    async def blacklist(self, ctx):
+        """Blacklist certain repos from which to receive updates."""
+        pass
+
+    @blacklist.command(name="add")
+    async def blacklistadd(self, ctx, *repos: Repo):
+        """Add repos to the blacklist"""
+        data = await self.conf.blacklist()
+        ds = set(data)
+        ns = set([r.name for r in repos])
+        ss = ds | ns
+        await self.conf.blacklist.set(list(ss))
+        await ctx.send(f"Backlist update successful: {humanize_list(tuple(map(inline, ss)))}")
+
+    @blacklist.command(name="remove")
+    async def blacklistremove(self, ctx, *repos: Repo):
+        """Remove repos from the blacklist"""
+        data = await self.conf.blacklist()
+        ds = set(data)
+        ns = set([r.name for r in repos])
+        ss = ds - ns
+        await self.conf.blacklist.set(list(ss))
+        await ctx.send(f"Blacklist update successful: {humanize_list(tuple(map(inline, ss or ['None'])))}")
+
+    @blacklist.command(name="clear")
+    async def blacklistclear(self, ctx):
+        """Removes all repos from the blacklist"""
+        await self.conf.blacklist.set([])
+        await ctx.send("Blacklist update successful")
+
+    @checks.is_owner()
+    @update.group(name="task")
     async def _group_update_task(self, ctx):
         """View the status of the task (the one checking for updates)."""
         pass

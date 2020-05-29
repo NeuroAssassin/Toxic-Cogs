@@ -1,4 +1,5 @@
 from redbot.core import commands, Config, checks
+from redbot.core.utils.chat_formatting import humanize_list, inline
 import discord
 import aiohttp
 import contextlib
@@ -31,6 +32,8 @@ class Scanner(commands.Cog):
             "autodelete": True,
             "showpic": False,
             "roles": [],
+            "whitelist": [],
+            "blacklist": []
         }
         self.conf.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -50,14 +53,18 @@ class Scanner(commands.Cog):
             if not message.attachments:
                 return
 
-            user = await self.conf.userkey()
-            if user == "":
+            settings = await self.conf.guild(message.guild).all()
+            if settings['whitelist'] and message.channel.id not in settings['whitelist']:
                 return
-            secret = await self.conf.secret()
-            if secret == "":
+            if message.channel.id in settings['blacklist']:
                 return
 
-            settings = await self.conf.guild(message.guild).all()
+            data = await self.conf.all()
+            user = data['userkey']
+            secret = data['secret']
+            if not (user and secret):
+                return
+
             s = ""
             if settings["channel"] == 0:
                 return
@@ -220,8 +227,13 @@ class Scanner(commands.Cog):
         if ctx.invoked_subcommand is None:
             settings = await self.conf.guild(ctx.guild).all()
             channel = self.bot.get_channel(settings["channel"])
+            whitelist = [self.bot.get_channel(c).mention for c in settings['whitelist'] if self.bot.get_channel(c)] or ['`None`']
+            blacklist = [self.bot.get_channel(c).mention for c in settings['blacklist'] if self.bot.get_channel(c)] or ['`None`']
             s = (
-                f"Channel: {channel.mention if channel else 'None set'}\n"
+                f"Reporting Channel: {channel.mention if channel else '`None`'}\n"
+                f"Whitelisted Channels: {humanize_list(whitelist)}\n"
+                f"Blacklisted Channels: {humanize_list(blacklist)}\n"
+                "```py\n"
                 f"Percent: {settings['percent']}\n"
                 f"Auto Deleting: {settings['autodelete']}\n"
                 f"Checking for Nudes: {settings['nude']}\n"
@@ -229,8 +241,87 @@ class Scanner(commands.Cog):
                 f"Checking for WAD: {settings['wad']}\n"
                 f"Checking for Offensive: {settings['offensive']}\n"
                 f"Checking for Scammers: {settings['scammer']}\n"
+                "```"
             )
-            await ctx.send("```py\n" + s + "```")
+            await ctx.send(s)
+
+    @settings.group()
+    async def whitelist(self, ctx):
+        """Whitelist channels from the scanner.
+        
+        Whitelisted channels will be the ONLY channels checked for rule violating pictures"""
+        pass
+
+    @whitelist.command(name="add")
+    async def whitelistadd(self, ctx, *channels: discord.TextChannel):
+        """Add channels to the whitelist"""
+        data = await self.conf.guild(ctx.guild).whitelist()
+        ds = set(data)
+        ns = set([c.id for c in channels])
+        ss = ds | ns
+        await self.conf.guild(ctx.guild).whitelist.set(list(ss))
+        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or ['`None`']
+        await ctx.send(
+            f"Whitelist update successful: {humanize_list(ss)}"
+        )
+
+    @whitelist.command(name="remove")
+    async def whitelistremove(self, ctx, *channels: discord.TextChannel):
+        """Remove channels from the whitelist"""
+        data = await self.conf.guild(ctx.guild).whitelist()
+        ds = set(data)
+        ns = set([c.id for c in channels])
+        ss = ds - ns
+        await self.conf.guild(ctx.guild).whitelist.set(list(ss))
+        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or ['`None`']
+        await ctx.send(
+            f"Whitelist update successful: {humanize_list(ss)}"
+        )
+
+    @whitelist.command(name="clear")
+    async def whitelistclear(self, ctx):
+        """Removes all channels from the whitelist"""
+        await self.conf.guild(ctx.guild).whitelist.set([])
+        await ctx.send("Whitelist update successful")
+
+    @settings.group()
+    async def blacklist(self, ctx):
+        """Blacklist channels from the scanner.
+        
+        Blacklisted channels will NOT be checked for rule-violating pictures."""
+        pass
+
+    @blacklist.command(name="add")
+    async def blacklistadd(self, ctx, *channels: discord.TextChannel):
+        """Add channels to the blacklist"""
+        data = await self.conf.guild(ctx.guild).blacklist()
+        ds = set(data)
+        ns = set([c.id for c in channels])
+        ss = ds | ns
+        await self.conf.guild(ctx.guild).blacklist.set(list(ss))
+        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or ['`None`']
+        await ctx.send(
+            f"Blacklist update successful: {humanize_list(ss)}"
+        )
+
+    @blacklist.command(name="remove")
+    async def blacklistremove(self, ctx, *channels: discord.TextChannel):
+        """Remove channels from the blacklist"""
+        data = await self.conf.guild(ctx.guild).blacklist()
+        ds = set(data)
+        ns = set([c.id for c in channels])
+        ss = ds - ns
+        await self.conf.guild(ctx.guild).blacklist.set(list(ss))
+        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or ['`None`']
+        await ctx.send(
+            f"Blacklist update successful: {humanize_list(ss)}"
+        )
+
+    @blacklist.command(name="clear")
+    async def blacklistclear(self, ctx):
+        """Removes all channels from the blacklist"""
+        await self.conf.guild(ctx.guild).blacklist.set([])
+        await ctx.send("Blacklist update successful")
 
     @settings.command()
     async def showpic(self, ctx, yes_or_no: bool):

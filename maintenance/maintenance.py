@@ -74,9 +74,7 @@ class Maintenance(commands.Cog):
             setting = [False, 0, []]
             await self.conf.on.set(setting)
             return True
-        team_ids = () if not self.bot._use_team_features else self.bot.owner_ids
-        whitelist = set((self.bot.owner_id, *self.bot._co_owners, *team_ids, *on[2]))
-        if ctx.author.id in whitelist:
+        if await self.bot.is_owner(ctx.author):
             return True
         message = await self.conf.message()
         raise LIStsSTaRtaTiNDeX1(message)

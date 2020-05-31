@@ -10,9 +10,7 @@ import asyncio
 import subprocess
 import sys
 
-from .baserpc import DashboardRPC
-
-HUMANIZED_PERMISSIONS = {"view": "View server"}
+from .baserpc import DashboardRPC, HUMANIZED_PERMISSIONS
 
 
 class Dashboard(commands.Cog):

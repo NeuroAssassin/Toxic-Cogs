@@ -1,8 +1,7 @@
-# Dashboard README
-Hey there, thanks for looking at my dashboard!  This cog allows for you (the owner) to control your bot through a web dashboard, easily.  This can also be used for other people using the dashboard as well, as the dashboard uses Discord OAuth to log you in, and to make sure it respects permissions.
+# Red Dashboard - Bot Client
+*An easy-to-use interactive web dashboard to control your Redbot.*
 
-## Setup
-### Inital installation
+## Installation
 First, if you haven't already, add my repo:
 > `[p]repo add toxic https://github.com/NeuroAssassin/Toxic-Cogs`
 
@@ -11,40 +10,36 @@ Next, install the cog:
 
 Finally, load the cog:
 > `[p]load dashboard`
-****
+
 > NOTE: In order for the dashboard to make connection to the bot, you MUST start the bot with the `--rpc` flag.
-****
-### Setup web server
-> NOTE: If you are using the cog for more than one bot, then you will have to change the ports to another, including the webserver port (which is attached to the redirect URI) and the RPC port (which you can change with the `--rpc-port` flag, followed by the port number, like this: `--rpc-port 5000`)
-#### Bot
-##### Redirect URI
-Head over [here](https://discordapp.com/developers/applications/) to the Discord Developer Console, and click on your bot's application.  Note that it **must be** the bot you are setting this up for.  Next, click on the OAuth2 tab and click "Add Redirect".  Then, put the appropriate link down based upon what you are planning to do and how you are hosting:
-> NOTE: If you are running multiple bots with this cog, you will need to change the port below to the port you use when using the `--port` flag with the webserver.
-****
-###### If you are hosting on a VPS:
-- http://ip.add.re.ss:42356/callback (make sure to replace "ip.add.re.ss" with your VPS's IP address).
-###### If you are hosting on a local computer:
-- http://localhost:42356/callback (if you aren't planning on allowing other people to use it)
-- http://loc.al.ip.address:42356/callback (also if you aren't planning on other people using it, but note that you must replace "loc.al.ip.address" with the one found in `ipconfig` in the command prompt, under IPv4).
-- http://ip.add.re.ss:42356/callback (if you are planning on making it public.  Note that this requires port forwarding set up, and the "ip.add.re.ss" must be replaced with the IP you see when you look up "what is my ip address").
-****
-Next, copy the redirect URI you just put into the field, and head over to the dashboard.  Type the following, replacing `<redirect>` with your redirect.
-> `[p]dashboard settings oauth redirect <redirect>`
-##### Client Secret
-Head over [here](https://discordapp.com/developers/applications/) to the Discord Developer Console, and click on your bot's application.  Just like with the Redirect URI, this must be the same bot.  Next, head over to the right of the page and click on "Copy" under the Client Secret, NOT the Client ID.  Finally, head over to Discord and type the following command, replacing `<secret>` with your client secret:
-> `[p]dashboard settings oauth secret <secret>`
 
-Wew, now the bot's side is finished!  Let's go configure and start the webserver
-#### Webserver
-Now, navigate to `<install_path>\dashboard\data` (you can find your install path by running `[p]paths`).  To start the webserver, you need to run `python run.py --instance <instancename>`.  Note that `instancename` must be the name you start the bot with, when you run `redbot <instancename>`.  If you have multiple bots running at the same time with the cog, you need to configure a few things.  First, change the port the webserver is running on (default 42356).  You can do this by adding to the `python` command `--port <port>`.  Next, change the RPC port that is being used.  This will be the port you set when starting the bot with the `--rpc-port` flag.  Use the same syntax and add that to the `python` command like this: `--rpc-port <port>`.  In conclusion, if I was starting the webserver, to run on port 5000, and I had started my bot with `redbot jarvis --rpc-port 45612`, I would start the webserver with this command:
+## Configuration
+### Dashboard with one bot
+1. Obtain your bot's client secret and run the command (in Discord) `[p]dashboard settings oauth secret <secret>`, replacing `<secret>` with the secret.  You can get your secret by following these steps:
+    1. Log into the Discord Developer Console (found [here](https://discord.com/developers/applications)), and click on your bot's application
+    2. Under your application's name, on the right, it should say "Client Secret" (NOT "Client ID"), and have a Copy button under it.
+    3. Click the Copy button, and paste that into the command above.
+    4. Keep the developer console page open for a later step.
+2. Set the OAuth2 redirect with `[p]dashboard settings oauth redirect <redirect>`, replacing `<redirect>`
+    1. If you are on the same device as the webserver, you can make the redirect `http://127.0.0.1:42356/callback`.
+    2. If you are on a difference device as the webserver, you can set the redirect to `http://ip.add.re.ss:42356/callback`, replacing `ip.add.re.ss` with the webserver device's public IP address (your host should tell you it).  NOT RECOMMENDED DUE TO SECURITY REASONS.
+    3. If you are hosting on a domain, set the redirect url to `<domain>/callback`, replacing `<domain>` with your domain.
+3. Take the redirect you set with step 2, copy it to your clipboard so that they are EXACTLY the same.  Then, head back to the Discord Developer Console, click on the Oauth2 tab and paste the redirect in one of the redirect text boxes.
+4. (Optional) Grab an invite for your support server and paste it into the command `[p]dashboard settings support <url>`, replacing `<url>` with the invite.
 
-> `python run.py --instance jarvis --port 5000 --rpc-port 45612`.
+The cog is now fully configured.  If you haven't already, follow the instructions [here](https://github.com/NeuroAssassin/Red-Dashboard) to setup the webserver for the dashboard.
 
-There you go!  Your dashboard should be up and running.  If you have any questions, feel free to contact me in the Cog Support server, or in my personal server, listed below.
-****
-## Configuration and Other Details
-### Permissions
-In order to make sure all permissions are respected, Discord OAuth is used for authentication for the dashboard.  This helps make sure that random users don't end up using the `[p]serverlock` command in the dashboard.  Permissions are judged based upon whether they are bot owner, guild owner, administrator, moderator or a normal user (in that order).  If not, the respective button will be greyed out, or they will receive a popup saying they aren't allowed to perform that operation.
-### Contact
+### Dashboard with multiple bots
+Having multiple bots running dashboard is a bit more tricky.  Follow the instructions exactly:
+
+1. Make a list of two ports for each bot that will be running dashboard.  Ports must be between the number 1 and 65535.  One port will be for rpc (from now on known as `<rpcport>`) and one for the webserver (from now on known as `<webport>`).  If you have already created a list of ports when following the instructions when setting up the webserver, you MUST USE THOSE INSTEAD.
+> When creating the ports, it is highly recommended to use ports that are a higher number, as lower ports are usually used by other applications.
+2. Stop each bot, and then restart them with the additional flags: `--rpc --rpc-port <rpcport>`, replacing `<rpcport>` with the RPC Port you designated for that bot.
+3. Follow step 1 of the one bot instructions, and repeat for each bot you are setting the dashboard up with.
+4. Follow steps 2-4 of the one bot instructions, HOWEVER replace the number `42356` wherever you see it with the `<webport>` you specified in the list you made earlier, for each of your bots that you are setting up.
+
+Once you have finished those instructions with all of your bots, the cogs should be fully configured on each of them.  Next, follow the instructions [here](https://github.com/NeuroAssassin/Red-Dashboard) to setup the webserver for each bot, and make sure to follow the instructions for the multiple bots and to use the list of ports you crated above.
+
+## Contact/Issues
 If you have any questions, issues or suggestions, feel free to stop by my server and tell me about them:
 [![Discord server](https://discordapp.com/api/guilds/540613833237069836/embed.png?style=banner3)](https://discord.gg/vQZTdB9)

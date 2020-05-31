@@ -8,7 +8,9 @@ import discord
 import random
 import re
 
-HUMANIZED_PERMISSIONS = {"view": "View server"}
+from .rpc.botsettings import DashboardRPC_BotSettings
+
+HUMANIZED_PERMISSIONS = {"view": "view server", "botsettings": "customize guild bot settings"}
 
 
 class DashboardRPC:
@@ -28,6 +30,10 @@ class DashboardRPC:
         self.bot.register_rpc_handler(self.get_server)
         self.bot.register_rpc_handler(self.check_version)
 
+        # RPC Extensions
+        self.extensions = []
+        self.extensions.append(DashboardRPC_BotSettings(self.cog))
+
         # To make sure that both RPC server and client are on the same "version"
         self.version = random.randint(1, 10000)
 
@@ -38,6 +44,9 @@ class DashboardRPC:
         self.bot.unregister_rpc_handler(self.get_users_servers)
         self.bot.unregister_rpc_handler(self.get_server)
         self.bot.unregister_rpc_handler(self.check_version)
+
+        for extension in self.extensions:
+            extension.unload()
 
     def build_cmd_list(self, cmd_list):
         final = []
@@ -186,6 +195,7 @@ class DashboardRPC:
         if self.bot.get_cog("Dashboard") and self.bot.is_ready():
             guild = self.bot.get_guild(serverid)
             if not guild:
+                print("1")
                 return {"status": 0}
 
             user = guild.get_member(userid)
@@ -196,17 +206,22 @@ class DashboardRPC:
 
             if not user:
                 if not baseuser and not is_owner:
+                    print("2")
                     return {"status": 0}
 
             if is_owner:
                 humanized = ["Everything (Bot Owner)"]
+                perms = []
                 joined = None
-            elif guild.owner.id == userid:
+
+            if guild.owner.id == userid:
                 humanized = ["Everything (Guild Owner)"]
+                perms = list(HUMANIZED_PERMISSIONS.keys())
                 joined = user.joined_at.strftime("%B %d, %Y")
             else:
                 perms = self.get_perms(serverid, user)
                 if perms is None or "view" not in perms:
+                    print("3")
                     return {"status": 0}
 
                 humanized = []
@@ -267,11 +282,13 @@ class DashboardRPC:
                 "bots": humanize_number(len([user for user in guild.members if user.bot])),
                 "humans": humanize_number(len([user for user in guild.members if not user.bot])),
                 "perms": humanize_list(humanized),
+                "permslist": perms,
                 "created": guild.created_at.strftime("%B %d, %Y"),
                 "joined": joined,
                 "roleswarn": warn,
                 "vl": vl,
                 "region": region,
+                "prefixes": await self.bot.get_valid_prefixes(guild)
             }
 
             return guild_data

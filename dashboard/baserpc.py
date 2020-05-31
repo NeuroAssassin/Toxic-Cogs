@@ -195,7 +195,6 @@ class DashboardRPC:
         if self.bot.get_cog("Dashboard") and self.bot.is_ready():
             guild = self.bot.get_guild(serverid)
             if not guild:
-                print("1")
                 return {"status": 0}
 
             user = guild.get_member(userid)
@@ -206,7 +205,6 @@ class DashboardRPC:
 
             if not user:
                 if not baseuser and not is_owner:
-                    print("2")
                     return {"status": 0}
 
             if is_owner:
@@ -221,7 +219,6 @@ class DashboardRPC:
             else:
                 perms = self.get_perms(serverid, user)
                 if perms is None or "view" not in perms:
-                    print("3")
                     return {"status": 0}
 
                 humanized = []

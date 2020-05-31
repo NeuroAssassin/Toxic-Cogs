@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.  Please follow the instructions on the repo to get started.",
+    "name" : "dashboard",
+    "short" : "Interact with your bot through a web dashboard.",
+    "description" : "Control your bot through a web dashboard, allowing people to run commands (with permissions checked) straight from an easy-to-use dashboard.",
+    "tags" : ["tools"],
+    "requirements" : ["flask", "requests", "Flask-Session", "cryptography", "werkzeug==0.16.0", "websocket-client", "markdown2"],
+    "hidden" : true
+}

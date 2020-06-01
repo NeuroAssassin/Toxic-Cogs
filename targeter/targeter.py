@@ -529,7 +529,10 @@ class Targeter(commands.Cog):
             a = args["joined-on"]
             matched_here = []
             for user in matched:
-                j = user.joined_at.replace(tzinfo=timezone.utc)
+                if a.tzinfo:
+                    j = user.joined_at.replace(tzinfo=timezone.utc)
+                else:
+                    j = user.joined_at
                 if j.date() == a.date():
                     matched_here.append(user)
                 else:
@@ -540,7 +543,10 @@ class Targeter(commands.Cog):
             a = args["joined-be"]
             matched_here = []
             for user in matched:
-                j = user.joined_at.replace(tzinfo=timezone.utc)
+                if a.tzinfo:
+                    j = user.joined_at.replace(tzinfo=timezone.utc)
+                else:
+                    j = user.joined_at
                 if j < a:
                     matched_here.append(user)
                 else:
@@ -551,7 +557,10 @@ class Targeter(commands.Cog):
             a = args["joined-af"]
             matched_here = []
             for user in matched:
-                j = user.joined_at.replace(tzinfo=timezone.utc)
+                if a.tzinfo:
+                    j = user.joined_at.replace(tzinfo=timezone.utc)
+                else:
+                    j = user.joined_at
                 if j > a:
                     matched_here.append(user)
                 else:
@@ -562,7 +571,10 @@ class Targeter(commands.Cog):
             a = args["created-on"]
             matched_here = []
             for user in matched:
-                c = user.created_at.replace(tzinfo=timezone.utc)
+                if a.tzinfo:
+                    c = user.created_at.replace(tzinfo=timezone.utc)
+                else:
+                    c = user.created_at
                 if c.date() == a.date():
                     matched_here.append(user)
                 else:
@@ -573,7 +585,10 @@ class Targeter(commands.Cog):
             a = args["created-be"]
             matched_here = []
             for user in matched:
-                c = user.created_at.replace(tzinfo=timezone.utc)
+                if a.tzinfo:
+                    c = user.created_at.replace(tzinfo=timezone.utc)
+                else:
+                    c = user.created_at
                 if c < a:
                     matched_here.append(user)
                 else:
@@ -584,7 +599,10 @@ class Targeter(commands.Cog):
             a = args["created-af"]
             matched_here = []
             for user in matched:
-                c = user.created_at.replace(tzinfo=timezone.utc)
+                if a.tzinfo:
+                    c = user.created_at.replace(tzinfo=timezone.utc)
+                else:
+                    c = user.created_at
                 if c > a:
                     matched_here.append(user)
                 else:

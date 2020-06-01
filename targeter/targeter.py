@@ -85,12 +85,12 @@ class Args(Converter):
         single.add_argument("--no-role", dest="no-role", action="store_true")
 
         # Date stuff
-        jd = parser.add_mutually_exclusive_group()
+        jd = parser.add_argument_group()
         jd.add_argument("--joined-on", nargs="*", dest="joined-on", default=[])
         jd.add_argument("--joined-before", nargs="*", dest="joined-be", default=[])
         jd.add_argument("--joined-after", nargs="*", dest="joined-af", default=[])
 
-        cd = parser.add_mutually_exclusive_group()
+        cd = parser.add_argument_group()
         cd.add_argument("--created-on", nargs="*", dest="created-on", default=[])
         cd.add_argument("--created-before", nargs="*", dest="created-be", default=[])
         cd.add_argument("--created-after", nargs="*", dest="created-af", default=[])

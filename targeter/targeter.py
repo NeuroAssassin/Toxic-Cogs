@@ -530,7 +530,7 @@ class Targeter(commands.Cog):
             matched_here = []
             for user in matched:
                 j = user.joined_at.replace(tzinfo=timezone.utc)
-                if j == a:
+                if j.date() == a.date():
                     matched_here.append(user)
                 else:
                     pass
@@ -563,7 +563,7 @@ class Targeter(commands.Cog):
             matched_here = []
             for user in matched:
                 c = user.created_at.replace(tzinfo=timezone.utc)
-                if c == a:
+                if c.date() == a.date():
                     matched_here.append(user)
                 else:
                     pass

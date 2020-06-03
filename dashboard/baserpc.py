@@ -217,15 +217,20 @@ class DashboardRPC:
                 perms = list(HUMANIZED_PERMISSIONS.keys())
                 joined = user.joined_at.strftime("%B %d, %Y")
             else:
-                perms = self.get_perms(serverid, user)
-                if perms is None or "view" not in perms:
+                if user:
+                    perms = self.get_perms(serverid, user)
+                    joined = user.joined_at.strftime("%B %d, %Y")
+                else:
+                    perms = []
+                    joined = "Not a part of this guild"
+                if (perms is None or "view" not in perms) and not is_owner:
                     return {"status": 0}
 
                 humanized = []
                 for p in perms:
                     humanized.append(HUMANIZED_PERMISSIONS[p])
-
-                joined = user.joined_at.strftime("%B %d, %Y")
+                if not humanized:
+                    humanized = ["None"]
 
             stats = {"o": 0, "i": 0, "d": 0, "f": 0}
 

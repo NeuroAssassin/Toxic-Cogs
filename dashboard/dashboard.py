@@ -15,7 +15,7 @@ from .baserpc import DashboardRPC, HUMANIZED_PERMISSIONS
 
 class Dashboard(commands.Cog):
 
-    __version__ = "0.1.3a"
+    __version__ = "0.1.3a.dev"
 
     def __init__(self, bot: Red):
         self.bot = bot

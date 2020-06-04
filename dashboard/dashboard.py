@@ -2,7 +2,7 @@ from redbot.core.bot import Red
 from redbot.core import commands, checks, Config
 from redbot.core.data_manager import bundled_data_path
 from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
-from redbot.core.utils.chat_formatting import box, humanize_list
+from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from collections import defaultdict
 import discord
 import traceback
@@ -78,11 +78,19 @@ class Dashboard(commands.Cog):
         else:
             await ctx.send("Failed to identify any permissions in list.  Please try again.")
             return
-
-        await ctx.send(
-            f"Role registered.\n**Permissions assigned**: {humanize_list(assigning)}\n"
-            f"**Permissions unidentified**: {humanize_list(missing or ['None'])}"
-        )
+        if await ctx.embed_requested():
+            e = discord.Embed(title="Role Registered", description=(
+                f"**Permissions assigned**: {humanize_list(list(map(inline, assigning)))}\n"
+                f"**Permissions unidentified**: {humanize_list(list(map(inline, missing or ['None'])))}"
+            ), color=(await ctx.embed_color()))
+            await ctx.send(embed=e)
+        else:
+            await ctx.send(
+                f"**Role registered**```css\n"
+                f"[Permissions assigned]: {humanize_list(assigning)}\n"
+                f"[Permissions unidentified]: {humanize_list(missing or ['None'])}"
+                "```"
+            )
 
     @roles.command()
     async def edit(self, ctx: commands.Context, role: discord.Role, *permissions):
@@ -127,12 +135,21 @@ class Dashboard(commands.Cog):
         await self.config.guild(ctx.guild).roles.set(roles)
         self.configcache[ctx.guild.id]["roles"] = roles
 
-        await ctx.send(
-            "Successfully edited role.\n"
-            f"**Added**: {humanize_list(added or ['None'])}\n"
-            f"**Removed**: {humanize_list(removed or ['None'])}\n"
-            f"**Unidentified**: {humanize_list(missing or ['None'])}"
-        )
+        if await ctx.embed_requested():
+            e = discord.Embed(title="Successfully edited role", description=(
+                f"**Permissions added**: {humanize_list(list(map(inline, added or ['None'])))}\n"
+                f"**Permissions removed**: {humanize_list(list(map(inline, removed or ['None'])))}\n"
+                f"**Permissions unidentified**: {humanize_list(list(map(inline, missing or ['None'])))}\n"
+            ), color=(await ctx.embed_color()))
+            await ctx.send(embed=e)
+        else:
+            await ctx.send(
+                "**Successfully edited role**```css\n"
+                f"[Permissions added]: {humanize_list(added or ['None'])}\n"
+                f"[Permissions removed]: {humanize_list(removed or ['None'])}\n"
+                f"[Permissions unidentified]: {humanize_list(missing or ['None'])}"
+                "```"
+            )
 
     @roles.command()
     async def delete(self, ctx: commands.Context, *, role: discord.Role):
@@ -149,8 +166,8 @@ class Dashboard(commands.Cog):
 
         await ctx.send("Successfully deleted role.")
 
-    @roles.command()
-    async def list(self, ctx: commands.Context):
+    @roles.command(name="list")
+    async def roles_list(self, ctx: commands.Context):
         """List roles registered with dashboard"""
         data = await self.config.guild(ctx.guild).roles()
         roles = [
@@ -172,18 +189,36 @@ class Dashboard(commands.Cog):
         except IndexError:
             return await ctx.send("That role is not registered")
 
-        humanized = [HUMANIZED_PERMISSIONS[perm] for perm in r["perms"]]
+        description = ""
 
-        e = discord.Embed(description=f"**Role {role.mention} permissions**\n", color=0x0000FF)
-        e.description += humanize_list(humanized)
-
-        await ctx.send(embed=e)
+        if await ctx.embed_requested():
+            for perm in r["perms"]:
+                description += f"{inline(perm.title())}: {HUMANIZED_PERMISSIONS[perm]}\n"
+            e = discord.Embed(description=f"**Role {role.mention} permissions**\n", color=0x0000FF)
+            e.description += description
+            await ctx.send(embed=e)
+        else:
+            for perm in r["perms"]:
+                description += f"[{perm.title()}]: {HUMANIZED_PERMISSIONS[perm]}\n"
+            await ctx.send(
+                f"**Role {role.name} permissions**```css\n{description}```"
+            )
 
     @roles.command()
     async def perms(self, ctx: commands.Context):
         """Displays permission keywords matched with humanized descriptions"""
-        msg = [f"{key}: {value}" for key, value in HUMANIZED_PERMISSIONS.items()]
-        await ctx.send("\n".join(msg))
+        if await ctx.embed_requested():
+            e = discord.Embed(title="Dashboard permissions", description="", color=(await ctx.embed_color()))
+            for key, value in HUMANIZED_PERMISSIONS.items():
+                e.description += f"{inline(key.title())}: {value}\n"
+            await ctx.send(embed=e)
+        else:
+            description = ""
+            for key, value in HUMANIZED_PERMISSIONS.items():
+                description += f"[{key.title()}]: {value}\n"
+            await ctx.send(
+                f"**Dashboard permissions**```css\n{description}```"
+            )
 
     @checks.is_owner()
     @dashboard.group()

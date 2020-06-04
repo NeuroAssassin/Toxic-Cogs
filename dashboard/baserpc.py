@@ -10,7 +10,7 @@ import re
 
 from .rpc.botsettings import DashboardRPC_BotSettings
 
-HUMANIZED_PERMISSIONS = {"view": "view server", "botsettings": "customize guild bot settings"}
+HUMANIZED_PERMISSIONS = {"view": "View server on dashboard", "botsettings": "Customize guild specific-settings on dashboard"}
 
 
 class DashboardRPC:
@@ -226,11 +226,7 @@ class DashboardRPC:
                 if (perms is None or "view" not in perms) and not is_owner:
                     return {"status": 0}
 
-                humanized = []
-                for p in perms:
-                    humanized.append(HUMANIZED_PERMISSIONS[p])
-                if not humanized:
-                    humanized = ["None"]
+                humanized = [perm.title() for perm in perms] or ['None']
 
             stats = {"o": 0, "i": 0, "d": 0, "f": 0}
 
@@ -268,6 +264,22 @@ class DashboardRPC:
             else:
                 warn = False
 
+            adminroles = []
+            ar = await self.bot._config.guild(guild).admin_role()
+            for rid in ar:
+                r = guild.get_role(rid)
+                if r:
+                    adminroles.append((rid, r.name))
+
+            modroles = []
+            mr = await self.bot._config.guild(guild).mod_role()
+            for rid in mr:
+                r = guild.get_role(rid)
+                if r:
+                    modroles.append((rid, r.name))
+
+            all_roles = [(r.id, r.name) for r in guild.roles]
+
             guild_data = {
                 "status": 1,
                 "name": guild.name,
@@ -290,7 +302,10 @@ class DashboardRPC:
                 "roleswarn": warn,
                 "vl": vl,
                 "region": region,
-                "prefixes": await self.bot.get_valid_prefixes(guild)
+                "prefixes": await self.bot.get_valid_prefixes(guild),
+                "adminroles": adminroles,
+                "modroles": modroles,
+                "roles": all_roles
             }
 
             return guild_data

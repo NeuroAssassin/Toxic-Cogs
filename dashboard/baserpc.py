@@ -48,7 +48,7 @@ class DashboardRPC:
         for extension in self.extensions:
             extension.unload()
 
-    def build_cmd_list(self, cmd_list):
+    async def build_cmd_list(self, cmd_list):
         final = []
         async for cmd in AsyncIter(cmd_list):
             if cmd.hidden:
@@ -59,7 +59,7 @@ class DashboardRPC:
                 "subs": [],
             }
             if isinstance(cmd, commands.Group):
-                details["subs"] = self.build_cmd_list(cmd.commands)
+                details["subs"] = await self.build_cmd_list(cmd.commands)
             final.append(details)
         return final
 
@@ -137,7 +137,7 @@ class DashboardRPC:
                     if not c.parent:
                         stripped.append(c)
                 returning.append(
-                    {"name": name, "desc": cog.__doc__, "cmds": self.build_cmd_list(stripped)}
+                    {"name": name, "desc": cog.__doc__, "cmds": await self.build_cmd_list(stripped)}
                 )
             returning = sorted(returning, key=lambda k: k["name"])
             return returning

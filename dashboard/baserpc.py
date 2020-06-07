@@ -50,7 +50,7 @@ class DashboardRPC:
 
     def build_cmd_list(self, cmd_list):
         final = []
-        for cmd in cmd_list:
+        async for cmd in AsyncIter(cmd_list):
             if cmd.hidden:
                 continue
             details = {

@@ -48,27 +48,27 @@ class Dashboard(commands.Cog):
 
     @commands.group()
     async def dashboard(self, ctx: commands.Context):
-        """Group command for controlling the web dashboard for Red"""
+        """Group command for controlling the web dashboard for Red."""
 
     @checks.guildowner()
     @dashboard.group()
     async def roles(self, ctx: commands.Context):
-        """Customize the roles that have permission to certain parts of the dashboard"""
+        """Customize the roles that have permission to certain parts of the dashboard."""
 
     @roles.command()
     async def create(self, ctx: commands.Context, role: discord.Role, *permissions):
-        """Register a new discord role to access certain parts of the dashboard"""
+        """Register a new discord role to access certain parts of the dashboard."""
         roles = await self.config.guild(ctx.guild).roles()
         if role.id in [r["roleid"] for r in roles]:
             await ctx.send(
-                f"That role is already registered.  Please edit with `{ctx.prefix}dashboard roles edit`."
+                f"That role is already registered. Please edit with `{ctx.prefix}dashboard roles edit`."
             )
             return
         assigning = []
         missing = []
         for p in permissions:
-            if p in HUMANIZED_PERMISSIONS:
-                assigning.append(p)
+            if p.lower() in HUMANIZED_PERMISSIONS:
+                assigning.append(p.lower())
             else:
                 missing.append(p)
         if assigning:
@@ -76,7 +76,7 @@ class Dashboard(commands.Cog):
                 data.append({"roleid": role.id, "perms": assigning})
             self.configcache[ctx.guild.id]["roles"].append({"roleid": role.id, "perms": assigning})
         else:
-            await ctx.send("Failed to identify any permissions in list.  Please try again.")
+            await ctx.send("Failed to identify any permissions in list. Please try again.")
             return
         if await ctx.embed_requested():
             e = discord.Embed(title="Role Registered", description=(
@@ -94,12 +94,12 @@ class Dashboard(commands.Cog):
 
     @roles.command()
     async def edit(self, ctx: commands.Context, role: discord.Role, *permissions):
-        """Edit the permissions registered with a registered role"""
+        """Edit the permissions registered with a registered role."""
         changing = []
         missing = []
         for p in permissions:
-            if p in HUMANIZED_PERMISSIONS:
-                changing.append(p)
+            if p.lower() in HUMANIZED_PERMISSIONS:
+                changing.append(p.lower())
             else:
                 missing.append(f"`{p}`")
 
@@ -111,7 +111,7 @@ class Dashboard(commands.Cog):
         try:
             ro = [ro for ro in roles if ro["roleid"] == role.id][0]
         except IndexError:
-            return await ctx.send("That role is not registered")
+            return await ctx.send("That role is not registered.")
 
         del roles[roles.index(ro)]
 
@@ -153,12 +153,12 @@ class Dashboard(commands.Cog):
 
     @roles.command()
     async def delete(self, ctx: commands.Context, *, role: discord.Role):
-        """Unregister a role from the dashboard"""
+        """Unregister a role from the dashboard."""
         roles = await self.config.guild(ctx.guild).roles()
         try:
             ro = [ro for ro in roles if ro["roleid"] == role.id][0]
         except IndexError:
-            return await ctx.send("That role is not registered")
+            return await ctx.send("That role is not registered.")
 
         del roles[roles.index(ro)]
         await self.config.guild(ctx.guild).roles.set(roles)
@@ -168,7 +168,7 @@ class Dashboard(commands.Cog):
 
     @roles.command(name="list")
     async def roles_list(self, ctx: commands.Context):
-        """List roles registered with dashboard"""
+        """List roles registered with dashboard."""
         data = await self.config.guild(ctx.guild).roles()
         roles = [
             ctx.guild.get_role(role["roleid"]).mention
@@ -182,12 +182,12 @@ class Dashboard(commands.Cog):
 
     @roles.command()
     async def info(self, ctx: commands.Context, *, role: discord.Role):
-        """List permissions for a registered role"""
+        """List permissions for a registered role."""
         roles = await self.config.guild(ctx.guild).roles()
         try:
             r = [ro for ro in roles if ro["roleid"] == role.id][0]
         except IndexError:
-            return await ctx.send("That role is not registered")
+            return await ctx.send("That role is not registered.")
 
         description = ""
 
@@ -206,7 +206,7 @@ class Dashboard(commands.Cog):
 
     @roles.command()
     async def perms(self, ctx: commands.Context):
-        """Displays permission keywords matched with humanized descriptions"""
+        """Displays permission keywords matched with humanized descriptions."""
         if await ctx.embed_requested():
             e = discord.Embed(title="Dashboard permissions", description="", color=(await ctx.embed_color()))
             for key, value in HUMANIZED_PERMISSIONS.items():
@@ -223,7 +223,7 @@ class Dashboard(commands.Cog):
     @checks.is_owner()
     @dashboard.group()
     async def settings(self, ctx: commands.Context):
-        """Group command for setting up the web dashboard for this Red bot"""
+        """Group command for setting up the web dashboard for this Red bot."""
 
     @settings.command()
     async def support(self, ctx: commands.Context, url: str = ""):
@@ -271,5 +271,5 @@ class Dashboard(commands.Cog):
         embed = discord.Embed(title="Red V3 Dashboard Settings", color=0x0000FF)
         embed.description = box(description, lang="ini")
         embed.add_field(name="Dashboard Version", value=box(f"[{self.__version__}]", lang="ini"))
-        embed.set_footer(text="Dashboard created by Neuro Assassin")
+        embed.set_footer(text="Dashboard created by Neuro Assassin.")
         await ctx.send(embed=embed)

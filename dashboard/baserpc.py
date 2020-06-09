@@ -53,6 +53,8 @@ class DashboardRPC:
         async for cmd in AsyncIter(cmd_list):
             if cmd.hidden:
                 continue
+            if cmd.requires.privilege_level == PL.BOT_OWNER:
+                continue
             details = {
                 "name": f"{cmd.qualified_name} {cmd.signature}",
                 "desc": cmd.short_doc,
@@ -138,8 +140,11 @@ class DashboardRPC:
                 for c in cog.__cog_commands__:
                     if not c.parent:
                         stripped.append(c)
+                cmds = await self.build_cmd_list(stripped)
+                if cmds == []:
+                    continue
                 returning.append(
-                    {"name": name, "desc": cog.__doc__, "cmds": await self.build_cmd_list(stripped)}
+                    {"name": name, "desc": cog.__doc__, "cmds": cmds}
                 )
             returning = sorted(returning, key=lambda k: k["name"])
             return returning

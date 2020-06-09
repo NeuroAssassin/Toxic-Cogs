@@ -12,6 +12,7 @@ import sys
 
 from .baserpc import DashboardRPC, HUMANIZED_PERMISSIONS
 
+THEME_COLORS=["red", "primary", "blue", "green", "greener", "yellow"]
 
 class Dashboard(commands.Cog):
 
@@ -28,6 +29,7 @@ class Dashboard(commands.Cog):
             widgets=[],
             testwidgets=[],
             support="",
+            defaultcolor="red"
         )
         self.config.register_guild(roles=[])
         self.configcache = defaultdict(self.cache_defaults)
@@ -224,6 +226,19 @@ class Dashboard(commands.Cog):
     @dashboard.group()
     async def settings(self, ctx: commands.Context):
         """Group command for setting up the web dashboard for this Red bot."""
+
+    @settings.command()
+    async def color(self, ctx, color):
+        """Set the default color for a new user.
+        
+        The webserver version must be at least 0.1.3a.dev in order for this to work."""
+        color = color.lower()
+        if color == "purple":
+            color = "primary"
+        if not color in THEME_COLORS:
+            return await ctx.send(f"Unrecognized color.  Please choose one of the following:\n{humanize_list(tuple(map(lambda x: inline(x).title(), THEME_COLORS)))}")
+        await self.config.defaultcolor.set(color)
+        await ctx.tick()
 
     @settings.command()
     async def support(self, ctx: commands.Context, url: str = ""):

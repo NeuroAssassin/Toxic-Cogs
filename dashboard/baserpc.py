@@ -101,14 +101,16 @@ class DashboardRPC:
                 count["users"] += 1
                 if member.status is not discord.Status.offline:
                     count["onlineusers"] += 1
+            data = await self.cog.config.all()
             returning = {
                 "botname": self.bot.user.name,
                 "botavatar": str(self.bot.user.avatar_url_as(static_format="png")),
                 "botid": self.bot.user.id,
                 "botinfo": markdown2.markdown(botinfo),
                 "prefix": prefixes,
-                "redirect": await self.cog.config.redirect(),
-                "support": await self.cog.config.support(),
+                "redirect": data['redirect'],
+                "support": data['support'],
+                "color": data['defaultcolor'],
                 "servers": humanize_number(len(self.bot.guilds)),
                 "users": humanize_number(count["users"]),
                 "onlineusers": humanize_number(count["onlineusers"]),

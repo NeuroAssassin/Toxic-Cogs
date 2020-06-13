@@ -38,6 +38,7 @@ class Evolution(commands.Cog):
         default_user = {"animal": "", "animals": {}, "multiplier": 1.0, "bought": {}}
         self.conf.register_user(**default_user)
         self.task = self.bot.loop.create_task(self.bg_task())
+        self.users = {}
 
     def cog_unload(self):
         self.__unload()
@@ -46,10 +47,10 @@ class Evolution(commands.Cog):
         self.task.cancel()
 
     async def bg_task(self):
+        await self.update_users()
         await self.bot.wait_until_ready()
         while True:
-            async with self.lock:
-                users = await self.conf.all_users()
+            users = self.users
             for userid, data in users.items():
                 animal = data["animal"]
                 if animal == "":
@@ -80,6 +81,10 @@ class Evolution(commands.Cog):
                     await bank.deposit_credits(user, math.ceil(all_gaining))
                 await asyncio.sleep(0.1)
             await asyncio.sleep(60)
+
+    async def update_users(self):
+        async with self.lock:
+            self.users = await self.conf.all_users()
 
     def get_level_tax(self, level):
         if level == 1:
@@ -170,7 +175,8 @@ class Evolution(commands.Cog):
         await ctx.send(
             f"Your animal has been set to {message.content}.  You have been granted one to start."
         )
-
+        await self.update_users()
+        
     @evolution.command()
     async def buy(self, ctx, level: int, amount: int = 1):
         """Buy those animals to get more economy credits"""

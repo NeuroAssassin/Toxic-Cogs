@@ -9,8 +9,9 @@ import random
 import re
 
 from .rpc.botsettings import DashboardRPC_BotSettings
+# from .rpc.permissions import DashboardRPC_Permissions
 
-HUMANIZED_PERMISSIONS = {"view": "View server on dashboard", "botsettings": "Customize guild specific-settings on dashboard"}
+HUMANIZED_PERMISSIONS = {"view": "View server on dashboard", "botsettings": "Customize guild-specific settings on dashboard", "permissions": "Customize guild-specific permissions to commands"}
 
 
 class DashboardRPC:
@@ -33,6 +34,7 @@ class DashboardRPC:
         # RPC Extensions
         self.extensions = []
         self.extensions.append(DashboardRPC_BotSettings(self.cog))
+        # self.extensions.append(DashboardRPC_Permissions(self.cog))
 
         # To make sure that both RPC server and client are on the same "version"
         self.version = random.randint(1, 10000)
@@ -258,7 +260,8 @@ class DashboardRPC:
             elif guild.verification_level is discord.VerificationLevel.extreme:
                 vl = "4 - Extreme"
 
-            parts = guild.region.name.split("_")
+            region = getattr(guild.region, "name", guild.region)
+            parts = region.split("_")
             for i, p in enumerate(parts):
                 if p in ["eu", "us", "vip"]:
                     parts[i] = p.upper()

@@ -1,18 +1,13 @@
 from redbot.core.bot import Red
 from redbot.core import commands, checks, Config
-from redbot.core.data_manager import bundled_data_path
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
 from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from collections import defaultdict
 import discord
-import traceback
-import asyncio
-import subprocess
-import sys
 
 from .baserpc import DashboardRPC, HUMANIZED_PERMISSIONS
 
-THEME_COLORS=["red", "primary", "blue", "green", "greener", "yellow"]
+THEME_COLORS = ["red", "primary", "blue", "green", "greener", "yellow"]
+
 
 class Dashboard(commands.Cog):
 
@@ -29,7 +24,7 @@ class Dashboard(commands.Cog):
             widgets=[],
             testwidgets=[],
             support="",
-            defaultcolor="red"
+            defaultcolor="red",
         )
         self.config.register_guild(roles=[])
         self.configcache = defaultdict(self.cache_defaults)
@@ -81,10 +76,14 @@ class Dashboard(commands.Cog):
             await ctx.send("Failed to identify any permissions in list. Please try again.")
             return
         if await ctx.embed_requested():
-            e = discord.Embed(title="Role Registered", description=(
-                f"**Permissions assigned**: {humanize_list(list(map(inline, assigning)))}\n"
-                f"**Permissions unidentified**: {humanize_list(list(map(inline, missing or ['None'])))}"
-            ), color=(await ctx.embed_color()))
+            e = discord.Embed(
+                title="Role Registered",
+                description=(
+                    f"**Permissions assigned**: {humanize_list(list(map(inline, assigning)))}\n"
+                    f"**Permissions unidentified**: {humanize_list(list(map(inline, missing or ['None'])))}"
+                ),
+                color=(await ctx.embed_color()),
+            )
             await ctx.send(embed=e)
         else:
             await ctx.send(
@@ -103,7 +102,7 @@ class Dashboard(commands.Cog):
             if p.lower() in HUMANIZED_PERMISSIONS:
                 changing.append(p.lower())
             else:
-                missing.append(f"`{p}`")
+                missing.append(p.lower())
 
         if not changing:
             await ctx.send("Failed to identify any permissions in list. Please try again.")
@@ -138,11 +137,15 @@ class Dashboard(commands.Cog):
         self.configcache[ctx.guild.id]["roles"] = roles
 
         if await ctx.embed_requested():
-            e = discord.Embed(title="Successfully edited role", description=(
-                f"**Permissions added**: {humanize_list(list(map(inline, added or ['None'])))}\n"
-                f"**Permissions removed**: {humanize_list(list(map(inline, removed or ['None'])))}\n"
-                f"**Permissions unidentified**: {humanize_list(list(map(inline, missing or ['None'])))}\n"
-            ), color=(await ctx.embed_color()))
+            e = discord.Embed(
+                title="Successfully edited role",
+                description=(
+                    f"**Permissions added**: {humanize_list(list(map(inline, added or ['None'])))}\n"
+                    f"**Permissions removed**: {humanize_list(list(map(inline, removed or ['None'])))}\n"
+                    f"**Permissions unidentified**: {humanize_list(list(map(inline, missing or ['None'])))}\n"
+                ),
+                color=(await ctx.embed_color()),
+            )
             await ctx.send(embed=e)
         else:
             await ctx.send(
@@ -202,15 +205,15 @@ class Dashboard(commands.Cog):
         else:
             for perm in r["perms"]:
                 description += f"[{perm.title()}]: {HUMANIZED_PERMISSIONS[perm]}\n"
-            await ctx.send(
-                f"**Role {role.name} permissions**```css\n{description}```"
-            )
+            await ctx.send(f"**Role {role.name} permissions**```css\n{description}```")
 
     @roles.command()
     async def perms(self, ctx: commands.Context):
         """Displays permission keywords matched with humanized descriptions."""
         if await ctx.embed_requested():
-            e = discord.Embed(title="Dashboard permissions", description="", color=(await ctx.embed_color()))
+            e = discord.Embed(
+                title="Dashboard permissions", description="", color=(await ctx.embed_color()),
+            )
             for key, value in HUMANIZED_PERMISSIONS.items():
                 e.description += f"{inline(key.title())}: {value}\n"
             await ctx.send(embed=e)
@@ -218,9 +221,7 @@ class Dashboard(commands.Cog):
             description = ""
             for key, value in HUMANIZED_PERMISSIONS.items():
                 description += f"[{key.title()}]: {value}\n"
-            await ctx.send(
-                f"**Dashboard permissions**```css\n{description}```"
-            )
+            await ctx.send(f"**Dashboard permissions**```css\n{description}```")
 
     @checks.is_owner()
     @dashboard.group()
@@ -235,8 +236,10 @@ class Dashboard(commands.Cog):
         color = color.lower()
         if color == "purple":
             color = "primary"
-        if not color in THEME_COLORS:
-            return await ctx.send(f"Unrecognized color.  Please choose one of the following:\n{humanize_list(tuple(map(lambda x: inline(x).title(), THEME_COLORS)))}")
+        if color not in THEME_COLORS:
+            return await ctx.send(
+                f"Unrecognized color.  Please choose one of the following:\n{humanize_list(tuple(map(lambda x: inline(x).title(), THEME_COLORS)))}"
+            )
         await self.config.defaultcolor.set(color)
         await ctx.tick()
 
@@ -273,9 +276,9 @@ class Dashboard(commands.Cog):
     async def view(self, ctx: commands.Context):
         """View the current dashboard settings."""
         data = await self.config.all()
-        redirect = data['redirect']
-        secret = data['secret']
-        support = data['support']
+        redirect = data["redirect"]
+        secret = data["secret"]
+        support = data["support"]
         if not support:
             support = "[Not set]"
         description = (

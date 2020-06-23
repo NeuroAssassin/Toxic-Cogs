@@ -1,0 +1,13 @@
+{
+    "author": [
+        "Neuro Assassin"
+    ],
+    "install_msg": "Uninstall this right now",
+    "name": "concurrency",
+    "short": "Allows bot owner to set max concurrencies",
+    "description": "Allows a bot owner to set max concurrencies for commands",
+    "tags": [
+        "tools"
+    ],
+    "hidden": true
+}

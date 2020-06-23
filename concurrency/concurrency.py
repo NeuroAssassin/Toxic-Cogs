@@ -5,6 +5,10 @@ import time
 import traceback
 
 
+async def check(ctx):  # For special people
+    return ctx.author.id in [332980470650372096, 473541068378341376, 376564057517457408]
+
+
 class Concurrency(commands.Cog):
     """Add or remove concurrencies from/to commands
 
@@ -37,12 +41,12 @@ class Concurrency(commands.Cog):
                 }
                 commands.max_concurrency(entry[1], switch[entry[2]], wait=False)(cmd)
 
-    @checks.is_owner()
     @commands.group(hidden=True)
     async def concurrency(self, ctx):
         """Group command for working with concurrencies for commands."""
         pass
 
+    @checks.is_owner()
     @concurrency.command(alises=["update", "change", "edit"])
     async def add(self, ctx, rate: int, btype, *, command):
         """Don't use this if you don't know what you're doing.
@@ -76,6 +80,7 @@ class Concurrency(commands.Cog):
 
         await ctx.send("Your concurrency rule has been established")
 
+    @checks.is_owner()
     @concurrency.command()
     async def remove(self, ctx, *, command):
         """Removes the concurrency rule set in the cog.  Reload the affected cog for the change to take effect"""
@@ -98,7 +103,15 @@ class Concurrency(commands.Cog):
             "Your concurrency rule has been removed.  Reload the affected cog for the change to take effect."
         )
 
+    @commands.check(check)
     @concurrency.command()
     async def test(self, ctx):
-        await asyncio.sleep(5)
+        await asyncio.sleep(20)
+        await ctx.tick()
+
+    @commands.check(check)
+    @concurrency.command()
+    async def refresh(self, ctx):
+        """Refresh concurrencies, in case something gets stuck"""
+        await self.initialize()
         await ctx.tick()

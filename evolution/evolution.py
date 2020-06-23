@@ -1,5 +1,8 @@
-from redbot.core import commands, Config, bank, checks
+from redbot.core import commands, Config, bank, checks, errors
+from redbot.core.utils.chat_formatting import humanize_number, inline
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from redbot.core.utils import AsyncIter
+from collections import defaultdict
 import copy
 import asyncio
 import random
@@ -34,23 +37,34 @@ class Evolution(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.lock = asyncio.Lock()
+
         self.conf = Config.get_conf(self, identifier=473541068378341376)
         default_user = {"animal": "", "animals": {}, "multiplier": 1.0, "bought": {}}
         self.conf.register_user(**default_user)
+        self.cache = defaultdict(self.cache_defaults)  # Thanks to Theelx#4980
+
+        self.inmarket = []
         self.task = self.bot.loop.create_task(self.bg_task())
+
+    def cache_defaults(self):
+        return {"animal": "", "animals": {}, "multiplier": 1.0, "bought": {}}
 
     def cog_unload(self):
         self.__unload()
 
     def __unload(self):
+        self.cache.clear()
         self.task.cancel()
+
+    async def initialize(self):
+        config = await self.conf.all_users()
+        for k, v in config.items():
+            self.cache[k] = v
 
     async def bg_task(self):
         await self.bot.wait_until_ready()
         while True:
-            async with self.lock:
-                users = await self.conf.all_users()
-            for userid, data in users.items():
+            for userid, data in self.cache.copy().items():
                 animal = data["animal"]
                 if animal == "":
                     continue
@@ -70,37 +84,33 @@ class Evolution(commands.Cog):
                         except:
                             gaining = 1000
                         gaining *= multiplier
-                        all_gaining += gaining
+                        all_gaining += gaining * 0.5
                 user = self.bot.get_user(userid)
                 if user is None:
-                    user = await self.bot.fetch_user(
-                        userid
-                    )  # Prepare to be rate limited :aha:
+                    user = await self.bot.fetch_user(userid)  # Prepare to be rate limited :aha:
                 if user:
-                    await bank.deposit_credits(user, math.ceil(all_gaining))
+                    try:
+                        await bank.deposit_credits(user, math.ceil(all_gaining))
+                    except errors.BalanceTooHigh:
+                        # Welp, they need to evolve stuff
+                        pass
                 await asyncio.sleep(0.1)
             await asyncio.sleep(60)
-
-    def get_level_tax(self, level):
-        if level == 1:
-            return 0
-        return (self.get_level_tax(level - 1) * 2) + 200
 
     def get_total_price(self, level, bought, amount):
         total = 0
         for x in range(amount):
             normal = level * 800
-            level_tax = self.get_level_tax(level)
+            level_tax = ((2 ** level) * 100) - 200
             tax = bought * 300
             total += normal + level_tax + tax + (x * 300)
         return total
 
-    async def shop_control_callback(
-        self, ctx, pages, controls, message, page, timeout, emoji
-    ):
+    async def shop_control_callback(self, ctx, pages, controls, message, page, timeout, emoji):
         description = message.embeds[0].description
         level = int(description.split(" ")[1])
-        await ctx.invoke(self.buy, level=level)
+        self.bot.loop.create_task(ctx.invoke(self.buy, level=level))
+        return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
 
     @commands.group(aliases=["e", "evo"])
     async def evolution(self, ctx):
@@ -133,6 +143,18 @@ class Evolution(commands.Cog):
         if len(message) > 2000:
             message = message[:1994] + "...```"
         await ctx.send(message)
+
+    @checks.is_owner()
+    @evolution.command(hidden=True)
+    async def removeuser(self, ctx, user: discord.User):
+        """Removes a user from the market place if they are stuck for some reason.
+        
+        Only use this if you have to, otherwise things could break"""
+        try:
+            self.inmarket.remove(user.id)
+        except ValueError:
+            return await ctx.send("The user is not in the marketplace")
+        await ctx.tick()
 
     @evolution.command()
     async def start(self, ctx):
@@ -167,6 +189,8 @@ class Evolution(commands.Cog):
             async with self.conf.user(ctx.author).all() as data:
                 data["animal"] = message.content.lower()
                 data["animals"] = {1: 1}
+
+                self.cache[ctx.author.id] = data
         await ctx.send(
             f"Your animal has been set to {message.content}.  You have been granted one to start."
         )
@@ -174,13 +198,18 @@ class Evolution(commands.Cog):
     @evolution.command()
     async def buy(self, ctx, level: int, amount: int = 1):
         """Buy those animals to get more economy credits"""
+        if ctx.author.id in self.inmarket:
+            return await ctx.send("You're already at the market")
+        self.inmarket.append(ctx.author.id)
         async with self.lock:
             data = await self.conf.user(ctx.author).all()
         animals = data["animals"]
         bought = data["bought"]
         animal = data["animal"]
+        multiplier = data["multiplier"]
 
         if animal in ["", "P"]:
+            self.inmarket.remove(ctx.author.id)
             return await ctx.send("Finish starting your evolution first")
 
         highest = max(list(map(int, animals.keys())))
@@ -189,27 +218,29 @@ class Evolution(commands.Cog):
         current_bought = int(bought.get(str(level), 0))
         price = self.get_total_price(level, current_bought, amount)
 
+        e = math.ceil((multiplier - 1) * 5)
+
         if balance < price:
+            self.inmarket.remove(ctx.author.id)
             return await ctx.send("You don't have enough credits!")
-        if prev >= 6:
-            return await ctx.send(
-                "You have too many of those!  Evolve some of them already."
-            )
-        if prev + amount > 6:
-            return await ctx.send(
-                "You'd have too many of those!  Evolve some of them already."
-            )
+        if prev >= 6 + e:
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send("You have too many of those!  Evolve some of them already.")
+        if prev + amount > 6 + e:
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send("You'd have too many of those!  Evolve some of them already.")
         if level < 1:
+            self.inmarket.remove(ctx.author.id)
             return await ctx.send("Ya cant buy a negative level!")
         if amount < 1:
+            self.inmarket.remove(ctx.author.id)
             return await ctx.send("Ya cant buy a negative amount!")
         if (level > int(highest) - 3) and (level > 1):
-            return await ctx.send(
-                "Please get higher animals to buy higher levels of them."
-            )
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send("Please get higher animals to buy higher levels of them.")
 
         m = await ctx.send(
-            f"Are you sure you want to buy {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}?  This will cost you {str(price)}."
+            f"Are you sure you want to buy {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}?  This will cost you {humanize_number(price)}."
         )
         await m.add_reaction("\N{WHITE HEAVY CHECK MARK}")
         await m.add_reaction("\N{CROSS MARK}")
@@ -217,26 +248,19 @@ class Evolution(commands.Cog):
         def check(reaction, user):
             return (
                 (user.id == ctx.author.id)
-                and (
-                    str(reaction.emoji)
-                    in ["\N{WHITE HEAVY CHECK MARK}", "\N{CROSS MARK}"]
-                )
+                and (str(reaction.emoji) in ["\N{WHITE HEAVY CHECK MARK}", "\N{CROSS MARK}"])
                 and (reaction.message.id == m.id)
             )
 
         try:
-            reaction, user = await self.bot.wait_for(
-                "reaction_add", check=check, timeout=60.0
-            )
+            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
         except asyncio.TimeoutError:
-            return await ctx.send(
-                f"You left the {animal} shop without buying anything."
-            )
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send(f"You left the {animal} shop without buying anything.")
 
         if str(reaction.emoji) == "\N{CROSS MARK}":
-            return await ctx.send(
-                f"You left the {animal} shop without buying anything."
-            )
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send(f"You left the {animal} shop without buying anything.")
         animals[str(level)] = prev + amount
         bought[level] = current_bought + 1
 
@@ -245,10 +269,13 @@ class Evolution(commands.Cog):
                 data["animals"] = animals
                 data["bought"] = bought
 
+                self.cache[ctx.author.id] = data
+
         await bank.withdraw_credits(ctx.author, price)
         await ctx.send(
             f"You bought {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}"
         )
+        self.inmarket.remove(ctx.author.id)
 
     @checks.bot_has_permissions(embed_links=True)
     @evolution.command()
@@ -266,15 +293,13 @@ class Evolution(commands.Cog):
         embed_list = []
         for x in list(animals.keys()):
             embed = discord.Embed(
-                title=f"{animal.title()} Shop",
-                description=f"Level {str(x)}",
-                color=0xD2B48C,
+                title=f"{animal.title()} Shop", description=f"Level {str(x)}", color=0xD2B48C,
             )
             embed.add_field(name="You currently own", value=animals[x])
             current = int(bought.get(str(x), 0))
             embed.add_field(name="You have bought", value=current)
             embed.add_field(
-                name="Price", value=self.get_total_price(int(x), current, 1)
+                name="Price", value=humanize_number(self.get_total_price(int(x), current, 1))
             )
             last = 0
             chances = []
@@ -298,6 +323,8 @@ class Evolution(commands.Cog):
             data = await self.conf.user(ctx.author).all()
         animal = data["animal"]
         animals = data["animals"]
+        multiplier = data["multiplier"]
+        e = 6 + math.ceil((multiplier - 1) * 5)
 
         if animal in ["", "P"]:
             return await ctx.send("Finish starting your evolution first")
@@ -318,6 +345,7 @@ class Evolution(commands.Cog):
             embed = discord.Embed(
                 title=f"The amount of {animal}s you have in your backyard.",
                 color=0xD2B48C,
+                description=f"Multiplier: {inline(str(multiplier))}\nMax amount of animals: {inline(str(e))}",
             )
             for level, amount in animals.items():
                 if amount == 0:
@@ -331,16 +359,27 @@ class Evolution(commands.Cog):
     @evolution.command()
     async def evolve(self, ctx, level: int, amount: int = 1):
         """Evolve them animals to get more of da economy credits"""
+        if ctx.author.id in self.inmarket:
+            return await ctx.send("Leave the market before evolving your animals")
+        self.inmarket.append(ctx.author.id)
         if level < 1 or amount < 1:
+            self.inmarket.remove(ctx.author.id)
             return await ctx.send("Too low!")
-        if amount > 3:
-            return await ctx.send("Too high!")
+
         async with self.lock:
             data = await self.conf.user(ctx.author).all()
         animal = data["animal"]
         animals = data["animals"]
+        multiplier = data["multiplier"]
+
+        e = math.ceil((multiplier - 1) * 5)
+
+        if amount > (6 + e) // 2:
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send("Too high!")
 
         if animal in ["", "P"]:
+            self.inmarket.remove(ctx.author.id)
             return await ctx.send("Finish starting your evolution first")
 
         current = animals.get(str(level), 0)
@@ -348,12 +387,12 @@ class Evolution(commands.Cog):
         nextlevel = animals.get(str(level + 1), 0)
 
         if current < (amount * 2):
+            self.inmarket.remove(ctx.author.id)
             return await ctx.send("You don't have enough animals at that level.")
 
-        if nextlevel + amount > 6:
-            return await ctx.send(
-                "You'd have to many of those!  Evolve some of them instead!"
-            )
+        if nextlevel + amount > 6 + e:
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send("You'd have to many of those!  Evolve some of them instead!")
 
         found_new = False
         recreate = False
@@ -361,7 +400,6 @@ class Evolution(commands.Cog):
         nextlevelstr = str(level + 1)
 
         animals[currentlevelstr] -= 2 * amount
-        prev = animals.get(nextlevelstr, 0)
         if highest == level:
             found_new = True
         animals[nextlevelstr] = animals.get(nextlevelstr, 0) + amount
@@ -386,7 +424,7 @@ class Evolution(commands.Cog):
                 f"**To:** {ctx.author.display_name}\n"
                 f"**Concerning:** Animal experiment #{str(math.ceil(((multiplier - 1) * 5) + 1))}\n"
                 f"**Subject:** Animal experiment concluded.\n\n"
-                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animals to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 50,000 credits, remove all of your animals, and give you an extra 0.2% income rate for the next universe from all income.  Congratulations!\n\n"
+                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animals to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 50,000 credits, remove all of your animals, allow one more animal of every level, and give you an extra 20% income rate for the next universe from all income.  Congratulations!\n\n"
                 f"From, The Head {animal.title()}"
             )
             await ctx.send(new)
@@ -394,3 +432,4 @@ class Evolution(commands.Cog):
         else:
             async with self.lock:
                 await self.conf.user(ctx.author).animals.set(animals)
+        self.inmarket.remove(ctx.author.id)

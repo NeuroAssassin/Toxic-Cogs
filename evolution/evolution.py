@@ -17,6 +17,17 @@ from .tasks import EvolutionTaskManager
 
 ANIMALS = ["chicken", "dog", "cat", "shark", "tiger", "penguin", "pupper", "dragon"]
 
+IMAGES = {
+    "shark": "https://www.bostonmagazine.com/wp-content/uploads/sites/2/2019/05/Great-white-shark.jpg",
+    "chicken": "https://i1.wp.com/thechickhatchery.com/wp-content/uploads/2018/01/RI-White.jpg?fit=371%2C363&ssl=1",
+    "penguin": "https://cdn.britannica.com/77/81277-050-2A6A35B2/Adelie-penguin.jpg",
+    "dragon": "https://images-na.ssl-images-amazon.com/images/I/61NTUxEnn0L._SL1032_.jpg",
+    "tiger": "https://c402277.ssl.cf1.rackcdn.com/photos/18134/images/hero_small/Medium_WW226365.jpg?1574452099",
+    "cat": "https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png",
+    "dog": "https://d17fnq9dkz9hgj.cloudfront.net/breed-uploads/2018/09/dog-landing-hero-lg.jpg?bust=1536935129&width=1080",
+    "pupper": "https://i.ytimg.com/vi/MPV2METPeJU/maxresdefault.jpg"
+}
+
 
 class Evolution(commands.Cog):
     """EVOLVE THOSE ANIMALS!!!!!!!!!!!"""
@@ -275,6 +286,7 @@ class Evolution(commands.Cog):
                     description=f"You have {str(amount)} Level {level} {animal}{'s' if amount != 1 else ''}",
                     color=0xD2B48C,
                 )
+                embed.set_thumbnail(url=IMAGES[animal])
                 embed_list.append(embed)
             await menu(ctx, embed_list, DEFAULT_CONTROLS)
         else:
@@ -283,6 +295,7 @@ class Evolution(commands.Cog):
                 color=0xD2B48C,
                 description=f"Multiplier: {inline(str(multiplier))}\nMax amount of animals: {inline(str(e))}",
             )
+            embed.set_thumbnail(url=IMAGES[animal])
             for level, amount in animals.items():
                 if amount == 0:
                     continue

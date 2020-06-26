@@ -25,7 +25,7 @@ IMAGES = {
     "tiger": "https://c402277.ssl.cf1.rackcdn.com/photos/18134/images/hero_small/Medium_WW226365.jpg?1574452099",
     "cat": "https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png",
     "dog": "https://d17fnq9dkz9hgj.cloudfront.net/breed-uploads/2018/09/dog-landing-hero-lg.jpg?bust=1536935129&width=1080",
-    "pupper": "https://i.ytimg.com/vi/MPV2METPeJU/maxresdefault.jpg"
+    "pupper": "https://i.ytimg.com/vi/MPV2METPeJU/maxresdefault.jpg",
 }
 
 
@@ -253,7 +253,7 @@ class Evolution(commands.Cog):
 
         highest_level = max([int(a) for a in animals.keys() if int(animals[a]) > 0])
         highest_level -= 3
-        if start_level:
+        if start_level and not (animals.get(str(start_level), False) is False):
             highest_level = start_level
 
         highest_level -= 1

@@ -8,4 +8,4 @@ async def setup(bot):
         raise RuntimeError("Bank must be global for this cog to work.")
     cog = Evolution(bot)
     bot.add_cog(cog)
-    await cog.initialize()
+    await cog.utils.initialize()

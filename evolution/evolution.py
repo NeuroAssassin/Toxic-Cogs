@@ -1,8 +1,10 @@
 from redbot.core import commands, Config, bank, checks, errors
-from redbot.core.utils.chat_formatting import humanize_number, inline
+from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import humanize_number, humanize_timedelta, inline
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 from redbot.core.utils import AsyncIter
 from collections import defaultdict
+from datetime import timedelta
 import copy
 import asyncio
 import random
@@ -10,41 +12,28 @@ import discord
 import math
 import traceback
 
-ANIMALS = ["chicken", "dog", "cat", "shark", "tiger", "penguin", "pupper", "dragon"]
+from .utils import EvolutionUtils
+from .tasks import EvolutionTaskManager
 
-LEVELS = {
-    1: {80: 1, 100: 10},
-    2: {60: 1, 100: 10},
-    3: {50: 1, 90: 10, 100: 100},
-    4: {30: 1, 70: 10, 100: 100},
-    5: {10: 1, 60: 10, 100: 100},
-    6: {40: 10, 100: 100},
-    7: {20: 10, 90: 100, 100: 1000},
-    8: {80: 100, 100: 1000},
-    9: {60: 100, 100: 1000},
-    10: {50: 100, 100: 1000},
-    11: {40: 100, 100: 1000},
-    12: {30: 100, 100: 1000},
-    13: {20: 100, 100: 1000},
-    14: {10: 100, 100: 1000},
-    15: {100: 1000},
-}
+ANIMALS = ["chicken", "dog", "cat", "shark", "tiger", "penguin", "pupper", "dragon"]
 
 
 class Evolution(commands.Cog):
     """EVOLVE THOSE ANIMALS!!!!!!!!!!!"""
 
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: Red = bot
         self.lock = asyncio.Lock()
-
-        self.conf = Config.get_conf(self, identifier=473541068378341376)
-        default_user = {"animal": "", "animals": {}, "multiplier": 1.0, "bought": {}}
-        self.conf.register_user(**default_user)
+        self.conf: Config = Config.get_conf(self, identifier=473541068378341376)
         self.cache = defaultdict(self.cache_defaults)  # Thanks to Theelx#4980
 
+        self.utils: EvolutionUtils = EvolutionUtils(self)
+        self.task_manager: EvolutionTaskManager = EvolutionTaskManager(self)
+
+        self.utils.init_config()
+        self.task_manager.init_tasks()
+
         self.inmarket = []
-        self.task = self.bot.loop.create_task(self.bg_task())
 
     def cache_defaults(self):
         return {"animal": "", "animals": {}, "multiplier": 1.0, "bought": {}}
@@ -54,63 +43,7 @@ class Evolution(commands.Cog):
 
     def __unload(self):
         self.cache.clear()
-        self.task.cancel()
-
-    async def initialize(self):
-        config = await self.conf.all_users()
-        for k, v in config.items():
-            self.cache[k] = v
-
-    async def bg_task(self):
-        await self.bot.wait_until_ready()
-        while True:
-            for userid, data in self.cache.copy().items():
-                animal = data["animal"]
-                if animal == "":
-                    continue
-                multiplier = data["multiplier"]
-                animals = data["animals"]
-                all_gaining = 0
-                for key, value in animals.items():
-                    for x in range(0, value):
-                        chance = random.randint(1, 100)
-                        try:
-                            chances = list(LEVELS[int(key)].keys())
-                        except:
-                            chances = [100]
-                        chosen = min([c for c in chances if chance <= c])
-                        try:
-                            gaining = LEVELS[int(key)][chosen]
-                        except:
-                            gaining = 1000
-                        gaining *= multiplier
-                        all_gaining += gaining * 0.5
-                user = self.bot.get_user(userid)
-                if user is None:
-                    user = await self.bot.fetch_user(userid)  # Prepare to be rate limited :aha:
-                if user:
-                    try:
-                        await bank.deposit_credits(user, math.ceil(all_gaining))
-                    except errors.BalanceTooHigh:
-                        # Welp, they need to evolve stuff
-                        pass
-                await asyncio.sleep(0.1)
-            await asyncio.sleep(60)
-
-    def get_total_price(self, level, bought, amount):
-        total = 0
-        for x in range(amount):
-            normal = level * 800
-            level_tax = ((2 ** level) * 100) - 200
-            tax = bought * 300
-            total += normal + level_tax + tax + (x * 300)
-        return total
-
-    async def shop_control_callback(self, ctx, pages, controls, message, page, timeout, emoji):
-        description = message.embeds[0].description
-        level = int(description.split(" ")[1])
-        self.bot.loop.create_task(ctx.invoke(self.buy, level=level))
-        return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
+        self.task_manager.shutdown()
 
     @commands.group(aliases=["e", "evo"])
     async def evolution(self, ctx):
@@ -118,30 +51,20 @@ class Evolution(commands.Cog):
         pass
 
     @checks.is_owner()
-    @evolution.command(aliases=["cd"])
-    async def checkdelivery(self, ctx):
+    @evolution.group()
+    async def tasks(self, ctx):
+        """View the status of the cog tasks.
+
+        These are for debugging purposes"""
+        pass
+
+    @tasks.command(aliases=["checkdelivery", "cd"])
+    async def income(self, ctx):
         """Check the delivery status of your money.
 
-        In reality terms, check to see if the background tasks have run into an issue"""
-        message = "Task is currently "
-        cancelled = self.task.cancelled()
-        if cancelled:
-            message += "canceled."
-        else:
-            done = self.task.done()
-            if done:
-                message += "done."
-            else:
-                message += "running."
-        try:
-            e = self.task.exception()
-        except asyncio.exceptions.InvalidStateError:
-            message += "  No error has been encountered."
-        else:
-            ex = traceback.format_exception(type(e), e, e.__traceback__)
-            message += f"  An error has been encountered.  Please report the following to Neuro Assassin on the help server. ```py\n{''.join(ex)}```"
-        if len(message) > 2000:
-            message = message[:1994] + "...```"
+        In reality terms, check to see if the income background task has run into an issue"""
+        statuses = self.task_manager.get_statuses()
+        message = self.utils.format_task(statuses["income"])
         await ctx.send(message)
 
     @checks.is_owner()
@@ -196,7 +119,7 @@ class Evolution(commands.Cog):
         )
 
     @evolution.command()
-    async def buy(self, ctx, level: int, amount: int = 1):
+    async def buy(self, ctx, level: int, amount: int = 1, skip_confirmation: bool = False):
         """Buy those animals to get more economy credits"""
         if ctx.author.id in self.inmarket:
             return await ctx.send("You're already at the market")
@@ -216,13 +139,13 @@ class Evolution(commands.Cog):
         prev = int(animals.get(str(level), 0))
         balance = await bank.get_balance(ctx.author)
         current_bought = int(bought.get(str(level), 0))
-        price = self.get_total_price(level, current_bought, amount)
+        price = self.utils.get_total_price(level, current_bought, amount)
 
         e = math.ceil((multiplier - 1) * 5)
 
         if balance < price:
             self.inmarket.remove(ctx.author.id)
-            return await ctx.send("You don't have enough credits!")
+            return await ctx.send(f"You need {humanize_number(price)} credits for all of that!")
         if prev >= 6 + e:
             self.inmarket.remove(ctx.author.id)
             return await ctx.send("You have too many of those!  Evolve some of them already.")
@@ -239,28 +162,29 @@ class Evolution(commands.Cog):
             self.inmarket.remove(ctx.author.id)
             return await ctx.send("Please get higher animals to buy higher levels of them.")
 
-        m = await ctx.send(
-            f"Are you sure you want to buy {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}?  This will cost you {humanize_number(price)}."
-        )
-        await m.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-        await m.add_reaction("\N{CROSS MARK}")
-
-        def check(reaction, user):
-            return (
-                (user.id == ctx.author.id)
-                and (str(reaction.emoji) in ["\N{WHITE HEAVY CHECK MARK}", "\N{CROSS MARK}"])
-                and (reaction.message.id == m.id)
+        if not skip_confirmation:
+            m = await ctx.send(
+                f"Are you sure you want to buy {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}?  This will cost you {humanize_number(price)}."
             )
+            await m.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            await m.add_reaction("\N{CROSS MARK}")
 
-        try:
-            reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
-        except asyncio.TimeoutError:
-            self.inmarket.remove(ctx.author.id)
-            return await ctx.send(f"You left the {animal} shop without buying anything.")
+            def check(reaction, user):
+                return (
+                    (user.id == ctx.author.id)
+                    and (str(reaction.emoji) in ["\N{WHITE HEAVY CHECK MARK}", "\N{CROSS MARK}"])
+                    and (reaction.message.id == m.id)
+                )
 
-        if str(reaction.emoji) == "\N{CROSS MARK}":
-            self.inmarket.remove(ctx.author.id)
-            return await ctx.send(f"You left the {animal} shop without buying anything.")
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", check=check, timeout=60.0)
+            except asyncio.TimeoutError:
+                self.inmarket.remove(ctx.author.id)
+                return await ctx.send(f"You left the {animal} shop without buying anything.")
+
+            if str(reaction.emoji) == "\N{CROSS MARK}":
+                self.inmarket.remove(ctx.author.id)
+                return await ctx.send(f"You left the {animal} shop without buying anything.")
         animals[str(level)] = prev + amount
         bought[level] = current_bought + 1
 
@@ -279,7 +203,7 @@ class Evolution(commands.Cog):
 
     @checks.bot_has_permissions(embed_links=True)
     @evolution.command()
-    async def shop(self, ctx):
+    async def shop(self, ctx, start_level: int = None):
         """View them animals in a nice little buying menu"""
         async with self.lock:
             data = await self.conf.user(ctx.author).all()
@@ -291,32 +215,44 @@ class Evolution(commands.Cog):
             return await ctx.send("Finish starting your evolution first")
 
         embed_list = []
-        for x in list(animals.keys()):
+        for x in range(1, max(list(map(int, animals.keys()))) + 1):
             embed = discord.Embed(
                 title=f"{animal.title()} Shop", description=f"Level {str(x)}", color=0xD2B48C,
             )
-            embed.add_field(name="You currently own", value=animals[x])
+            embed.add_field(name="You currently own", value=animals.get(str(x), 0))
             current = int(bought.get(str(x), 0))
             embed.add_field(name="You have bought", value=current)
             embed.add_field(
-                name="Price", value=humanize_number(self.get_total_price(int(x), current, 1))
+                name="Price", value=humanize_number(self.utils.get_total_price(int(x), current, 1))
             )
             last = 0
             chances = []
             try:
-                for chance, value in LEVELS[int(x)].items():
+                for chance, value in self.utils.levels[int(x)].items():
                     chances.append(f"{str(chance-last)}% chance to gain {str(value)}")
                     last = chance
             except KeyError:
                 chances = ["100% chance to gain 1000"]
             embed.add_field(name="Income", value="\n".join(chances))
+            embed.add_field(
+                name="Credit delay",
+                value=humanize_timedelta(timedelta=timedelta(seconds=self.utils.delays[int(x)])),
+            )
             embed_list.append(embed)
+
+        highest_level = max([int(a) for a in animals.keys() if int(animals[a]) > 0])
+        highest_level -= 3
+        if start_level:
+            highest_level = start_level
+
+        highest_level -= 1
+
         controls = copy.deepcopy(DEFAULT_CONTROLS)
-        controls["\N{MONEY BAG}"] = self.shop_control_callback
-        await menu(ctx, embed_list, controls)
+        controls["\N{MONEY BAG}"] = self.utils.shop_control_callback
+        await menu(ctx, embed_list, controls, page=highest_level)
 
     @checks.bot_has_permissions(embed_links=True)
-    @evolution.command()
+    @evolution.command(aliases=["by"])
     async def backyard(self, ctx, use_menu: bool = False):
         """Where ya animals live!  Pass 1 or true to put it in a menu."""
         async with self.lock:
@@ -392,7 +328,9 @@ class Evolution(commands.Cog):
 
         if nextlevel + amount > 6 + e:
             self.inmarket.remove(ctx.author.id)
-            return await ctx.send("You'd have to many of those!  Evolve some of them instead!")
+            return await ctx.send(
+                f"You'd have too many Level {str(level + 1)}s!  Evolve some of them instead!"
+            )
 
         found_new = False
         recreate = False
@@ -433,3 +371,15 @@ class Evolution(commands.Cog):
             async with self.lock:
                 await self.conf.user(ctx.author).animals.set(animals)
         self.inmarket.remove(ctx.author.id)
+
+    @checks.admin()
+    @evolution.group(disabled=True)
+    async def traveler(self, ctx):
+        """Manage how often the traveler comes, and where he comes"""
+        pass
+
+    @checks.is_owner()
+    @traveler.command()
+    async def delay(self, ctx):
+        """Set how long it takes for the Traveler to come"""
+        pass

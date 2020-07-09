@@ -144,7 +144,7 @@ class DashboardRPC:
     @rpccheck()
     async def get_commands(self):
         returning = []
-        for name, cog in self.bot.cogs.items():
+        for name, cog in self.bot.cogs.copy().items():
             stripped = []
             for c in cog.__cog_commands__:
                 if not c.parent:

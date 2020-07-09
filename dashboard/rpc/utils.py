@@ -37,7 +37,7 @@ def permcheck(cog: str = None, permissions: List[str] = ["view"]):
             perms = self.cog.rpc.get_perms(guild, m)
             if perms is None:
                 return {"status": 0, "message": "Unknown guild"}
-            if member != guildobj.owner_id:
+            if int(member) != guildobj.owner_id:
                 for perm in permissions:
                     if perm not in perms:
                         return {"status": 0, "message": "Unknown guild"}

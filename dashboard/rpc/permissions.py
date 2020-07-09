@@ -181,10 +181,6 @@ class DashboardRPC_Permissions:
     ):
         ctx = FakePermissionsContext(self.bot, guild)
         cog = self.bot.get_cog("Permissions")
-        assert str(guild.id) == "133049272517001216"
-        assert str(member.id) == "473541068378341376"
-        assert str(target) == "345628097929936898"
-        assert command == "trivia list"
         try:
             cog_or_command = await CogOrCommand.convert(ctx, command)
         except commands.BadArgument:

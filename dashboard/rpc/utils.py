@@ -20,7 +20,7 @@ def rpccheck():
     return conditional
 
 
-def permcheck(cog: str = None, permissions: List = ["view"]):
+def permcheck(cog: str = None, permissions: List[str] = ["view"]):
     def conditional(func):
         @functools.wraps(func)
         async def permcheckwrapped(self, guild: int, member: int, *args, **kwargs):

@@ -11,7 +11,7 @@ THEME_COLORS = ["red", "primary", "blue", "green", "greener", "yellow"]
 
 class Dashboard(commands.Cog):
 
-    __version__ = "0.1.3a.dev"
+    __version__ = "0.1.4a"
 
     def __init__(self, bot: Red):
         self.bot = bot

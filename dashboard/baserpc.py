@@ -75,7 +75,7 @@ class DashboardRPC:
                     details["subs"] = await self.build_cmd_list(cmd.commands)
                 final.append(details)
             else:
-                if cmd.hidden:
+                if cmd.requires.privilege_level == PrivilegeLevel.BOT_OWNER:
                     continue
                 final.append(cmd.qualified_name)
                 if isinstance(cmd, commands.Group):
@@ -84,14 +84,14 @@ class DashboardRPC:
 
     def get_perms(self, guildid: int, m: discord.Member):
         try:
-            role_data = self.cog.configcache[guildid]["roles"]
+            role_data = self.cog.configcache[int(guildid)]["roles"]
         except KeyError:
             return None
         roles = [r.id for r in m.roles]
         perms = []
         for role in role_data:
             if role["roleid"] in roles:
-                perms += role["perms"]
+                perms += [p for p in role["perms"] if not p in perms]
         return perms
 
     @rpccheck()
@@ -158,6 +158,7 @@ class DashboardRPC:
 
     @rpccheck()
     async def get_users_servers(self, userid: int):
+        userid = int(userid)
         guilds = []
         is_owner = False
         try:

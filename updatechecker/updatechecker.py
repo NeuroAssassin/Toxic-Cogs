@@ -1,4 +1,4 @@
-# Huge thanks to Sinbad for allowing me to copy parts of his RSS cog, which I used to grab the latest commits from repositories.
+# Huge thanks to Sinbad for allowing me to copy parts of his RSS cog (https://github.com/mikeshardmind/SinbadCogs/tree/v3/rss), which I used to grab the latest commits from repositories.
 
 # Also, the code I use for updating repos I took directly from Red, and just took out the message interactions
 

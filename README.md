@@ -37,13 +37,11 @@ These cogs are made for [Red V3](https://github.com/Cog-Creators/Red-DiscordBot)
 | ListPermissions | <details><summary>List the permissions of a role or user</summary>Get the permissions of a user or role in a certain channel or guild-wide.</details> |
 | Minesweeper | <details><summary>Play minesweeper in Discord</summary>Play minesweeper interactively on the bot or with spoilers</details> |
 | Simon | <details><summary>Play Simon in Discord</summary>Play Simon in Discord and guess the correct sequences</details> |
-| SQL | <details><summary>Store data in Discord with SQL</summary>Store data in a database inside of Discord to call for later use, and limit those who can access or edit the data</details> |
 | Twenty | <details><summary>Play 2048 in Discord</summary>Play 2048 in Discord with reactions</details> |
 | UpdateChecker | <details><summary>Get notifications when there is an update for one of your repositories added to your bot</summary>Have your bot tell you in DM or a channel when there is an update for one of the repos added to your bot</details> |
 | SW | <details><summary>Get Star Wars information through Discord</summary>Get info about something in Star Wars using this cog</details> |
 | Maintenance | <details><summary>Put your bot on maintenance</summary>Put your bot on maintenance, telling people who are not in the whitelist for the maintenance that the bot is on maintenance, and will not respond to commands</details> |
 | Evolution | <details><summary>Buy animals with economy credits and get more credits!</summary>A cog that I made after a mobile app, kinda cheesy but fun.</details> |
-| Switcher | <details><summary>Switch between bot accounts quick and easily</summary>Register the bot with a name and the correct token, then just run a command to easily switch to it</details> |
 | Deleter | <details><summary>Auto-delete messages after a certain amount of time</summary>Delete messages after a certain amount of specified time, after the message was sent</details> |
 | Editor | <details><summary>Edit messages sent by the bot</summary>Allows an administrator to edit one of the bot's messages, by either copying the content and/or embed from a previously sent message from the bot, or by the specified content</details> |
 | Targeter | <details><summary>Target users in the guild based upon the passed arguments</summary>Allows arguments for dates, roles, names, activities, statuses or devices.</details> |

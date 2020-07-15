@@ -8,7 +8,6 @@ import re
 import functools
 
 ["abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz"]
-try
 
 class Color(commands.Cog):
     """View embeds showcasing the supplied color and information about it"""

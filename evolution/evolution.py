@@ -1,10 +1,13 @@
 from redbot.core import commands, Config, bank, checks, errors
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import humanize_number, humanize_timedelta, inline
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+from redbot.core.utils.chat_formatting import humanize_number, humanize_timedelta, inline, box
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu, start_adding_reactions
+from redbot.core.utils.predicates import ReactionPredicate
 from redbot.core.utils import AsyncIter
 from collections import defaultdict
 from datetime import timedelta
+from tabulate import tabulate
+from typing import Optional
 import copy
 import asyncio
 import random
@@ -129,11 +132,32 @@ class Evolution(commands.Cog):
             f"Your animal has been set to {message.content}.  You have been granted one to start."
         )
 
-    @evolution.command()
-    async def buy(self, ctx, level: int, amount: int = 1, skip_confirmation: bool = False):
-        """Buy those animals to get more economy credits"""
+    @evolution.group()
+    async def market(self, ctx):
+        """Buy or sell animals from different sellers"""
+        pass
+
+    @market.command(aliases=["shop"])
+    async def store(
+        self,
+        ctx,
+        level: Optional[int] = None,
+        amount: Optional[int] = 1,
+        skip_confirmation: Optional[bool] = False,
+    ):
+        """Buy animals from the always in-stock store.
+        
+        While the store will always have animals for sale, you cannot buy above a certain level,
+        and they will be for a higher price."""
+        if level is None:
+            if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+                return await self.shop(ctx)
+            else:
+                return await ctx.send(
+                    'I require the "Embed Links" permission to display the shop.'
+                )
         if ctx.author.id in self.inmarket:
-            return await ctx.send("You're already at the market")
+            return await ctx.send("Complete your current transaction or evolution first.")
         self.inmarket.append(ctx.author.id)
         async with self.lock:
             data = await self.conf.user(ctx.author).all()
@@ -172,6 +196,9 @@ class Evolution(commands.Cog):
         if (level > int(highest) - 3) and (level > 1):
             self.inmarket.remove(ctx.author.id)
             return await ctx.send("Please get higher animals to buy higher levels of them.")
+        if level > 22:
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send("The highest level you can buy is level 22.")
 
         if not skip_confirmation:
             m = await ctx.send(
@@ -208,14 +235,15 @@ class Evolution(commands.Cog):
 
         await bank.withdraw_credits(ctx.author, price)
         await ctx.send(
-            f"You bought {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}"
+            box(
+                f"[Transaction Complete]\nYou spent {humanize_number(price)} credits to buy {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}.",
+                "css",
+            )
         )
         self.inmarket.remove(ctx.author.id)
 
-    @checks.bot_has_permissions(embed_links=True)
-    @evolution.command()
     async def shop(self, ctx, start_level: int = None):
-        """View them animals in a nice little buying menu"""
+        """Friendlier menu for displaying the animals available at the store."""
         async with self.lock:
             data = await self.conf.user(ctx.author).all()
         animals = data["animals"]
@@ -258,9 +286,246 @@ class Evolution(commands.Cog):
 
         highest_level -= 1
 
+        if highest_level < 0:
+            highest_level = 0
+
         controls = copy.deepcopy(DEFAULT_CONTROLS)
         controls["\N{MONEY BAG}"] = self.utils.shop_control_callback
         await menu(ctx, embed_list, controls, page=highest_level)
+
+    @market.command()
+    async def daily(self, ctx):
+        """View the daily deals.
+
+        These will come at a lower price than the store, but can only be bought once per day.
+        
+        Status guide:
+            A: Available to be bought and put in backyard
+            B: Already purchased
+            S: Available to be bought, but will be put in stash because you either do not have the space for the, or above your level threshold"""
+        async with self.lock:
+            data = await self.conf.user(ctx.author).all()
+        animals = data["animals"]
+        animal = data["animal"]
+
+        if animal in ["", "P"]:
+            return await ctx.send("Finish starting your evolution first")
+
+        multiplier = data["multiplier"]
+        highest = max(list(map(int, animals.keys())))
+        e = 6 + math.ceil((multiplier - 1) * 5)
+
+        display = []
+        deals = await self.conf.daily()
+        for did, deal in deals.items():
+            status = ""
+            amount = deal["details"]["amount"]
+            level = deal["details"]["level"]
+            if ctx.author.id in deal["bought"]:
+                status = "[B]"
+            elif (level > int(highest) - 3 and level != 1) or (
+                amount + animals.get(str(level), 0) > e
+            ):
+                status = "#S "
+            else:
+                status = " A "
+
+            price = self.utils.get_total_price(level, 0, amount, False) * 0.75
+
+            display.append(
+                [
+                    did,
+                    status,
+                    humanize_number(price),
+                    f"{amount} Level {level} {animal}{'s' if amount != 1 else ''}",
+                ]
+            )
+
+        message = await ctx.send(
+            f"{box(tabulate(display, tablefmt='psql'), lang='css')}Would you like to buy any of these fine animals?  Click the corresponding reaction below."
+        )
+        emojis = ReactionPredicate.NUMBER_EMOJIS[1:7]
+        start_adding_reactions(message, emojis)
+
+        pred = ReactionPredicate.with_emojis(emojis, message)
+        try:
+            await self.bot.wait_for("reaction_add", check=pred, timeout=60.0)
+        except asyncio.TimeoutError:
+            return await ctx.send(
+                "The vendor grew uncomfortable with you there, and told you to leave and come back later."
+            )
+
+        if ctx.author.id in self.inmarket:
+            return await ctx.send("Complete your current transaction or evolution first.")
+        self.inmarket.append(ctx.author.id)
+        buying = pred.result + 1
+
+        deal = deals[str(buying)]
+        if ctx.author.id in deal["bought"]:  # ;no
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send(
+                "You already bought this deal.  You cannot buy daily deals multiple times."
+            )
+
+        level = deal["details"]["level"]
+        amount = deal["details"]["amount"]
+
+        price = self.utils.get_total_price(level, 0, amount, False) * 0.75
+        balance = await bank.get_balance(ctx.author)
+
+        if balance < price:
+            self.inmarket.remove(ctx.author.id)
+            return await ctx.send(
+                f"You need {humanize_number(price - balance)} more credits to buy that deal."
+            )
+
+        stashing = 0
+        delivering = amount
+        if level > int(highest) - 3 and level != 1:
+            stashing = amount
+            delivering = 0
+        elif amount + animals.get(str(level), 0) > e:
+            delivering = e - animals[str(level)]
+            stashing = amount - delivering
+
+        async with self.lock:
+            async with self.conf.user(ctx.author).all() as data:
+                data["animals"][str(level)] = animals.get(str(level), 0) + delivering
+
+                if stashing:
+                    current_stash = data["stash"]["animals"].get(str(level), 0)
+                    data["stash"]["animals"][str(level)] = current_stash + stashing
+
+                self.cache[ctx.author.id] = data
+            async with self.conf.daily() as data:  # In case someone buys at the same time, we need to re-read the data
+                data[str(buying)]["bought"].append(ctx.author.id)
+
+        await bank.withdraw_credits(ctx.author, int(price))
+        await ctx.send(
+            box(
+                (
+                    f"[Transaction Complete]\nYou spent {humanize_number(price)} credits to buy {amount} Level {str(level)} {animal}{'s' if amount != 1 else ''}."
+                    f"\n\n{delivering} have been added to your backyard, {stashing} have been sent to your stash."
+                ),
+                "css",
+            )
+        )
+        self.inmarket.remove(ctx.author.id)
+
+    @evolution.group()
+    async def stash(self, ctx):
+        """Where your special animals are put if you cannot hold them in your backyard"""
+        if not ctx.invoked_subcommand:
+            await ctx.invoke(self.view)
+
+    @stash.command()
+    async def view(self, ctx):
+        """View the animals and perks you have in your stash"""
+        async with self.lock:
+            data = await self.conf.user(ctx.author).all()
+
+        animal = data["animal"]
+
+        if animal in ["", "P"]:
+            return await ctx.send("Finish starting your evolution first")
+
+        if await ctx.embed_requested():
+            embed = discord.Embed(
+                title=f"{ctx.author.display_name}'s stash",
+                description=(
+                    "Animals/perks in your stash have no impact on you.  "
+                    "They are here because you could not hold them at the time you picked up the items, or required approval."
+                ),
+                color=0xD2B48C,
+            )
+            asv = ""
+            if not data["stash"]["animals"]:
+                asv = inline("You do not have any animals in your stash.")
+            else:
+                for level, amount in data["stash"]["animals"].items():
+                    asv += f"{humanize_number(amount)} Level {level} animal{'s' if amount != 1 else ''}\n"
+            embed.add_field(name="Animal Stash", value=asv)
+
+            psv = ""
+            if not data["stash"]["perks"]:
+                psv = inline("You do not have any perks in your stash.")
+            else:
+                pass
+                # for level, amount in data["stash"]["perks"].items():
+                #     asv += f"{humanize_number(amount)} Level {level} animal{'s' if amount != 1 else ''}\n"
+            embed.add_field(name="Perk Stash", value=psv)
+
+            await ctx.send(embed=embed)
+
+    @stash.group()
+    async def claim(self, ctx):
+        """Claim animals or perks from your stash."""
+
+    @claim.command()
+    async def animal(self, ctx, level: int):
+        """Claim animals from your stash"""
+        async with self.lock:
+            data = await self.conf.user(ctx.author).all()
+
+        animal = data["animal"]
+        animals = data["animals"]
+        stash = data["stash"]
+        multiplier = data["multiplier"]
+        highest = max(list(map(int, animals.keys())))
+        e = 6 + math.ceil((multiplier - 1) * 5)
+
+        try:
+            level = int(level)
+        except ValueError:
+            return await ctx.send("Invalid level; please supply a number.")
+
+        if level > 25 or level < 1:
+            return await ctx.send("Invalid level; level cannot be above 25 or below 1.")
+
+        try:
+            amount = stash["animals"][str(level)]
+            assert amount != 0
+        except (KeyError, AssertionError):
+            return await ctx.send("You don't have any animals at that level in your stash.")
+
+        if level > int(highest) - 3 and level != 1:
+            return await ctx.send(
+                "You are not of a required level to claim those animals from stash.  Cancelled."
+            )
+
+        if animals.get(str(level), 0) == e:
+            return await ctx.send(
+                f"You already have the max amount of Level {level} animals in your backyard.  Cancelled."
+            )
+
+        async with self.lock:
+            async with self.conf.user(ctx.author).all() as new_data:
+                current = new_data["animals"].get(str(level), 0)
+                amount = new_data["stash"]["animals"][str(level)]
+                claiming = min([e - current, amount])
+
+                full = True
+                if claiming != amount:
+                    full = False
+
+                new_data["animals"][str(level)] = current + claiming
+                if amount - claiming == 0:
+                    del new_data["stash"]["animals"][str(level)]
+                else:
+                    new_data["stash"]["animals"][str(level)] = amount - claiming
+
+                self.cache[ctx.author.id] = new_data
+        extra = ""
+        if not full:
+            extra = f"There are still {amount - claiming} {animal}{'s' if claiming != 1 else ''} left in your Level {level} stash."
+        await ctx.send(
+            f"Successfully moved {claiming} {animal}{'s' if claiming != 1 else ''} from your stash to your backyard.  {extra}"
+        )
+
+    @claim.command(hidden=True)
+    async def perk(self, ctx, *, name: str):
+        """Claim a perk from your stash"""
+        return await ctx.send("This command is not available.  Check back soon!")
 
     @checks.bot_has_permissions(embed_links=True)
     @evolution.command(aliases=["by"])
@@ -296,6 +561,7 @@ class Evolution(commands.Cog):
                 description=f"Multiplier: {inline(str(multiplier))}\nMax amount of animals: {inline(str(e))}",
             )
             embed.set_thumbnail(url=IMAGES[animal])
+            animals = {k: v for k, v in sorted(animals.items(), key=lambda x: int(x[0]))}
             for level, amount in animals.items():
                 if amount == 0:
                     continue
@@ -309,7 +575,7 @@ class Evolution(commands.Cog):
     async def evolve(self, ctx, level: int, amount: int = 1):
         """Evolve them animals to get more of da economy credits"""
         if ctx.author.id in self.inmarket:
-            return await ctx.send("Leave the market before evolving your animals")
+            return await ctx.send("Complete your current transaction or evolution first.")
         self.inmarket.append(ctx.author.id)
         if level < 1 or amount < 1:
             self.inmarket.remove(ctx.author.id)
@@ -350,20 +616,49 @@ class Evolution(commands.Cog):
         currentlevelstr = str(level)
         nextlevelstr = str(level + 1)
 
-        animals[currentlevelstr] -= 2 * amount
-        if highest == level:
-            found_new = True
-        animals[nextlevelstr] = animals.get(nextlevelstr, 0) + amount
-        if level + 1 == 26:
-            recreate = True
-
-        if found_new:
-            sending = "\nCONGRATULATIONS!  You have found a new animal!"
+        if level < 11:
+            number = random.randint(1, 100)
+        elif level < 21:
+            number = random.randint(1, 1000)
         else:
-            sending = ""
-        await ctx.send(
-            f"Successfully converted {str(amount * 2)} Level {currentlevelstr} {animal}s into {str(amount)} Level {nextlevelstr} {animal}{'s' if amount != 1 else ''}{sending}"
-        )
+            number = random.randint(1, 10000)
+        if number == 1:
+            # Evolution is going to fail
+            number = random.randint(1, 10)
+            extra = f"Your {animal}s were successfully recovered however."
+            if number != 1:
+                animals[currentlevelstr] -= 2 * amount
+                extra = f"Your {animal}s were unable to be recovered."
+            await ctx.send(
+                box(
+                    (
+                        f"Evolution [Failed]\n\nFailed to convert {str(amount * 2)} Level {currentlevelstr} {animal}s "
+                        f"into {str(amount)} Level {nextlevelstr} {animal}{'s'if amount != 1 else ''}.  {extra}"
+                    ),
+                    lang="css",
+                )
+            )
+        else:
+            animals[currentlevelstr] -= 2 * amount
+            if highest == level:
+                found_new = True
+            animals[nextlevelstr] = animals.get(nextlevelstr, 0) + amount
+            if level + 1 == 26:
+                recreate = True
+
+            if found_new:
+                sending = "CONGRATULATIONS!  You have found a new animal!"
+            else:
+                sending = ""
+            await ctx.send(
+                box(
+                    (
+                        f"Evolution #Successful\n\nSuccessfully converted {str(amount * 2)} Level {currentlevelstr} {animal}s "
+                        f"into {str(amount)} Level {nextlevelstr} {animal}{'s' if amount != 1 else ''}.\n\n{sending}"
+                    ),
+                    lang="css",
+                )
+            )
         if recreate:
             async with self.lock:
                 async with self.conf.user(ctx.author).all() as data:
@@ -379,20 +674,13 @@ class Evolution(commands.Cog):
                 f"From, The Head {animal.title()}"
             )
             await ctx.send(new)
-            await bank.deposit_credits(ctx.author, 50000)
+            try:
+                await bank.deposit_credits(ctx.author, 50000)
+            except errors.BalanceTooHigh:
+                return await ctx.send(
+                    "I failed to give you 50,000 credits due to your balance being too high."
+                )
         else:
             async with self.lock:
                 await self.conf.user(ctx.author).animals.set(animals)
         self.inmarket.remove(ctx.author.id)
-
-    @checks.admin()
-    @evolution.group(disabled=True)
-    async def traveler(self, ctx):
-        """Manage how often the traveler comes, and where he comes"""
-        pass
-
-    @checks.is_owner()
-    @traveler.command()
-    async def delay(self, ctx):
-        """Set how long it takes for the Traveler to come"""
-        pass

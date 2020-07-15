@@ -69,16 +69,13 @@ class SW(commands.Cog):
                         "url",
                     ]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 embed.set_thumbnail(url=IMAGES[person["name"]])
                 homeworld_num = int(person["homeworld"].split(r"/")[-2])
                 homeworld = await self.session.get(person["homeworld"])
                 homeworld = json.loads(await homeworld.text())
                 embed.add_field(
-                    name="Homeworld",
-                    value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
+                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
                 )
                 films = []
                 for film in person["films"]:
@@ -93,8 +90,7 @@ class SW(commands.Cog):
                     species = await self.session.get(person["species"][0])
                     species = json.loads(await species.text())
                     embed.add_field(
-                        name="Species",
-                        value=f"Name: {species['name']}; ID: {str(species_num)}",
+                        name="Species", value=f"Name: {species['name']}; ID: {str(species_num)}",
                     )
                 else:
                     embed.add_field(name="Species", value="Name: Unknown")
@@ -111,9 +107,7 @@ class SW(commands.Cog):
                     starship_num = int(starship.split(r"/")[-2])
                     response = await self.session.get(starship)
                     starship = json.loads(await response.text())
-                    starships.append(
-                        f"Name: {starship['name']}; ID: {str(starship_num)}"
-                    )
+                    starships.append(f"Name: {starship['name']}; ID: {str(starship_num)}")
                 if len(starships) != 0:
                     embed.add_field(name="Starships:", value="\n".join(starships))
                 await ctx.send(embed=embed)
@@ -127,9 +121,7 @@ class SW(commands.Cog):
                 person = json.loads(await response.text())
                 name = person["results"][0]["name"]
                 embed = discord.Embed(
-                    title=f"Person: {name}",
-                    description=HUMANDESCRIPTION[name],
-                    color=0x32CD32,
+                    title=f"Person: {name}", description=HUMANDESCRIPTION[name], color=0x32CD32,
                 )
                 for key, value in person["results"][0].items():
                     if key in [
@@ -144,16 +136,13 @@ class SW(commands.Cog):
                         "url",
                     ]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 embed.set_thumbnail(url=IMAGES[name])
                 homeworld_num = int(person["results"][0]["homeworld"].split(r"/")[-2])
                 homeworld = await self.session.get(person["results"][0]["homeworld"])
                 homeworld = json.loads(await homeworld.text())
                 embed.add_field(
-                    name="Homeworld",
-                    value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
+                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
                 )
                 films = []
                 for film in person["results"][0]["films"]:
@@ -164,14 +153,11 @@ class SW(commands.Cog):
                 if len(films) != 0:
                     embed.add_field(name="Films:", value="\n".join(films))
                 if person["results"][0]["species"]:
-                    species_num = int(
-                        person["results"][0]["species"][0].split(r"/")[-2]
-                    )
+                    species_num = int(person["results"][0]["species"][0].split(r"/")[-2])
                     species = await self.session.get(person["species"][0])
                     species = json.loads(await species.text())
                     embed.add_field(
-                        name="Species",
-                        value=f"Name: {species['name']}; ID: {str(species_num)}",
+                        name="Species", value=f"Name: {species['name']}; ID: {str(species_num)}",
                     )
                 else:
                     embed.add_field(name="Species", value="Name: Unknown")
@@ -188,9 +174,7 @@ class SW(commands.Cog):
                     starship_num = int(starship.split(r"/")[-2])
                     response = await self.session.get(starship)
                     starship = json.loads(await response.text())
-                    starships.append(
-                        f"Name: {starship['name']}; ID: {str(starship_num)}"
-                    )
+                    starships.append(f"Name: {starship['name']}; ID: {str(starship_num)}")
                 if len(starships) != 0:
                     embed.add_field(name="Starships:", value="\n".join(starships))
                 await ctx.send(embed=embed)
@@ -222,9 +206,7 @@ class SW(commands.Cog):
                         "url",
                     ]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 embed.set_thumbnail(url=PLANETTHUMBNAIL[planet["name"]])
                 embed.set_image(url=PLANETS[planet["name"]])
                 films = []
@@ -240,9 +222,7 @@ class SW(commands.Cog):
                     resident_num = int(resident.split(r"/")[-2])
                     response = await self.session.get(resident)
                     resident = json.loads(await response.text())
-                    residents.append(
-                        f"Name: {resident['name']}; ID: {str(resident_num)}"
-                    )
+                    residents.append(f"Name: {resident['name']}; ID: {str(resident_num)}")
                 if len(residents) != 0:
                     embed.add_field(name="Residents:", value="\n".join(residents))
                 await ctx.send(embed=embed)
@@ -256,9 +236,7 @@ class SW(commands.Cog):
                 planet = json.loads(await response.text())
                 name = planet["results"][0]["name"]
                 embed = discord.Embed(
-                    title=f"Planet: {name}",
-                    description=PLANETDESCRIPTION[name],
-                    color=0x800080,
+                    title=f"Planet: {name}", description=PLANETDESCRIPTION[name], color=0x800080,
                 )
                 for key, value in planet["results"][0].items():
                     if key in [
@@ -270,9 +248,7 @@ class SW(commands.Cog):
                         "url",
                     ]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 embed.set_thumbnail(url=PLANETTHUMBNAIL[name])
                 embed.set_image(url=PLANETS[name])
                 films = []
@@ -288,9 +264,7 @@ class SW(commands.Cog):
                     resident_num = int(resident.split(r"/")[-2])
                     response = await self.session.get(resident)
                     resident = json.loads(await response.text())
-                    residents.append(
-                        f"Name: {resident['name']}; ID: {str(resident_num)}"
-                    )
+                    residents.append(f"Name: {resident['name']}; ID: {str(resident_num)}")
                 if len(residents) != 0:
                     embed.add_field(name="Residents:", value="\n".join(residents))
                 await ctx.send(embed=embed)
@@ -300,15 +274,11 @@ class SW(commands.Cog):
         """Gets the info about a film by their ID"""
         if isinstance(film_id, int):
             async with ctx.typing():
-                response = await self.session.get(
-                    r"https://swapi.dev/api/films/" + str(film_id)
-                )
+                response = await self.session.get(r"https://swapi.dev/api/films/" + str(film_id))
                 if response.status == 404:
                     return await ctx.send("Invalid Film ID.")
                 film = json.loads(await response.text())
-                embed = discord.Embed(
-                    title=f"Film: {film['title']}; Page 1/4", color=0x0000FF
-                )
+                embed = discord.Embed(title=f"Film: {film['title']}; Page 1/4", color=0x0000FF)
                 embed.add_field(name="ID:", value=str(film_id))
                 for key, value in film.items():
                     if key in [
@@ -326,21 +296,15 @@ class SW(commands.Cog):
                         continue
                     value = value.title() if hasattr(value, "title") else value
                     embed.add_field(name=key.replace("_", " ").title(), value=value)
-                embed2 = discord.Embed(
-                    title=f"Film: {film['title']}; Page 2/4", color=0x0000FF
-                )
+                embed2 = discord.Embed(title=f"Film: {film['title']}; Page 2/4", color=0x0000FF)
                 embed2.add_field(name="Opening Crawl", value=film["opening_crawl"])
-                embed3 = discord.Embed(
-                    title=f"Film: {film['title']}; Page 3/4", color=0x0000FF
-                )
+                embed3 = discord.Embed(title=f"Film: {film['title']}; Page 3/4", color=0x0000FF)
                 residents = []
                 for resident in film["characters"]:
                     resident_num = int(resident.split(r"/")[-2])
                     response = await self.session.get(resident)
                     resident = json.loads(await response.text())
-                    residents.append(
-                        f"Name: {resident['name']}; ID: {str(resident_num)}"
-                    )
+                    residents.append(f"Name: {resident['name']}; ID: {str(resident_num)}")
                 if len(residents) != 0:
                     embed3.add_field(name="Characters:", value="\n".join(residents))
                 planets = []
@@ -351,9 +315,7 @@ class SW(commands.Cog):
                     planets.append(f"Name: {planet['name']}; ID: {str(planet_num)}")
                 if len(planets) != 0:
                     embed3.add_field(name="Planets:", value="\n".join(planets))
-                embed4 = discord.Embed(
-                    title=f"Film: {film['title']}; Page 4/4", color=0x0000FF
-                )
+                embed4 = discord.Embed(title=f"Film: {film['title']}; Page 4/4", color=0x0000FF)
                 objects = []
                 for entry in film["starships"]:
                     entry_num = int(entry.split(r"/")[-2])
@@ -407,18 +369,14 @@ class SW(commands.Cog):
                     value = value.title() if hasattr(value, "title") else value
                     embed.add_field(name=key.replace("_", " ").title(), value=value)
                 embed2 = discord.Embed(title=f"Film: {name}; Page 2/4", color=0x0000FF)
-                embed2.add_field(
-                    name="Opening Crawl", value=film["results"][0]["opening_crawl"]
-                )
+                embed2.add_field(name="Opening Crawl", value=film["results"][0]["opening_crawl"])
                 embed3 = discord.Embed(title=f"Film: {name}; Page 3/4", color=0x0000FF)
                 residents = []
                 for resident in film["results"][0]["characters"]:
                     resident_num = int(resident.split(r"/")[-2])
                     response = await self.session.get(resident)
                     resident = json.loads(await response.text())
-                    residents.append(
-                        f"Name: {resident['name']}; ID: {str(resident_num)}"
-                    )
+                    residents.append(f"Name: {resident['name']}; ID: {str(resident_num)}")
                 if len(residents) != 0:
                     embed3.add_field(name="Characters:", value="\n".join(residents))
                 planets = []
@@ -477,9 +435,7 @@ class SW(commands.Cog):
                 for key, value in starship.items():
                     if key in ["name", "films", "edited", "created", "url", "pilots"]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 embed.set_image(url=STARSHIPSIMAGES[starship["name"]])
                 objects = []
                 for entry in starship["films"]:
@@ -515,9 +471,7 @@ class SW(commands.Cog):
                 for key, value in starship["results"][0].items():
                     if key in ["name", "films", "edited", "created", "url", "pilots"]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 objects = []
                 embed.set_image(url=STARSHIPSIMAGES[name])
                 for entry in starship["results"][0]["films"]:
@@ -557,9 +511,7 @@ class SW(commands.Cog):
                 for key, value in vehicle.items():
                     if key in ["name", "films", "edited", "created", "url", "pilots"]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 objects = []
                 embed.set_image(url=VEHICLEIMAGE[vehicle["name"]])
                 for entry in vehicle["films"]:
@@ -588,16 +540,12 @@ class SW(commands.Cog):
                 vehicle = json.loads(await response.text())
                 name = vehicle["results"][0]["name"]
                 embed = discord.Embed(
-                    title=f"Vehicle: {name}",
-                    description=VEHICLEDESCRIPTION[name],
-                    color=0x228B22,
+                    title=f"Vehicle: {name}", description=VEHICLEDESCRIPTION[name], color=0x228B22,
                 )
                 for key, value in vehicle["results"][0].items():
                     if key in ["name", "films", "edited", "created", "url", "pilots"]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 objects = []
                 embed.set_image(url=VEHICLEIMAGE[name])
                 for entry in vehicle["results"][0]["films"]:
@@ -645,16 +593,13 @@ class SW(commands.Cog):
                         "url",
                     ]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 embed.set_thumbnail(url=SPECIESTHUMBNAIL[species["name"]])
                 homeworld_num = int(species["homeworld"].split(r"/")[-2])
                 homeworld = await self.session.get(species["homeworld"])
                 homeworld = json.loads(await homeworld.text())
                 embed.add_field(
-                    name="Homeworld",
-                    value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
+                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
                 )
                 objects = []
                 for entry in species["films"]:
@@ -683,9 +628,7 @@ class SW(commands.Cog):
                 species = json.loads(await response.text())
                 name = species["results"][0]["name"]
                 embed = discord.Embed(
-                    title=f"Species: {name}",
-                    description=SPECIESDESCRIPTION[name],
-                    color=0xD2B48C,
+                    title=f"Species: {name}", description=SPECIESDESCRIPTION[name], color=0xD2B48C,
                 )
                 embed.add_field(name="ID:", value=str(species_id))
                 for key, value in species["results"][0].items():
@@ -699,16 +642,13 @@ class SW(commands.Cog):
                         "url",
                     ]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 embed.set_thumbnail(url=SPECIESTHUMBNAIL[name])
                 homeworld_num = int(species["results"][0]["homeworld"].split(r"/")[-2])
                 homeworld = await self.session.get(species["results"][0]["homeworld"])
                 homeworld = json.loads(await homeworld.text())
                 embed.add_field(
-                    name="Homeworld",
-                    value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
+                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
                 )
                 objects = []
                 for entry in species["results"][0]["films"]:
@@ -768,19 +708,15 @@ class SW(commands.Cog):
                         "url",
                     ]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 homeworld_num = int(person["homeworld"].split(r"/")[-2])
                 embed.add_field(name="Homeworld", value=f"ID: {str(homeworld_num)}")
                 persons_list.append(embed)
             persons_list.sort(
                 key=lambda x: int(
-                    [
-                        field
-                        for field in x.to_dict()["fields"]
-                        if field["name"] == "ID:"
-                    ][0]["value"]
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
                 )
             )
         await menu(ctx, persons_list, DEFAULT_CONTROLS)
@@ -817,17 +753,13 @@ class SW(commands.Cog):
                         "url",
                     ]:
                         continue
-                    embed.add_field(
-                        name=key.replace("_", " ").title(), value=value.title()
-                    )
+                    embed.add_field(name=key.replace("_", " ").title(), value=value.title())
                 planets_list.append(embed)
             planets_list.sort(
                 key=lambda x: int(
-                    [
-                        field
-                        for field in x.to_dict()["fields"]
-                        if field["name"] == "ID:"
-                    ][0]["value"]
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
                 )
             )
         await menu(ctx, planets_list, DEFAULT_CONTROLS)
@@ -873,11 +805,9 @@ class SW(commands.Cog):
                 films_list.append(embed)
             films_list.sort(
                 key=lambda x: int(
-                    [
-                        field
-                        for field in x.to_dict()["fields"]
-                        if field["name"] == "ID:"
-                    ][0]["value"]
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
                 )
             )
         await menu(ctx, films_list, DEFAULT_CONTROLS)
@@ -901,9 +831,7 @@ class SW(commands.Cog):
                     break
             starships_list = []
             for starship in data:
-                embed = discord.Embed(
-                    title=f"Starship: {starship['name']}", color=0x000000
-                )
+                embed = discord.Embed(title=f"Starship: {starship['name']}", color=0x000000)
                 num = int(starship["url"].split(r"/")[-2])
                 embed.add_field(name="ID:", value=str(num))
                 for key, value in starship.items():
@@ -914,11 +842,9 @@ class SW(commands.Cog):
                 starships_list.append(embed)
             starships_list.sort(
                 key=lambda x: int(
-                    [
-                        field
-                        for field in x.to_dict()["fields"]
-                        if field["name"] == "ID:"
-                    ][0]["value"]
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
                 )
             )
         await menu(ctx, starships_list, DEFAULT_CONTROLS)
@@ -942,9 +868,7 @@ class SW(commands.Cog):
                     break
             vehicles_list = []
             for vehicle in data:
-                embed = discord.Embed(
-                    title=f"Vehicle: {vehicle['name']}", color=0x228B22
-                )
+                embed = discord.Embed(title=f"Vehicle: {vehicle['name']}", color=0x228B22)
                 num = int(vehicle["url"].split(r"/")[-2])
                 embed.add_field(name="ID:", value=str(num))
                 for key, value in vehicle.items():
@@ -955,11 +879,9 @@ class SW(commands.Cog):
                 vehicles_list.append(embed)
             vehicles_list.sort(
                 key=lambda x: int(
-                    [
-                        field
-                        for field in x.to_dict()["fields"]
-                        if field["name"] == "ID:"
-                    ][0]["value"]
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
                 )
             )
         await menu(ctx, vehicles_list, DEFAULT_CONTROLS)
@@ -983,9 +905,7 @@ class SW(commands.Cog):
                     break
             species_list = []
             for species in data:
-                embed = discord.Embed(
-                    title=f"Species: {species['name']}", color=0xD2B48C
-                )
+                embed = discord.Embed(title=f"Species: {species['name']}", color=0xD2B48C)
                 num = int(species["url"].split(r"/")[-2])
                 embed.add_field(name="ID:", value=str(num))
                 for key, value in species.items():
@@ -1004,11 +924,9 @@ class SW(commands.Cog):
                 species_list.append(embed)
             species_list.sort(
                 key=lambda x: int(
-                    [
-                        field
-                        for field in x.to_dict()["fields"]
-                        if field["name"] == "ID:"
-                    ][0]["value"]
+                    [field for field in x.to_dict()["fields"] if field["name"] == "ID:"][0][
+                        "value"
+                    ]
                 )
             )
         await menu(ctx, species_list, DEFAULT_CONTROLS)

@@ -105,9 +105,7 @@ class UpdateChecker(commands.Cog):
                                 elif (
                                     use_embed
                                     and isinstance(channel, discord.TextChannel)
-                                    and channel.permissions_for(
-                                        channel.guild.me
-                                    ).embed_links
+                                    and channel.permissions_for(channel.guild.me).embed_links
                                 ):
                                     e = discord.Embed(
                                         title="Update Checker",
@@ -179,25 +177,19 @@ class UpdateChecker(commands.Cog):
                                 installed_cogs = set(await cog.installed_cogs())
                                 updated = await cog._repo_manager.update_all_repos()
                                 updated_cogs = set(
-                                    cog
-                                    for repo in updated
-                                    for cog in repo.available_cogs
+                                    cog for repo in updated for cog in repo.available_cogs
                                 )
                                 installed_and_updated = updated_cogs & installed_cogs
                                 if installed_and_updated:
-                                    await cog._reinstall_requirements(
-                                        installed_and_updated
-                                    )
+                                    await cog._reinstall_requirements(installed_and_updated)
                                     await cog._reinstall_cogs(installed_and_updated)
-                                    await cog._reinstall_libraries(
-                                        installed_and_updated
-                                    )
+                                    await cog._reinstall_libraries(installed_and_updated)
                                     cognames = {c.name for c in installed_and_updated}
-                                    message = humanize_list(
-                                        tuple(map(inline, cognames))
-                                    )
+                                    message = humanize_list(tuple(map(inline, cognames)))
                             except Exception as error:
-                                exception_log = "Exception while updating repos in Update Checker \n"
+                                exception_log = (
+                                    "Exception while updating repos in Update Checker \n"
+                                )
                                 exception_log += "".join(
                                     traceback.format_exception(
                                         type(error), error, error.__traceback__
@@ -339,9 +331,7 @@ class UpdateChecker(commands.Cog):
         ns = set([r.name for r in repos])
         ss = ds | ns
         await self.conf.whitelist.set(list(ss))
-        await ctx.send(
-            f"Whitelist update successful: {humanize_list(tuple(map(inline, ss)))}"
-        )
+        await ctx.send(f"Whitelist update successful: {humanize_list(tuple(map(inline, ss)))}")
 
     @whitelist.command(name="remove")
     async def whitelistremove(self, ctx, *repos: Repo):
@@ -374,9 +364,7 @@ class UpdateChecker(commands.Cog):
         ns = set([r.name for r in repos])
         ss = ds | ns
         await self.conf.blacklist.set(list(ss))
-        await ctx.send(
-            f"Backlist update successful: {humanize_list(tuple(map(inline, ss)))}"
-        )
+        await ctx.send(f"Backlist update successful: {humanize_list(tuple(map(inline, ss)))}")
 
     @blacklist.command(name="remove")
     async def blacklistremove(self, ctx, *repos: Repo):

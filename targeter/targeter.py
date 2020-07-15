@@ -56,7 +56,7 @@ class Args(Converter):
         parser = NoExitParser(description="Targeter argument parser", add_help=False)
 
         # Nicknames / Usernames
-        names = parser.add_mutually_exclusive_group()
+        names = parser.add_argument_group()
         names.add_argument("--nick", nargs="*", dest="nick", default=[])
         names.add_argument("--user", nargs="*", dest="user", default=[])
         names.add_argument("--name", nargs="*", dest="name", default=[])
@@ -77,9 +77,7 @@ class Args(Converter):
         parser.add_argument("--any-role", nargs="*", dest="any-role", default=[])
 
         parser.add_argument("--not-roles", nargs="*", dest="not-roles", default=[])
-        parser.add_argument(
-            "--not-any-role", nargs="*", dest="not-any-role", default=[]
-        )
+        parser.add_argument("--not-any-role", nargs="*", dest="not-any-role", default=[])
 
         single = parser.add_mutually_exclusive_group()
         single.add_argument("--a-role", dest="a-role", action="store_true")
@@ -116,9 +114,7 @@ class Args(Converter):
         parser.add_argument("--any-perm", nargs="*", dest="any-perm", default=[])
 
         parser.add_argument("--not-perms", nargs="*", dest="not-perms", default=[])
-        parser.add_argument(
-            "--not-any-perm", nargs="*", dest="not-any-perm", default=[]
-        )
+        parser.add_argument("--not-any-perm", nargs="*", dest="not-any-perm", default=[])
 
         # Extra
         parser.add_argument("--format", nargs="*", dest="format", default=["menu"])
@@ -135,11 +131,7 @@ class Args(Converter):
                     word_list = []
                     tmp = ""
                     for word in split_words:
-                        if (
-                            not word.startswith('"')
-                            and not word.endswith('"')
-                            and not tmp
-                        ):
+                        if not word.startswith('"') and not word.endswith('"') and not tmp:
                             if word.startswith(r"\""):
                                 word = word[1:]
                             word_list.append(word)
@@ -154,11 +146,7 @@ class Args(Converter):
                                 word = word[1:]
                                 schanged = True
                             if word.startswith('"') and not schanged:
-                                if (
-                                    word.startswith('"')
-                                    and word.endswith('"')
-                                    and len(word) > 1
-                                ):
+                                if word.startswith('"') and word.endswith('"') and len(word) > 1:
                                     word_list.append(word)
                                 else:
                                     if tmp.endswith(" "):
@@ -181,11 +169,7 @@ class Args(Converter):
         except Exception as e:
             raise BadArgument(str(e))
 
-        if any(
-            s
-            for s in vals["status"]
-            if not s.lower() in ["online", "dnd", "idle", "offline"]
-        ):
+        if any(s for s in vals["status"] if not s.lower() in ["online", "dnd", "idle", "offline"]):
             raise BadArgument(
                 "Invalid status.  Must be either `online`, `dnd`, `idle` or `offline`."
             )
@@ -366,9 +350,7 @@ class Targeter(commands.Cog):
         self.s = aiohttp.ClientSession()
 
     async def post(self, string):
-        async with self.s.put(
-            "http://bin.doyle.la", data=string.encode("utf-8")
-        ) as post:
+        async with self.s.put("http://bin.doyle.la", data=string.encode("utf-8")) as post:
             text = await post.text()
         return text
 
@@ -383,10 +365,7 @@ class Targeter(commands.Cog):
             matched_here = []
             for user in matched:
                 if any(
-                    [
-                        user.nick and piece.lower() in user.nick.lower()
-                        for piece in args["nick"]
-                    ]
+                    [user.nick and piece.lower() in user.nick.lower() for piece in args["nick"]]
                 ):
                     matched_here.append(user)
             passed.append(matched_here)
@@ -401,12 +380,7 @@ class Targeter(commands.Cog):
         if args["name"]:
             matched_here = []
             for user in matched:
-                if any(
-                    [
-                        piece.lower() in user.display_name.lower()
-                        for piece in args["name"]
-                    ]
-                ):
+                if any([piece.lower() in user.display_name.lower() for piece in args["name"]]):
                     matched_here.append(user)
             passed.append(matched_here)
 
@@ -425,9 +399,7 @@ class Targeter(commands.Cog):
         if args["not-user"]:
             matched_here = []
             for user in matched:
-                if not any(
-                    [piece.lower() in user.name.lower() for piece in args["not-user"]]
-                ):
+                if not any([piece.lower() in user.name.lower() for piece in args["not-user"]]):
                     matched_here.append(user)
             passed.append(matched_here)
 
@@ -435,10 +407,7 @@ class Targeter(commands.Cog):
             matched_here = []
             for user in matched:
                 if not any(
-                    [
-                        piece.lower() in user.display_name.lower()
-                        for piece in args["not-name"]
-                    ]
+                    [piece.lower() in user.display_name.lower() for piece in args["not-name"]]
                 ):
                     matched_here.append(user)
             passed.append(matched_here)
@@ -755,9 +724,7 @@ class Targeter(commands.Cog):
                     m = True
             else:
                 embed = discord.Embed(
-                    title="Targeting complete",
-                    description=f"Found no matches.",
-                    color=0xFF0000,
+                    title="Targeting complete", description=f"Found no matches.", color=0xFF0000,
                 )
                 m = False
         if not m:

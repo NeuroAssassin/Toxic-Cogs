@@ -65,10 +65,33 @@ class EvolutionTaskManager:
                     if str(user_id) not in new_data:
                         new_data[str(user_id)] = {"name": "", "created_at": 0, "balance": userdata}
                         continue
-                    new_data[str(user_id)]["balance"] += userdata
+                    if new_data[str(user_id)]["balance"] + userdata > await bank.get_max_balance():
+                        new_data[str(user_id)]["balance"] = await bank.get_max_balance()
+                    else:
+                        new_data[str(user_id)]["balance"] += userdata
 
             await self.cog.conf.lastcredited.set(await self.process_times(ct, lastcredited))
             await asyncio.sleep(60)
+
+    async def daily_task(self):
+        await self.bot.wait_until_ready()
+        while True:
+            lastdailyupdate = await self.cog.conf.lastdailyupdate()
+            if lastdailyupdate + 86400 <= time.time():
+                deals = {}
+                levels = random.sample(
+                    self.cog.utils.randlvl_chances, len(self.cog.utils.randlvl_chances)
+                )
+                amounts = random.sample(
+                    self.cog.utils.randamt_chances, len(self.cog.utils.randamt_chances)
+                )
+                for x in range(1, 7):
+                    level = random.choice(levels)
+                    amount = random.choice(amounts)
+                    deals[str(x)] = {"details": {"level": level, "amount": amount}, "bought": []}
+                await self.cog.conf.daily.set(deals)
+                await self.cog.conf.lastdailyupdate.set(time.time())
+            await asyncio.sleep(300)
 
     def get_statuses(self):
         returning = {}
@@ -81,6 +104,7 @@ class EvolutionTaskManager:
 
     def init_tasks(self):
         self.tasks["income"] = self.bot.loop.create_task(self.income_task())
+        self.tasks["daily"] = self.bot.loop.create_task(self.daily_task())
 
     def shutdown(self):
         for task in self.tasks.values():

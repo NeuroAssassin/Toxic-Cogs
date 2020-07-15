@@ -20,7 +20,7 @@ class EvolutionUtils:
         total = 0
         for x in range(amount):
             normal = level * 800
-            level_tax = ((2 ** level) * 10) - 200
+            level_tax = ((2 ** level) * 25) - 200
             if bt:
                 tax = bought * 300
                 extra = x * 300
@@ -91,10 +91,82 @@ class EvolutionUtils:
             26: 60,  #  1 minute (Just in case)
         }
 
+    @property
+    def randlvl_chances(self):
+        return [
+            1,
+            2,
+            3,
+            4,
+            4,
+            5,
+            5,
+            5,
+            6,
+            6,
+            6,
+            6,
+            7,
+            7,
+            7,
+            7,
+            8,
+            8,
+            8,
+            8,
+            9,
+            9,
+            9,
+            9,
+            10,
+            10,
+            10,
+            10,
+            10,
+            10,
+            11,
+            11,
+            11,
+            11,
+            11,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            13,
+            13,
+            13,
+            13,
+            13,
+            14,
+            14,
+            14,
+            14,
+            14,
+            15,
+            15,
+            15,
+            15,
+            16,
+            16,
+            16,
+            17,
+            17,
+            18,
+            19,
+            20,
+        ]
+
+    @property
+    def randamt_chances(self):
+        return [1, 1, 2, 2, 2, 3, 3, 3, 4, 5]
+
     async def shop_control_callback(self, ctx, pages, controls, message, page, timeout, emoji):
         description = message.embeds[0].description
         level = int(description.split(" ")[1])
-        self.bot.loop.create_task(ctx.invoke(self.cog.buy, level=level))
+        self.bot.loop.create_task(ctx.invoke(self.cog.store, level=level))
         return await menu(ctx, pages, controls, message=message, page=page, timeout=timeout)
 
     def format_task(self, task):
@@ -110,10 +182,21 @@ class EvolutionUtils:
         return f"Task is currently {state}.  {exc_output}"
 
     def init_config(self):
-        default_user = {"animal": "", "animals": {}, "multiplier": 1.0, "bought": {}}
+        default_user = {
+            "animal": "",
+            "animals": {},
+            "multiplier": 1.0,
+            "bought": {},
+            "stash": {"animals": {}, "perks": {}},
+        }
         default_guild = {"cartchannel": 0, "last": 0}
-        default_global = {"travelercooldown": "2h", "lastcredited": {}}
-        for x in range(1, 26):
+        default_global = {
+            "travelercooldown": "2h",
+            "lastcredited": {},
+            "lastdailyupdate": 0,
+            "daily": {},
+        }
+        for x in range(1, 27):
             default_global["lastcredited"][str(x)] = 0
 
         self.conf.register_user(**default_user)

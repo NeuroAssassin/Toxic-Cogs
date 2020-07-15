@@ -33,7 +33,7 @@ class Scanner(commands.Cog):
             "showpic": False,
             "roles": [],
             "whitelist": [],
-            "blacklist": []
+            "blacklist": [],
         }
         self.conf.register_guild(**default_guild)
         self.session = aiohttp.ClientSession()
@@ -54,14 +54,14 @@ class Scanner(commands.Cog):
                 return
 
             settings = await self.conf.guild(message.guild).all()
-            if settings['whitelist'] and message.channel.id not in settings['whitelist']:
+            if settings["whitelist"] and message.channel.id not in settings["whitelist"]:
                 return
-            if message.channel.id in settings['blacklist']:
+            if message.channel.id in settings["blacklist"]:
                 return
 
             data = await self.conf.all()
-            user = data['userkey']
-            secret = data['secret']
+            user = data["userkey"]
+            secret = data["secret"]
             if not (user and secret):
                 return
 
@@ -176,9 +176,7 @@ class Scanner(commands.Cog):
         except Exception as error:
             await message.channel.send("Error")
             await message.channel.send(
-                "".join(
-                    traceback.format_exception(type(error), error, error.__traceback__)
-                )
+                "".join(traceback.format_exception(type(error), error, error.__traceback__))
             )
 
     @checks.admin_or_permissions(manage_messages=True)
@@ -227,8 +225,16 @@ class Scanner(commands.Cog):
         if ctx.invoked_subcommand is None:
             settings = await self.conf.guild(ctx.guild).all()
             channel = self.bot.get_channel(settings["channel"])
-            whitelist = [self.bot.get_channel(c).mention for c in settings['whitelist'] if self.bot.get_channel(c)] or ['`None`']
-            blacklist = [self.bot.get_channel(c).mention for c in settings['blacklist'] if self.bot.get_channel(c)] or ['`None`']
+            whitelist = [
+                self.bot.get_channel(c).mention
+                for c in settings["whitelist"]
+                if self.bot.get_channel(c)
+            ] or ["`None`"]
+            blacklist = [
+                self.bot.get_channel(c).mention
+                for c in settings["blacklist"]
+                if self.bot.get_channel(c)
+            ] or ["`None`"]
             s = (
                 f"Reporting Channel: {channel.mention if channel else '`None`'}\n"
                 f"Whitelisted Channels: {humanize_list(whitelist)}\n"
@@ -260,10 +266,10 @@ class Scanner(commands.Cog):
         ns = set([c.id for c in channels])
         ss = ds | ns
         await self.conf.guild(ctx.guild).whitelist.set(list(ss))
-        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or ['`None`']
-        await ctx.send(
-            f"Whitelist update successful: {humanize_list(ss)}"
-        )
+        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or [
+            "`None`"
+        ]
+        await ctx.send(f"Whitelist update successful: {humanize_list(ss)}")
 
     @whitelist.command(name="remove")
     async def whitelistremove(self, ctx, *channels: discord.TextChannel):
@@ -273,10 +279,10 @@ class Scanner(commands.Cog):
         ns = set([c.id for c in channels])
         ss = ds - ns
         await self.conf.guild(ctx.guild).whitelist.set(list(ss))
-        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or ['`None`']
-        await ctx.send(
-            f"Whitelist update successful: {humanize_list(ss)}"
-        )
+        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or [
+            "`None`"
+        ]
+        await ctx.send(f"Whitelist update successful: {humanize_list(ss)}")
 
     @whitelist.command(name="clear")
     async def whitelistclear(self, ctx):
@@ -299,10 +305,10 @@ class Scanner(commands.Cog):
         ns = set([c.id for c in channels])
         ss = ds | ns
         await self.conf.guild(ctx.guild).blacklist.set(list(ss))
-        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or ['`None`']
-        await ctx.send(
-            f"Blacklist update successful: {humanize_list(ss)}"
-        )
+        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or [
+            "`None`"
+        ]
+        await ctx.send(f"Blacklist update successful: {humanize_list(ss)}")
 
     @blacklist.command(name="remove")
     async def blacklistremove(self, ctx, *channels: discord.TextChannel):
@@ -312,10 +318,10 @@ class Scanner(commands.Cog):
         ns = set([c.id for c in channels])
         ss = ds - ns
         await self.conf.guild(ctx.guild).blacklist.set(list(ss))
-        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or ['`None`']
-        await ctx.send(
-            f"Blacklist update successful: {humanize_list(ss)}"
-        )
+        ss = [self.bot.get_channel(c).mention for c in list(ss) if self.bot.get_channel(c)] or [
+            "`None`"
+        ]
+        await ctx.send(f"Blacklist update successful: {humanize_list(ss)}")
 
     @blacklist.command(name="clear")
     async def blacklistclear(self, ctx):
@@ -350,8 +356,7 @@ class Scanner(commands.Cog):
                 await ctx.send("No roles are set for ping right now.")
                 return
             e = discord.Embed(
-                title="The following roles are pinged when a report comes in.",
-                description="",
+                title="The following roles are pinged when a report comes in.", description="",
             )
             for r in roles:
                 ro = ctx.guild.get_role(r)
@@ -373,13 +378,9 @@ class Scanner(commands.Cog):
         """Set whether or not to check for nude content in images."""
         await self.conf.guild(ctx.guild).nude.set(yes_or_no)
         if yes_or_no:
-            await ctx.send(
-                "Messages will now be reported if they violate the nude rule."
-            )
+            await ctx.send("Messages will now be reported if they violate the nude rule.")
         else:
-            await ctx.send(
-                "Messages will now not be reported even if they violate the nude rule."
-            )
+            await ctx.send("Messages will now not be reported even if they violate the nude rule.")
 
     @detect.command()
     async def partial(self, ctx, yes_or_no: bool):
@@ -403,13 +404,9 @@ class Scanner(commands.Cog):
         WAD stands for Weapons, Alcohol and Drugs"""
         await self.conf.guild(ctx.guild).wad.set(yes_or_no)
         if yes_or_no:
-            await ctx.send(
-                "Messages will now be reported if they violate the WAD rule."
-            )
+            await ctx.send("Messages will now be reported if they violate the WAD rule.")
         else:
-            await ctx.send(
-                "Messages will now not be reported even if they violate the WAD rule."
-            )
+            await ctx.send("Messages will now not be reported even if they violate the WAD rule.")
 
     @detect.command()
     async def offensive(self, ctx, yes_or_no: bool):
@@ -418,9 +415,7 @@ class Scanner(commands.Cog):
         Offensive content includes content such as middle fingers, offensive flags or offensive groups of people."""
         await self.conf.guild(ctx.guild).offensive.set(yes_or_no)
         if yes_or_no:
-            await ctx.send(
-                "Messages will now be reported if they violate the offensive rule."
-            )
+            await ctx.send("Messages will now be reported if they violate the offensive rule.")
         else:
             await ctx.send(
                 "Messages will now not be reported even if they violate the offensive rule."
@@ -433,9 +428,7 @@ class Scanner(commands.Cog):
         By scammer content it checks for verified scammers in the picture."""
         await self.conf.guild(ctx.guild).scammer.set(yes_or_no)
         if yes_or_no:
-            await ctx.send(
-                "Messages will now be reported if they violate the scammer rule."
-            )
+            await ctx.send("Messages will now be reported if they violate the scammer rule.")
         else:
             await ctx.send(
                 "Messages will now not be reported even if they violate the scammer rule."

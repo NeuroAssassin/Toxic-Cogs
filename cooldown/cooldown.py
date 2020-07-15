@@ -1,4 +1,5 @@
 from redbot.core import commands, checks, Config
+from redbot.core.commands.converter import TimedeltaConverter
 from discord.ext import commands as dc
 import asyncio
 import time
@@ -6,7 +7,7 @@ import traceback
 
 
 class Cooldown(commands.Cog):
-    """Add or remove cooldowns from/to commands
+    """Add or remove advanced cooldowns from/to commands
 
     WARNING: Some cooldowns are meant to be in place, meaning that they should not be removed.
     Any contributors to this cog are not at fault if it is used improperly, and is instead at
@@ -14,9 +15,33 @@ class Cooldown(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
         self.conf = Config.get_conf(self, identifier=473541068378341376)
+        default = {
+            "global": {"rules": [], "tokens": {}},
+            "guilds": {},  # Schema for this and the following will be the same as the global key, as the value to an ID key
+            "channels": {},
+            "roles": {},
+            "users": {},
+        }
         default_global = {"data": []}
+
+        # Typical schema will be the following, excluding 'global':
+        # GUILDS:
+        #   GUILD_ID:
+        #     RULES:
+        #       ["contact", "channel", 5, "5s"] (The 'contact' command can be executed 5 times in 5 seconds, per channel, in GUILD) (Extracted to dict)
+        #       ["ping", "users", 1, "5s"] (The 'ping' command can be executed 1 time in 5 secods, per user, in GUILD) (Extraced to dict)
+        #     TOKENS:
+        #       "contact":
+        #         CHANNEL_ID: [end_window_time, times_used_in_window]
+        #       "ping":
+        #         USER_ID: [end_window_time, times_used_in_window]
+        #
+        # Typical schema for global will look similar to the above, except one level up, without the GUILD_ID key
+
         self.conf.register_global(**default_global)
+
         self.task = self.bot.loop.create_task(self.initialize())
 
     def cog_unload(self):
@@ -24,6 +49,16 @@ class Cooldown(commands.Cog):
 
     def __unload(self):
         self.task.cancel()
+
+    async def check_global_scope(self, ctx, data):
+        pass
+
+    async def check(self, ctx):
+        data = await self.conf.all()
+        # First, check global scope
+        invalid = await self.check_global_scope(ctx, data["global"])
+        if invalid:
+            raise dc.errors.CommandOnCooldown
 
     async def initialize(self):
         await self.bot.wait_until_ready()

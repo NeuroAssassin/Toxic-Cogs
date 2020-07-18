@@ -670,16 +670,11 @@ class Evolution(commands.Cog):
                 f"**To:** {ctx.author.display_name}\n"
                 f"**Concerning:** Animal experiment #{str(math.ceil(((multiplier - 1) * 5) + 1))}\n"
                 f"**Subject:** Animal experiment concluded.\n\n"
-                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animals to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will give you a boost of 50,000 credits, remove all of your animals, allow one more animal of every level, and give you an extra 20% income rate for the next universe from all income.  Congratulations!\n\n"
+                f"Congratulations, {ctx.author.display_name}!  You have successfully combined enough animals to reach a Level 26 Animal!  This means that it is time to recreate universe!  This will reset your bank account, remove all of your animals, but allow one more animal of every level, and give you an extra 20% income rate for the next universe from all income.  Congratulations!\n\n"
                 f"From, The Head {animal.title()}"
             )
             await ctx.send(new)
-            try:
-                await bank.deposit_credits(ctx.author, 50000)
-            except errors.BalanceTooHigh:
-                return await ctx.send(
-                    "I failed to give you 50,000 credits due to your balance being too high."
-                )
+            await bank.set_balance(ctx.author, 0)
         else:
             async with self.lock:
                 await self.conf.user(ctx.author).animals.set(animals)

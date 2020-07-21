@@ -468,6 +468,10 @@ class Evolution(commands.Cog):
             data = await self.conf.user(ctx.author).all()
 
         animal = data["animal"]
+
+        if animal in ["", "P"]:
+            return await ctx.send("Finish starting your evolution first")
+            
         animals = data["animals"]
         stash = data["stash"]
         multiplier = data["multiplier"]

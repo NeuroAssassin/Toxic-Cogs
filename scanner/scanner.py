@@ -1,12 +1,13 @@
-from redbot.core import commands, Config, checks
-from redbot.core.utils.chat_formatting import humanize_list, inline
-import discord
-import aiohttp
 import contextlib
-import io
-import traceback
 import copy
+import io
 import re
+import traceback
+
+import aiohttp
+import discord
+from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import humanize_list, inline
 
 URL = "https://api.sightengine.com/1.0/check.json"
 

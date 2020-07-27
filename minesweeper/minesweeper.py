@@ -1,8 +1,9 @@
-from redbot.core import commands
-import random
 import asyncio
-import discord
 import copy
+import random
+
+import discord
+from redbot.core import commands
 
 
 class Minesweeper(commands.Cog):

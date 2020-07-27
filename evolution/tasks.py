@@ -1,14 +1,16 @@
 from __future__ import annotations
-from redbot.core.bot import Red
-from redbot.core import Config, bank, errors
-from redbot.core.utils import AsyncIter
-from redbot.core.bank import _config as bank_config
-from typing import Dict, TYPE_CHECKING
+
 import asyncio
-import random
-import math
 import contextlib
+import math
+import random
 import time
+from typing import TYPE_CHECKING, Dict
+
+from redbot.core import Config, bank, errors
+from redbot.core.bank import _config as bank_config
+from redbot.core.bot import Red
+from redbot.core.utils import AsyncIter
 
 if TYPE_CHECKING:
     from .evolution import Evolution

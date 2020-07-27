@@ -1,7 +1,8 @@
-from redbot.core import commands, checks
-import random
-import discord
 import asyncio
+import random
+
+import discord
+from redbot.core import checks, commands
 
 
 class Simon(commands.Cog):

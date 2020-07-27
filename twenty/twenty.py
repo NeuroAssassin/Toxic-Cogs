@@ -1,8 +1,9 @@
-from redbot.core import commands, checks
-import discord
 import asyncio
 import random
 from copy import deepcopy as dc
+
+import discord
+from redbot.core import checks, commands
 
 
 class Twenty(commands.Cog):

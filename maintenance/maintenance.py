@@ -1,10 +1,12 @@
-from redbot.core import commands, checks, Config
-from .converters import Margs
+import asyncio
+import time
 from datetime import datetime
 from typing import Literal
-import asyncio
+
 import discord
-import time
+from redbot.core import Config, checks, commands
+
+from .converters import Margs
 
 listener = getattr(
     commands.Cog, "listener", None

@@ -1,5 +1,6 @@
-from .evolution import Evolution
 from redbot.core import bank
+
+from .evolution import Evolution
 
 __red_end_user_data_statement__ = (
     "This cog stores user's Discord IDs for the sake of storing game data. "

@@ -1,23 +1,15 @@
-from redbot.core.utils.menus import menu, DEFAULT_CONTROLS
-from redbot.core import commands, checks
-import discord
-import aiohttp
 import json
 from typing import Union
 
-from .image import (
-    IMAGES,
-    HUMANDESCRIPTION,
-    PLANETS,
-    PLANETTHUMBNAIL,
-    PLANETDESCRIPTION,
-    SPECIESTHUMBNAIL,
-    SPECIESDESCRIPTION,
-    VEHICLEIMAGE,
-    VEHICLEDESCRIPTION,
-    STARSHIPSIMAGES,
-    STARSHIPDESCRIPTIONS,
-)
+import aiohttp
+import discord
+from redbot.core import checks, commands
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
+
+from .image import (HUMANDESCRIPTION, IMAGES, PLANETDESCRIPTION, PLANETS,
+                    PLANETTHUMBNAIL, SPECIESDESCRIPTION, SPECIESTHUMBNAIL,
+                    STARSHIPDESCRIPTIONS, STARSHIPSIMAGES, VEHICLEDESCRIPTION,
+                    VEHICLEIMAGE)
 
 
 class SW(commands.Cog):

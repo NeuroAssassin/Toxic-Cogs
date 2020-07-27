@@ -1,6 +1,7 @@
-from redbot.core import commands, checks
 from typing import Union
+
 import discord
+from redbot.core import checks, commands
 
 
 class Editor(commands.Cog):

@@ -3,20 +3,21 @@ You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/c
 
 This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""
 
-import discord
 import heapq
-from io import BytesIO
 import typing
+from io import BytesIO
+
+import discord
+from redbot.core import checks, commands
 
 import matplotlib
+import matplotlib.pyplot as plt
 
 matplotlib.use("agg")
 
-import matplotlib.pyplot as plt
 
 plt.switch_backend("agg")
 
-from redbot.core import commands, checks
 
 
 class CommandChart(commands.Cog):

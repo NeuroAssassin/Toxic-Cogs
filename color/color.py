@@ -1,11 +1,13 @@
-from redbot.core import commands, Config, checks
-from PIL import Image
-from colour import Color as col
-from colour import rgb2hex
-import discord
+import functools
 import io
 import re
-import functools
+
+import discord
+from redbot.core import Config, checks, commands
+
+from colour import Color as col
+from colour import rgb2hex
+from PIL import Image
 
 
 class Color(commands.Cog):

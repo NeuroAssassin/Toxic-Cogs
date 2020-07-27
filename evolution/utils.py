@@ -1,9 +1,11 @@
 from __future__ import annotations
-from redbot.core.utils.menus import menu
-from redbot.core.bot import Red
-from redbot.core import Config
-from typing import TYPE_CHECKING
+
 import traceback
+from typing import TYPE_CHECKING
+
+from redbot.core import Config
+from redbot.core.bot import Red
+from redbot.core.utils.menus import menu
 
 if TYPE_CHECKING:
     from .evolution import Evolution

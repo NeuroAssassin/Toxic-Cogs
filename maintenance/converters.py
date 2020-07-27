@@ -1,10 +1,12 @@
 # Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/v3/scheduler/converters.py#L23
 
-from redbot.core.commands import Converter, BadArgument
 import argparse
 import time
-from .utils import convert_time
+
+from redbot.core.commands import BadArgument, Converter
+
 from .classes import ScheduledMaintenance
+from .utils import convert_time
 
 
 class NoExitParser(argparse.ArgumentParser):

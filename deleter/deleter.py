@@ -1,11 +1,12 @@
-from redbot.core.utils.chat_formatting import humanize_list
-from redbot.core.utils import AsyncIter
-from redbot.core import commands, checks, Config
-from collections import defaultdict
-import time
-import discord
 import asyncio
+import time
+from collections import defaultdict
 from copy import deepcopy as dc
+
+import discord
+from redbot.core import Config, checks, commands
+from redbot.core.utils import AsyncIter
+from redbot.core.utils.chat_formatting import humanize_list
 
 
 class Deleter(commands.Cog):

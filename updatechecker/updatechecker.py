@@ -2,16 +2,18 @@
 
 # Also, the code I use for updating repos I took directly from Red, and just took out the message interactions
 
-from redbot.core import commands, Config, checks
-from redbot.core.utils.chat_formatting import humanize_list, inline
-from redbot.cogs.downloader.repo_manager import Repo
 import asyncio
-import aiohttp
-import feedparser
-import discord
 import traceback
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+import aiohttp
+import discord
+from redbot.cogs.downloader.repo_manager import Repo
+from redbot.core import Config, checks, commands
+from redbot.core.utils.chat_formatting import humanize_list, inline
+
+import feedparser
 
 
 class UpdateChecker(commands.Cog):

@@ -1,22 +1,26 @@
-from redbot.core import commands, Config, bank, checks, errors
-from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import humanize_number, humanize_timedelta, inline, box
-from redbot.core.utils.menus import DEFAULT_CONTROLS, menu, start_adding_reactions
-from redbot.core.utils.predicates import ReactionPredicate
-from redbot.core.utils import AsyncIter
+import asyncio
+import copy
+import math
+import random
+import traceback
 from collections import defaultdict
 from datetime import timedelta
-from tabulate import tabulate
-from typing import Optional, Literal
-import copy
-import asyncio
-import random
-import discord
-import math
-import traceback
+from typing import Literal, Optional
 
-from .utils import EvolutionUtils
+import discord
+from redbot.core import Config, bank, checks, commands, errors
+from redbot.core.bot import Red
+from redbot.core.utils import AsyncIter
+from redbot.core.utils.chat_formatting import (box, humanize_number,
+                                               humanize_timedelta, inline)
+from redbot.core.utils.menus import (DEFAULT_CONTROLS, menu,
+                                     start_adding_reactions)
+from redbot.core.utils.predicates import ReactionPredicate
+
+from tabulate import tabulate
+
 from .tasks import EvolutionTaskManager
+from .utils import EvolutionUtils
 
 ANIMALS = ["chicken", "dog", "cat", "shark", "tiger", "penguin", "pupper", "dragon"]
 

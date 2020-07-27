@@ -24,6 +24,10 @@ class Deleter(commands.Cog):
     def cog_unload(self):
         self.task.cancel()
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     async def background_task(self):
         await self.bot.wait_until_ready()
         while True:

@@ -7,7 +7,7 @@ from redbot.core.utils import AsyncIter
 from collections import defaultdict
 from datetime import timedelta
 from tabulate import tabulate
-from typing import Optional
+from typing import Optional, Literal
 import copy
 import asyncio
 import random
@@ -59,10 +59,39 @@ class Evolution(commands.Cog):
         self.cache.clear()
         self.task_manager.shutdown()
 
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        """This cog stores game data by user ID.  It will delete the user's game data,
+        reset their progress and wipe traces of their ID."""
+        await self.conf.user_from_id(user_id).clear()
+
+        try:
+            del self.cache[user_id]
+        except KeyError:
+            pass
+
+        return
+
     @commands.group(aliases=["e", "evo"])
     async def evolution(self, ctx):
         """EVOLVE THE GREATEST ANIMALS OF ALL TIME!!!!"""
         pass
+
+    @evolution.command(syntax=" ")
+    async def deletemydata(self, ctx, check: bool = False):
+        """Delete your game data.
+
+        WARNING!  Your data *will not be able to be recovered*!"""
+        if not check:
+            return await ctx.send(
+                f"Warning!  This will completely delete your game data and restart you from scratch!  If you are sure you want to do this, re-run this command as `{ctx.prefix}evolution deletemydata True`."
+            )
+        await self.red_delete_data_for_user(requester="user", user_id=ctx.author.id)
+        await ctx.send("Data deleted.  Your game data has been reset.")
 
     @checks.is_owner()
     @evolution.group()
@@ -471,7 +500,7 @@ class Evolution(commands.Cog):
 
         if animal in ["", "P"]:
             return await ctx.send("Finish starting your evolution first")
-            
+
         animals = data["animals"]
         stash = data["stash"]
         multiplier = data["multiplier"]

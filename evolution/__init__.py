@@ -1,6 +1,14 @@
 from .evolution import Evolution
 from redbot.core import bank
 
+__red_end_user_data_statement__ = (
+    "This cog stores user's Discord IDs for the sake of storing game data. "
+    "Users may delete their own data at the cost of losing game data through "
+    "a data request, if the bot is configured to lose data at the cost of "
+    "functionality.  Alternatively, there is a in-cog command to delete user "
+    "data as well."
+)
+
 
 async def setup(bot):
     is_global = await bank.is_global()

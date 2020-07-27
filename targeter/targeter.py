@@ -351,6 +351,10 @@ class Targeter(commands.Cog):
         self.conv = Args()  # For evals
         self.s = aiohttp.ClientSession()
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     async def post(self, string):
         async with self.s.put("http://bin.doyle.la", data=string.encode("utf-8")) as post:
             text = await post.text()

@@ -9,6 +9,10 @@ class Editor(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     @commands.command()
     @checks.admin()
     async def editmessage(

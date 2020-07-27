@@ -23,6 +23,10 @@ class Color(commands.Cog):
 
     __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     def have_fun_with_pillow(self, rgb):
         im = Image.new("RGB", (200, 200), rgb)
         f = io.BytesIO()

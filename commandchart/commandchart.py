@@ -27,6 +27,10 @@ class CommandChart(commands.Cog):
 
     __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     async def command_from_message(self, m: discord.Message):
         message_context = await self.bot.get_context(m)
         if not message_context.valid:

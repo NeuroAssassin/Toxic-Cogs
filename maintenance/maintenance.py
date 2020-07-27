@@ -1,6 +1,7 @@
 from redbot.core import commands, checks, Config
 from .converters import Margs
 from datetime import datetime
+from typing import Literal
 import asyncio
 import discord
 import time
@@ -51,6 +52,30 @@ class Maintenance(commands.Cog):
     def __unload(self):
         self.bot.remove_check(self.this_check)
         self.task.cancel()
+
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        """This cog stores user's Discord IDs for operational data, that is important
+        to the cog's functionality."""
+        if requester != "discord_deleted_user":
+            return
+
+        async with self.conf.on() as data:
+            try:
+                data[2].remove(user_id)
+            except (IndexError, ValueError):
+                pass
+
+        async with self.conf.scheduledmaintenance() as scheduled:
+            for s in scheduled:
+                try:
+                    s[2].remove(user_id)
+                except ValueError:
+                    pass
 
     async def bg_loop(self):
         await self.bot.wait_until_ready()

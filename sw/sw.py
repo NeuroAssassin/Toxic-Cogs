@@ -33,6 +33,10 @@ class SW(commands.Cog):
     def __unload(self):
         self.session.detach()
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     @checks.bot_has_permissions(embed_links=True)
     @commands.group(name="swapi", aliases=["starwars"])
     async def starwars(self, ctx):

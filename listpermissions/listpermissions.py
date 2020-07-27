@@ -14,6 +14,10 @@ class ListPermissions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     @commands.guild_only()
     @commands.group(aliases=["lp"])
     async def listpermissions(self, ctx):

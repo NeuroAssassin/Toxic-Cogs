@@ -15,6 +15,10 @@ class Simon(commands.Cog):
 
     __author__ = "Neuro Assassin#4779 <@473541068378341376>"
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     @checks.bot_has_permissions(add_reactions=True)
     @commands.command()
     async def simon(self, ctx):

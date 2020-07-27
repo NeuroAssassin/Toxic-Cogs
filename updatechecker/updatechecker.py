@@ -39,6 +39,10 @@ class UpdateChecker(commands.Cog):
         self.task.cancel()
         self.session.detach()
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     async def bg_task(self):
         await self.bot.wait_until_ready()
         # Just in case

@@ -43,6 +43,10 @@ class Scanner(commands.Cog):
     def cog_unload(self):
         self.session.detach()
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id == self.bot.user.id:

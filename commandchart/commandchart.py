@@ -19,7 +19,6 @@ matplotlib.use("agg")
 plt.switch_backend("agg")
 
 
-
 class CommandChart(commands.Cog):
     """Shows the commands most used in a certain channel within the last so-and-so messages"""
 

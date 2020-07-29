@@ -6,10 +6,19 @@ import discord
 from redbot.core import checks, commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
-from .image import (HUMANDESCRIPTION, IMAGES, PLANETDESCRIPTION, PLANETS,
-                    PLANETTHUMBNAIL, SPECIESDESCRIPTION, SPECIESTHUMBNAIL,
-                    STARSHIPDESCRIPTIONS, STARSHIPSIMAGES, VEHICLEDESCRIPTION,
-                    VEHICLEIMAGE)
+from .image import (
+    HUMANDESCRIPTION,
+    IMAGES,
+    PLANETDESCRIPTION,
+    PLANETS,
+    PLANETTHUMBNAIL,
+    SPECIESDESCRIPTION,
+    SPECIESTHUMBNAIL,
+    STARSHIPDESCRIPTIONS,
+    STARSHIPSIMAGES,
+    VEHICLEDESCRIPTION,
+    VEHICLEIMAGE,
+)
 
 
 class SW(commands.Cog):

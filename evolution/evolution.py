@@ -11,10 +11,8 @@ import discord
 from redbot.core import Config, bank, checks, commands, errors
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
-from redbot.core.utils.chat_formatting import (box, humanize_number,
-                                               humanize_timedelta, inline)
-from redbot.core.utils.menus import (DEFAULT_CONTROLS, menu,
-                                     start_adding_reactions)
+from redbot.core.utils.chat_formatting import box, humanize_number, humanize_timedelta, inline
+from redbot.core.utils.menus import DEFAULT_CONTROLS, menu, start_adding_reactions
 from redbot.core.utils.predicates import ReactionPredicate
 
 from tabulate import tabulate
@@ -380,7 +378,7 @@ class Evolution(commands.Cog):
         emojis = ReactionPredicate.NUMBER_EMOJIS[1:7]
         start_adding_reactions(message, emojis)
 
-        pred = ReactionPredicate.with_emojis(emojis, message)
+        pred = ReactionPredicate.with_emojis(emojis, message, ctx.author)
         try:
             await self.bot.wait_for("reaction_add", check=pred, timeout=60.0)
         except asyncio.TimeoutError:

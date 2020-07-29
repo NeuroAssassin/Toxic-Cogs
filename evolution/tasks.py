@@ -61,7 +61,8 @@ class EvolutionTaskManager:
                 bulk_edit[str(userid)] = gaining
 
             # Credit to aikaterna's seen cog for this bulk write
-            users = bank._get_config()._get_base_group(bank._config.USER)
+            config = bank._get_config()
+            users = config._get_base_group(config.USER)
             max_credits = await bank.get_max_balance()
             async with users.all() as new_data:
                 for user_id, userdata in bulk_edit.items():

@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import math
 import random
 import time
 from typing import TYPE_CHECKING, Dict
 
-from redbot.core import Config, bank, errors
-from redbot.core.bank import _config as bank_config
+from redbot.core import Config
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 
 if TYPE_CHECKING:
     from .evolution import Evolution
+
+from . import bank
 
 
 class EvolutionTaskManager:
@@ -60,15 +60,16 @@ class EvolutionTaskManager:
                 gaining = await self.process_credits(animals, ct, lastcredited) * multiplier
                 bulk_edit[str(userid)] = gaining
 
-            # Credit to aikatern'a seen cog for this bulk write
-            users = bank_config._get_base_group(bank_config.USER)
+            # Credit to aikaterna's seen cog for this bulk write
+            users = bank._get_config()._get_base_group(bank._config.USER)
+            max_credits = await bank.get_max_balance()
             async with users.all() as new_data:
                 for user_id, userdata in bulk_edit.items():
                     if str(user_id) not in new_data:
-                        new_data[str(user_id)] = {"name": "", "created_at": 0, "balance": userdata}
+                        new_data[str(user_id)] = {"balance": userdata}
                         continue
-                    if new_data[str(user_id)]["balance"] + userdata > await bank.get_max_balance():
-                        new_data[str(user_id)]["balance"] = await bank.get_max_balance()
+                    if new_data[str(user_id)]["balance"] + userdata > max_credits:
+                        new_data[str(user_id)]["balance"] = max_credits
                     else:
                         new_data[str(user_id)]["balance"] += userdata
 

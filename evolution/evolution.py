@@ -8,7 +8,7 @@ from datetime import timedelta
 from typing import Literal, Optional
 
 import discord
-from redbot.core import Config, bank, checks, commands, errors
+from redbot.core import Config, checks, commands, errors
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import box, humanize_number, humanize_timedelta, inline
@@ -19,6 +19,8 @@ from tabulate import tabulate
 
 from .tasks import EvolutionTaskManager
 from .utils import EvolutionUtils
+
+from . import bank
 
 ANIMALS = ["chicken", "dog", "cat", "shark", "tiger", "penguin", "pupper", "dragon"]
 
@@ -33,12 +35,15 @@ IMAGES = {
     "pupper": "https://i.ytimg.com/vi/MPV2METPeJU/maxresdefault.jpg",
 }
 
+import inspect
+
 
 class Evolution(commands.Cog):
     """EVOLVE THOSE ANIMALS!!!!!!!!!!!"""
 
     def __init__(self, bot):
         self.bot: Red = bot
+
         self.lock = asyncio.Lock()
         self.conf: Config = Config.get_conf(self, identifier=473541068378341376)
         self.cache = defaultdict(self.cache_defaults)  # Thanks to Theelx#4980
@@ -83,7 +88,7 @@ class Evolution(commands.Cog):
         """EVOLVE THE GREATEST ANIMALS OF ALL TIME!!!!"""
         pass
 
-    @evolution.command(syntax=" ")
+    @evolution.command(usage=" ")
     async def deletemydata(self, ctx, check: bool = False):
         """Delete your game data.
 

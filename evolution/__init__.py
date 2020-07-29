@@ -1,4 +1,4 @@
-from redbot.core import bank
+from . import bank
 
 from .evolution import Evolution
 
@@ -12,6 +12,7 @@ __red_end_user_data_statement__ = (
 
 
 async def setup(bot):
+    bank._init(bot)
     is_global = await bank.is_global()
     if not is_global:
         raise RuntimeError("Bank must be global for this cog to work.")

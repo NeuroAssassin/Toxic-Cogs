@@ -634,7 +634,7 @@ async def get_max_balance(guild: discord.Guild = None) -> int:
     RuntimeError
         If the bank is guild-specific and guild was not provided.
     """
-    if (_bot.get_cog("Adventure")) is None:
+    if (cog := _bot.get_cog("Adventure")) is None or not cog._separate_economy:
         return await bank.get_max_balance(guild=guild)
     return _MAX_BALANCE
 

@@ -2,17 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-from typing import Union, List, Optional, TYPE_CHECKING
 from functools import wraps
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import discord
+from redbot.core import Config, bank, commands, errors
 from redbot.core.bank import Account
-
-from redbot.core.utils.chat_formatting import humanize_number
-from redbot.core import Config, errors, commands, bank
 from redbot.core.i18n import Translator
-
 from redbot.core.utils import AsyncIter
+from redbot.core.utils.chat_formatting import humanize_number
 
 if TYPE_CHECKING:
     from redbot.core.bot import Red

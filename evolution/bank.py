@@ -228,7 +228,7 @@ async def set_balance(
         raise errors.BalanceTooHigh(
             user=member.display_name, max_balance=max_bal, currency_name=currency
         )
-
+    amount = int(amount)
     group = _config.user(member)
     await group.balance.set(amount)
     return amount
@@ -257,9 +257,9 @@ async def withdraw_credits(member: discord.Member, amount: int, _forced: bool = 
     if _forced or (cog := _bot.get_cog("Adventure")) is None or not cog._separate_economy:
         return await bank.withdraw_credits(member=member, amount=amount)
 
-    if not isinstance(amount, int):
+    if not isinstance(amount, (int, float)):
         raise TypeError("Withdrawal amount must be of type int, not {}.".format(type(amount)))
-
+    amount = int(amount)
     bal = await get_balance(member)
     if amount > bal:
         raise ValueError(
@@ -293,10 +293,10 @@ async def deposit_credits(member: discord.Member, amount: int, _forced: bool = F
     """
     if _forced or (cog := _bot.get_cog("Adventure")) is None or not cog._separate_economy:
         return await bank.deposit_credits(member=member, amount=amount)
-    if not isinstance(amount, int):
+    if not isinstance(amount, (int, float)):
         raise TypeError("Deposit amount must be of type int, not {}.".format(type(amount)))
-
-    bal = await get_balance(member)
+    amount = int(amount)
+    bal = int(await get_balance(member))
     return await set_balance(member, amount + bal)
 
 
@@ -334,7 +334,7 @@ async def transfer_credits(
     if (cog := _bot.get_cog("Adventure")) is None or not cog._separate_economy:
         return await bank.transfer_credits(from_=from_, to=to, amount=amount)
 
-    if not isinstance(amount, int):
+    if not isinstance(amount, (int, float)):
         raise TypeError("Transfer amount must be of type int, not {}.".format(type(amount)))
 
     guild = getattr(to, "guild", None)
@@ -346,8 +346,8 @@ async def transfer_credits(
             user=to.display_name, max_balance=max_bal, currency_name=currency
         )
 
-    await withdraw_credits(from_, amount)
-    return await deposit_credits(to, new_amount)
+    await withdraw_credits(from_, int(amount))
+    return await deposit_credits(to, int(new_amount))
 
 
 async def wipe_bank(guild: Optional[discord.Guild] = None) -> None:

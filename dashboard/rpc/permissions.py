@@ -1,10 +1,11 @@
-from redbot.core.utils import AsyncIter
-from redbot.core.commands import commands
-from redbot.core.bot import Red
-from redbot.cogs.permissions.converters import CogOrCommand, RuleType, GuildUniqueObjectFinder
-from discord.ext.commands import errors
 from typing import cast
+
 import discord
+from discord.ext.commands import errors
+from redbot.cogs.permissions.converters import CogOrCommand, GuildUniqueObjectFinder, RuleType
+from redbot.core.bot import Red
+from redbot.core.commands import commands
+from redbot.core.utils import AsyncIter
 
 from .utils import FakePermissionsContext, permcheck, rpccheck
 

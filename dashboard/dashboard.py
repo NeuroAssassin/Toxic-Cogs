@@ -1,17 +1,19 @@
-from redbot.core.bot import Red
-from redbot.core import commands, checks, Config
-from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from collections import defaultdict
-import discord
 
-from .baserpc import DashboardRPC, HUMANIZED_PERMISSIONS
+import discord
+from redbot.core import Config, checks, commands
+from redbot.core.bot import Red
+from redbot.core.utils.chat_formatting import box, humanize_list, inline
+
+from .baserpc import HUMANIZED_PERMISSIONS, DashboardRPC
+from .menus import ClientList, ClientMenu
 
 THEME_COLORS = ["red", "primary", "blue", "green", "greener", "yellow"]
 
 
 class Dashboard(commands.Cog):
 
-    __version__ = "0.1.4a"
+    __version__ = "0.1.5a.dev1"
 
     def __init__(self, bot: Red):
         self.bot = bot
@@ -20,6 +22,7 @@ class Dashboard(commands.Cog):
         self.config.register_global(
             secret="[Not set]",
             redirect="http://127.0.0.1:42356",
+            blacklisted=[],
             owner_perm=15,
             widgets=[],
             testwidgets=[],
@@ -228,6 +231,21 @@ class Dashboard(commands.Cog):
     async def settings(self, ctx: commands.Context):
         """Group command for setting up the web dashboard for this Red bot."""
 
+    @settings.command(disabled=True)
+    async def clients(self, ctx: commands.Context):
+        """View connected RPC clients.  These could be dashboard or other processes.
+
+        Only terminate them if they are looking suspicious."""
+        return await ctx.send("This command is disabled.")
+        clients = self.bot.rpc._rpc.clients
+        if clients:
+            await ClientMenu(
+                source=ClientList(clients), clear_reactions_after=True, timeout=180
+            ).start(ctx, wait=False)
+        else:
+            e = discord.Embed(title="No RPC Clients connected", color=await ctx.embed_color())
+            await ctx.send(embed=e)
+
     @settings.command()
     async def color(self, ctx, color):
         """Set the default color for a new user.
@@ -253,6 +271,36 @@ class Dashboard(commands.Cog):
         await ctx.tick()
 
     @settings.group()
+    async def blacklist(self, ctx: commands.Context):
+        """Manage dashboard blacklist"""
+        pass
+
+    @blacklist.command(name="view")
+    async def blacklist_view(self, ctx: commands.Context):
+        """See blacklisted IP addresses"""
+        blacklisted = await self.config.blacklisted() or ["None"]
+        await ctx.author.send(
+            f"The following IP addresses are blocked: {humanize_list(blacklisted)}"
+        )
+
+    @blacklist.command(name="remove")
+    async def blacklist_remove(self, ctx: commands.Context, *, ip):
+        """Remove an IP address from blacklist"""
+        try:
+            async with self.config.blacklisted() as data:
+                data.remove(ip)
+            await ctx.tick()
+        except ValueError:
+            await ctx.send("Couldn't find that IP in blacklist.")
+
+    @blacklist.command(name="add")
+    async def blacklist_add(self, ctx: commands.Context, *, ip):
+        """Add an IP address to blacklist"""
+        async with self.config.blacklisted() as data:
+            data.append(ip)
+        await ctx.tick()
+
+    @settings.group()
     async def oauth(self, ctx: commands.Context):
         """Group command for changing the settings related to Discord OAuth."""
 
@@ -271,7 +319,6 @@ class Dashboard(commands.Cog):
         await self.config.redirect.set(redirect)
         await ctx.tick()
 
-    @commands.dm_only()
     @settings.command()
     async def view(self, ctx: commands.Context):
         """View the current dashboard settings."""
@@ -279,15 +326,17 @@ class Dashboard(commands.Cog):
         redirect = data["redirect"]
         secret = data["secret"]
         support = data["support"]
+        color = data["defaultcolor"]
         if not support:
             support = "[Not set]"
         description = (
-            f"Client Secret:         |  {secret}\n"
-            f"Redirect URI:          |  {redirect}\n"
-            f"Support Server:        |  {support}"
+            f"Client Secret:   |  {secret}\n"
+            f"Redirect URI:    |  {redirect}\n"
+            f"Support Server:  |  {support}\n"
+            f"Default theme:   |  {color}"
         )
         embed = discord.Embed(title="Red V3 Dashboard Settings", color=0x0000FF)
         embed.description = box(description, lang="ini")
         embed.add_field(name="Dashboard Version", value=box(f"[{self.__version__}]", lang="ini"))
         embed.set_footer(text="Dashboard created by Neuro Assassin.")
-        await ctx.send(embed=embed)
+        await ctx.author.send(embed=embed)

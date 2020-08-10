@@ -1,24 +1,26 @@
-from redbot.core.commands.requires import PrivilegeLevel
-from redbot.core.utils.chat_formatting import humanize_number, humanize_list
-from redbot.core.commands import commands
-from redbot.core.bot import Red
-from redbot.core.utils import AsyncIter
-from collections import Counter
-from typing import List
-import markdown2
-import discord
 import random
 import re
+from collections import Counter
+from typing import List
 
+import discord
+import markdown2
+from redbot.core.bot import Red
+from redbot.core.commands import commands
+from redbot.core.commands.requires import PrivilegeLevel
+from redbot.core.utils import AsyncIter
+from redbot.core.utils.chat_formatting import humanize_list, humanize_number
+
+from .rpc.alias import DashboardRPC_AliasCC
 from .rpc.botsettings import DashboardRPC_BotSettings
 from .rpc.permissions import DashboardRPC_Permissions
-
 from .rpc.utils import rpccheck
 
 HUMANIZED_PERMISSIONS = {
     "view": "View server on dashboard",
     "botsettings": "Customize guild-specific settings on dashboard",
     "permissions": "Customize guild-specific permissions to commands",
+    "aliascc": "Customize guild-specific command aliases and custom commands",
 }
 
 
@@ -38,11 +40,13 @@ class DashboardRPC:
         self.bot.register_rpc_handler(self.get_users_servers)
         self.bot.register_rpc_handler(self.get_server)
         self.bot.register_rpc_handler(self.check_version)
+        self.bot.register_rpc_handler(self.notify_owners_of_blacklist)
 
         # RPC Extensions
         self.extensions = []
         self.extensions.append(DashboardRPC_BotSettings(self.cog))
         self.extensions.append(DashboardRPC_Permissions(self.cog))
+        self.extensions.append(DashboardRPC_AliasCC(self.cog))
 
         # To make sure that both RPC server and client are on the same "version"
         self.version = random.randint(1, 10000)
@@ -54,6 +58,7 @@ class DashboardRPC:
         self.bot.unregister_rpc_handler(self.get_users_servers)
         self.bot.unregister_rpc_handler(self.get_server)
         self.bot.unregister_rpc_handler(self.check_version)
+        self.bot.unregister_rpc_handler(self.notify_owners_of_blacklist)
 
         for extension in self.extensions:
             extension.unload()
@@ -66,11 +71,14 @@ class DashboardRPC:
                     continue
                 if cmd.requires.privilege_level == PrivilegeLevel.BOT_OWNER:
                     continue
-                details = {
-                    "name": f"{cmd.qualified_name} {cmd.signature}",
-                    "desc": cmd.short_doc,
-                    "subs": [],
-                }
+                try:
+                    details = {
+                        "name": f"{cmd.qualified_name} {cmd.signature}",
+                        "desc": cmd.short_doc,
+                        "subs": [],
+                    }
+                except ValueError:
+                    continue
                 if isinstance(cmd, commands.Group):
                     details["subs"] = await self.build_cmd_list(cmd.commands)
                 final.append(details)
@@ -97,6 +105,13 @@ class DashboardRPC:
     @rpccheck()
     async def check_version(self):
         return {"v": self.bot.get_cog("Dashboard").rpc.version}
+
+    async def notify_owners_of_blacklist(self, ip):
+        async with self.cog.config.blacklisted() as data:
+            data.append(ip)
+        await self.bot.send_to_owners(
+            f"[Dashboard] Detected suspicious activity from IP {ip}.  They have been blacklisted."
+        )
 
     @rpccheck()
     async def get_variables(self):
@@ -129,6 +144,7 @@ class DashboardRPC:
             "servers": humanize_number(len(self.bot.guilds)),
             "users": humanize_number(count["users"]),
             "onlineusers": humanize_number(count["onlineusers"]),
+            "blacklisted": await self.cog.config.blacklisted(),
         }
         app_info = await self.bot.application_info()
         if app_info.team:
@@ -273,7 +289,7 @@ class DashboardRPC:
                 parts[i] = p.title()
         region = " ".join(parts)
 
-        if serverid not in self.cog.configcache:
+        if not self.cog.configcache.get(serverid, {"roles": []})["roles"]:
             warn = True
         else:
             warn = False

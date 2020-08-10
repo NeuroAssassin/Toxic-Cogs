@@ -1,6 +1,6 @@
 import functools
-from typing import List
 from inspect import signature
+from typing import List
 
 
 def rpccheck():

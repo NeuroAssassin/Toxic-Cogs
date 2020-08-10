@@ -345,7 +345,8 @@ async def transfer_credits(
         )
 
     await withdraw_credits(from_, int(amount))
-    return await deposit_credits(to, int(new_amount))
+    await deposit_credits(to, int(new_amount))
+    return int(new_amount)
 
 
 async def wipe_bank(guild: Optional[discord.Guild] = None) -> None:

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import discord
 from redbot.core import Config, bank, commands, errors
 from redbot.core.bank import Account
+from redbot.core.bank import BankPruneError as BankPruneError
 from redbot.core.i18n import Translator
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_number
@@ -46,6 +47,7 @@ __all__ = [
     "bank_prune",
     "get_next_payday",
     "set_next_payday",
+    "BankPruneError",
 ]
 
 _MAX_BALANCE = 2 ** 63 - 1
@@ -595,7 +597,7 @@ async def get_currency_name(guild: discord.Guild = None, _forced: bool = False) 
     """
     if _forced or (cog := _bot.get_cog("Adventure")) is None or not cog._separate_economy:
         return await bank.get_currency_name(guild=guild)
-    return _("gold")
+    return _("gold coins")
 
 
 async def set_currency_name(name: str, guild: discord.Guild = None) -> str:

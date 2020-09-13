@@ -37,7 +37,7 @@ class Dashboard(
     metaclass=CompositeMetaClass,
 ):
 
-    __version__ = "0.1.5a.dev1"
+    __version__ = "0.1.5a"
 
     def __init__(self, bot: Red, *args, **kwargs):
         super().__init__(*args, **kwargs)

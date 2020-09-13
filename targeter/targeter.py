@@ -2,13 +2,22 @@ import argparse
 import functools
 import re
 from datetime import datetime, timezone
+import traceback
+from copy import deepcopy
 
 import aiohttp
+import asyncio
 import discord
 from dateutil.parser import parse
 from redbot.core import checks, commands
-from redbot.core.commands import BadArgument, Converter, RoleConverter
-from redbot.core.utils.chat_formatting import humanize_list, pagify
+from redbot.core.commands import (
+    Converter,
+    RoleConverter,
+    UserFeedbackCheckFailure,
+    BadArgument,
+    ConversionFailure,
+)
+from redbot.core.utils.chat_formatting import humanize_list, pagify, inline
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 PERMS = [
@@ -47,9 +56,16 @@ PERMS = [
 # Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/v3/scheduler/converters.py#L23
 
 
+class TargeterParserException(UserFeedbackCheckFailure):
+    """Signifies something went wrong while Parsing"""
+
+    def __init__(self, message: str):
+        super().__init__(message=message)
+
+
 class NoExitParser(argparse.ArgumentParser):
     def error(self, message):
-        raise BadArgument()
+        raise TargeterParserException(message=message)
 
 
 class Args(Converter):
@@ -118,13 +134,21 @@ class Args(Converter):
         parser.add_argument("--not-perms", nargs="*", dest="not-perms", default=[])
         parser.add_argument("--not-any-perm", nargs="*", dest="not-any-perm", default=[])
 
+        # Actions
+        actions = parser.add_mutually_exclusive_group()
+        actions.add_argument("--rename", nargs="*", dest="rename", default="John Doe")
+        actions.add_argument("--kick", dest="kick", action="store_true")
+        actions.add_argument("--ban", dest="ban", action="store_true")
+
         # Extra
         parser.add_argument("--format", nargs="*", dest="format", default=["menu"])
 
         try:
             vals = vars(parser.parse_args(argument.split(" ")))
-        except Exception as exc:
-            raise BadArgument() from exc
+        except argparse.ArgumentError as exc:
+            raise TargeterParserException(exc.message)
+        except ValueError:
+            raise BadArgument()
 
         try:
             for key, value in vals.items():
@@ -166,13 +190,13 @@ class Args(Converter):
                                     continue
                                 tmp += word + " "
                     if tmp:
-                        raise BadArgument("A quote was started but never finished.")
+                        raise TargeterParserException("A quote was started but never finished.")
                     vals[key] = word_list
         except Exception as e:
-            raise BadArgument(str(e))
+            raise TargeterParserException(str(e))
 
         if any(s for s in vals["status"] if not s.lower() in ["online", "dnd", "idle", "offline"]):
-            raise BadArgument(
+            raise TargeterParserException(
                 "Invalid status.  Must be either `online`, `dnd`, `idle` or `offline`."
             )
 
@@ -181,22 +205,22 @@ class Args(Converter):
             new = []
             for disc in vals["disc"]:
                 if len(disc) != 4:
-                    raise BadArgument("Discriminators must have the length of 4")
+                    raise TargeterParserException("Discriminators must have the length of 4")
                 try:
                     new.append(int(disc))
                 except ValueError:
-                    raise BadArgument("Discriminators must be valid integers")
+                    raise TargeterParserException("Discriminators must be valid integers")
             vals["disc"] = new
 
         if vals["ndisc"]:
             new = []
             for disc in vals["ndisc"]:
                 if len(disc) != 4:
-                    raise BadArgument("Discriminators must have the length of 4")
+                    raise TargeterParserException("Discriminators must have the length of 4")
                 try:
                     new.append(int(disc))
                 except ValueError:
-                    raise BadArgument("Discriminators must be valid integers")
+                    raise TargeterParserException("Discriminators must be valid integers")
             vals["ndisc"] = new
 
         # Rooooooooooooooooles
@@ -206,7 +230,7 @@ class Args(Converter):
         for role in vals["roles"]:
             r = await rc.convert(ctx, role)
             if not r:
-                raise BadArgument(f"Couldn't find a role matching: {role}")
+                raise TargeterParserException(f"Couldn't find a role matching: {role}")
             new.append(r)
         vals["roles"] = new
 
@@ -214,7 +238,7 @@ class Args(Converter):
         for role in vals["any-role"]:
             r = await rc.convert(ctx, role)
             if not r:
-                raise BadArgument(f"Couldn't find a role matching: {role}")
+                raise TargeterParserException(f"Couldn't find a role matching: {role}")
             new.append(r)
         vals["any-role"] = new
 
@@ -222,7 +246,7 @@ class Args(Converter):
         for role in vals["not-roles"]:
             r = await rc.convert(ctx, role)
             if not r:
-                raise BadArgument(f"Couldn't find a role matching: {role}")
+                raise TargeterParserException(f"Couldn't find a role matching: {role}")
             new.append(r)
         vals["not-roles"] = new
 
@@ -230,7 +254,7 @@ class Args(Converter):
         for role in vals["not-any-role"]:
             r = await rc.convert(ctx, role)
             if not r:
-                raise BadArgument(f"Couldn't find a role matching: {role}")
+                raise TargeterParserException(f"Couldn't find a role matching: {role}")
             new.append(r)
         vals["not-any-role"] = new
 
@@ -240,42 +264,42 @@ class Args(Converter):
             try:
                 vals["joined-on"] = parse(" ".join(vals["joined-on"]))
             except:
-                raise BadArgument("Failed to parse --joined-on argument")
+                raise TargeterParserException("Failed to parse --joined-on argument")
 
         if vals["joined-be"]:
             try:
                 vals["joined-be"] = parse(" ".join(vals["joined-be"]))
             except:
-                raise BadArgument("Failed to parse --joined-be argument")
+                raise TargeterParserException("Failed to parse --joined-be argument")
 
         if vals["joined-af"]:
             try:
                 vals["joined-af"] = parse(" ".join(vals["joined-af"]))
             except:
-                raise BadArgument("Failed to parse --joined-after argument")
+                raise TargeterParserException("Failed to parse --joined-after argument")
 
         if vals["created-on"]:
             try:
                 vals["created-on"] = parse(" ".join(vals["created-on"]))
             except:
-                raise BadArgument("Failed to parse --created-on argument")
+                raise TargeterParserException("Failed to parse --created-on argument")
 
         if vals["created-be"]:
             try:
                 vals["created-be"] = parse(" ".join(vals["created-be"]))
             except:
-                raise BadArgument("Failed to parse --created-be argument")
+                raise TargeterParserException("Failed to parse --created-be argument")
 
         if vals["created-af"]:
             try:
                 vals["created-af"] = parse(" ".join(vals["created-af"]))
             except:
-                raise BadArgument("Failed to parse --created-af argument")
+                raise TargeterParserException("Failed to parse --created-af argument")
 
         # Actiiiiiiiiiiiiiiiiivities
         if vals["device"]:
             if not all(d in ["desktop", "mobile", "web"] for d in vals["device"]):
-                raise BadArgument("Bad device.  Must be `desktop`, `mobile` or `web`.")
+                raise TargeterParserException("Bad device.  Must be `desktop`, `mobile` or `web`.")
 
         if vals["at"]:
             at = discord.ActivityType
@@ -287,7 +311,7 @@ class Args(Converter):
                 "watching": at.watching,
             }
             if not all([a.lower() in switcher for a in vals["at"]]):
-                raise BadArgument(
+                raise TargeterParserException(
                     "Invalid Activity Type.  Must be either `unknown`, `playing`, `streaming`, `listening` or `watching`."
                 )
             new = [switcher[name.lower()] for name in vals["at"]]
@@ -297,7 +321,7 @@ class Args(Converter):
         for perm in vals["perms"]:
             perm = perm.replace(" ", "_")
             if not perm.lower() in PERMS:
-                raise BadArgument(
+                raise TargeterParserException(
                     f"Invalid permission.  Run `{ctx.prefix}target permissions` to see a list of valid permissions."
                 )
             new.append(perm)
@@ -307,7 +331,7 @@ class Args(Converter):
         for perm in vals["any-perm"]:
             perm = perm.replace(" ", "_")
             if not perm.lower() in PERMS:
-                raise BadArgument(
+                raise TargeterParserException(
                     f"Invalid permission.  Run `{ctx.prefix}target permissions` to see a list of valid permissions."
                 )
             new.append(perm)
@@ -317,7 +341,7 @@ class Args(Converter):
         for perm in vals["not-perms"]:
             perm = perm.replace(" ", "_")
             if not perm.lower() in PERMS:
-                raise BadArgument(
+                raise TargeterParserException(
                     f"Invalid permission.  Run `{ctx.prefix}target permissions` to see a list of valid permissions."
                 )
             new.append(perm)
@@ -327,18 +351,23 @@ class Args(Converter):
         for perm in vals["not-any-perm"]:
             perm = perm.replace(" ", "_")
             if not perm.lower() in PERMS:
-                raise BadArgument(
+                raise TargeterParserException(
                     f"Invalid permission.  Run `{ctx.prefix}target permissions` to see a list of valid permissions."
                 )
             new.append(perm)
         vals["not-any-perm"] = new
 
         if vals["format"]:
-            if not vals["format"][0].lower() in ["page", "menu"]:
-                raise BadArgument(
-                    "Invalid format.  Must be `page` for in a bin or `menu` for in an embed."
+            if not vals["format"][0].lower() in ["menu", "csv"]:
+                raise TargeterParserException(
+                    "Invalid format.  Must be `csv` for a csv file or `menu` for in an embed."
                 )
             vals["format"] = vals["format"][0].lower()
+
+        if vals["rename"]:
+            renaming_to = " ".join(vals["rename"])
+            if len(renaming_to) > 32 or len(renaming_to) < 2:
+                raise TargeterParserException("New nickname must be between 2 and 32 characters.")
 
         return vals
 
@@ -355,10 +384,15 @@ class Targeter(commands.Cog):
         """This cog does not store user data"""
         return
 
-    async def post(self, string):
-        async with self.s.put("http://bin.doyle.la", data=string.encode("utf-8")) as post:
-            text = await post.text()
-        return text
+    async def cog_command_error(self, ctx, error):
+        error = getattr(error, "original", error)
+        if isinstance(error, TargeterParserException):
+            e = discord.Embed(
+                title="Error while parsing", color=0xFF0000, description=error.message
+            )
+            await ctx.send(embed=e)
+        else:
+            await self.bot.on_command_error(ctx, error, unhandled_by_cog=True)
 
     def lookup(self, ctx, args):
         matched = ctx.guild.members
@@ -684,12 +718,22 @@ class Targeter(commands.Cog):
                     matched_here.append(user)
             passed.append(matched_here)
 
+        # -- End Permissions --
+
         # --- End going through possible arguments ---
         try:
             all_passed = set(passed.pop())
         except IndexError:
             return []
         return all_passed.intersection(*passed)
+
+    async def process_actions(self, ctx, members, args):
+        if args["rename"]:
+            if not ctx.guild.me.guild_permissions.manage_nicknames:
+                await ctx.send(
+                    "I failed to take action against the members due to me not having manage nickname permission."
+                )
+                return False
 
     @checks.bot_has_permissions(embed_links=True)
     @commands.guild_only()
@@ -705,29 +749,15 @@ class Targeter(commands.Cog):
 
             if len(matched) != 0:
                 color = await ctx.embed_color()
-                if args["format"] == "page":
-                    string = "The following users have matched your arguments:\n"
-                    for number, member in enumerate(matched, 1):
-                        adding = f"Entry #{number}\n    • Username: {member.name}\n    • Guild Name: {member.display_name}\n    • ID: {member.id}\n"
-                        string += adding
-                    url = await self.post(string)
+                string = " ".join([m.mention for m in matched])
+                embed_list = []
+                for page in pagify(string, delims=[" "], page_length=750):
                     embed = discord.Embed(
-                        title="Targeting complete",
-                        description=f"Found {len(matched)} matches.  Click [here]({url}) to see the full results.",
-                        color=color,
+                        title=f"Targeting complete.  Found {len(matched)} matches.", color=color,
                     )
-                    m = False
-                else:
-                    string = " ".join([m.mention for m in matched])
-                    embed_list = []
-                    for page in pagify(string, delims=[" "], page_length=750):
-                        embed = discord.Embed(
-                            title=f"Targeting complete.  Found {len(matched)} matches.",
-                            color=color,
-                        )
-                        embed.description = page
-                        embed_list.append(embed)
-                    m = True
+                    embed.description = page
+                    embed_list.append(embed)
+                m = True
             else:
                 embed = discord.Embed(
                     title="Targeting complete", description=f"Found no matches.", color=0xFF0000,
@@ -736,7 +766,9 @@ class Targeter(commands.Cog):
         if not m:
             await ctx.send(embed=embed)
         else:
-            await menu(ctx, embed_list, DEFAULT_CONTROLS)
+            self.bot.loop.create_task(menu(ctx, embed_list, DEFAULT_CONTROLS))
+            await asyncio.sleep(0.5)  # So the menu gets sent first
+            await self.process_actions(ctx, matched, args)
 
     @target.command(name="help")
     async def _help(self, ctx):
@@ -820,7 +852,7 @@ class Targeter(commands.Cog):
 
         special = discord.Embed(title="Target Arguments - Special Notes")
         desc = (
-            "`--format` - How to display results.  At the moment, must be `page` for posting on a website, or `menu` for showing the results in Discord.\n"
+            "`--format` - How to display results.  At the moment, must be `menu` for showing the results in Discord.\n"
             "\n"
             "If at any time you need to include quotes at the beginning or ending of something (such as a nickname or a role), include a slash (\) right before it."
         )

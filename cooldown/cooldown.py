@@ -1,43 +1,8 @@
+from redbot.core import commands, checks, Config
+from discord.ext import commands as dc
 import asyncio
 import time
 import traceback
-from typing import Optional
-
-from discord.ext import commands as dc
-from redbot.core import Config, checks, commands
-
-from .converters import GlobalCooldownArgs
-
-
-class CooldownCogCooldown:
-    def __init__(
-        self,
-        rate: int,
-        per: float,
-        bucket: commands.BucketType,
-        guild_id: Optional[int],
-        elements,
-    ):
-        self.guild = guild_id
-        self.elements = elements
-        self.mapping = commands.CooldownMapping.from_cooldown(rate, per, bucket)
-
-    def __call__(self, ctx: commands.Context):
-        if not ctx.bot.get_cog("Cooldown"):
-            return True
-        key = self.mapping._bucket_key(ctx.message)
-        if self.guild and self.guild != ctx.guild.id:
-            return True  # The cooldown is not global, and it doesn't apply to this server
-        if key in self.elements:
-            bucket = self.mapping.get_bucket(ctx.message)
-        else:
-            return True
-        retry_after = bucket.update_rate_limit()
-        if retry_after:
-            raise commands.CommandOnCooldown(bucket, retry_after)
-        # Cooldown is overwritten, so lets reset it
-        ctx.command.reset_cooldown(ctx)
-        return True
 
 
 class Cooldown(commands.Cog):
@@ -50,13 +15,8 @@ class Cooldown(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.conf = Config.get_conf(self, identifier=473541068378341376)
-
-        default_global = {"data": [], "new_data": []}
+        default_global = {"data": []}
         self.conf.register_global(**default_global)
-
-        default_guild = {"data": []}
-        self.conf.register_guild(**default_guild)
-
         self.task = self.bot.loop.create_task(self.initialize())
 
     def cog_unload(self):
@@ -78,27 +38,6 @@ class Cooldown(commands.Cog):
                     "global": dc.BucketType.default,
                 }
                 commands.cooldown(entry[1], entry[2], switch[entry[3]])(cmd)
-
-    @checks.guildowner()
-    @commands.group()
-    async def devcooldown(self, ctx):
-        """Group command for working with cooldowns for commands."""
-        pass
-
-    @checks.is_owner()
-    @devcooldown.group(name="global")
-    async def devcooldown_global(self, ctx):
-        """Create/remove a global cooldown"""
-
-    @devcooldown_global.command(name="add")
-    async def global_add(self, ctx, *, args: GlobalCooldownArgs):
-        """Blah blah blah"""
-        commands.check(
-            CooldownCogCooldown(
-                args["rate"], args["per"], args["bucket"], args["guild_id"], args["elements"]
-            )
-        )(self.bot.get_command(args["command"]))
-        await ctx.tick()
 
     @checks.is_owner()
     @commands.group()

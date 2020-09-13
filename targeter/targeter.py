@@ -730,9 +730,7 @@ class Targeter(commands.Cog):
                     m = True
             else:
                 embed = discord.Embed(
-                    title="Targeting complete",
-                    description=f"Found no matches.",
-                    color=0xFF0000,
+                    title="Targeting complete", description=f"Found no matches.", color=0xFF0000,
                 )
                 m = False
         if not m:

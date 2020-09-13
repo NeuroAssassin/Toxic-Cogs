@@ -361,8 +361,7 @@ class Scanner(commands.Cog):
                 await ctx.send("No roles are set for ping right now.")
                 return
             e = discord.Embed(
-                title="The following roles are pinged when a report comes in.",
-                description="",
+                title="The following roles are pinged when a report comes in.", description="",
             )
             for r in roles:
                 ro = ctx.guild.get_role(r)

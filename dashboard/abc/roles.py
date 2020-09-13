@@ -182,9 +182,7 @@ class DashboardRolesMixin(MixinMeta):
         disallowed = await self.config.disallowedperms()
         if await ctx.embed_requested():
             e = discord.Embed(
-                title="Dashboard permissions",
-                description="",
-                color=(await ctx.embed_color()),
+                title="Dashboard permissions", description="", color=(await ctx.embed_color()),
             )
             for key, value in HUMANIZED_PERMISSIONS.items():
                 if key in disallowed:

@@ -2,6 +2,7 @@ import random
 import re
 from collections import Counter
 from typing import List
+from datetime import datetime
 
 import discord
 import markdown2
@@ -9,7 +10,8 @@ from redbot.core.bot import Red
 from redbot.core.commands import commands
 from redbot.core.commands.requires import PrivilegeLevel
 from redbot.core.utils import AsyncIter
-from redbot.core.utils.chat_formatting import humanize_list, humanize_number
+from redbot.core.utils.chat_formatting import humanize_list, humanize_number, humanize_timedelta
+from redbot.cogs.downloader.installable import Installable
 
 from .rpc.alias import DashboardRPC_AliasCC
 from .rpc.botsettings import DashboardRPC_BotSettings
@@ -20,7 +22,7 @@ HUMANIZED_PERMISSIONS = {
     "view": "View server on dashboard",
     "botsettings": "Customize guild-specific settings on dashboard",
     "permissions": "Customize guild-specific permissions to commands",
-    "aliascc": "Customize guild-specific command aliases and custom commands",
+#    "aliascc": "Customize guild-specific command aliases and custom commands",
 }
 
 
@@ -114,7 +116,7 @@ class DashboardRPC:
         )
 
     @rpccheck()
-    async def get_variables(self):
+    async def get_variables_second(self):
         botinfo = await self.bot._config.custom_info()
         if botinfo is None:
             botinfo = (
@@ -123,14 +125,20 @@ class DashboardRPC:
                 "It has tons if features including moderation, audio, economy, fun and more! Here, you can control and interact with all these things. "
                 "So what are you waiting for? Invite them now!"
             )
+
         prefixes = [
             p for p in await self.bot.get_valid_prefixes() if not re.match(r"<@!?([0-9]+)>", p)
         ]
+
         count = Counter()
         async for member in AsyncIter(self.bot.get_all_members(), steps=1500):
             count["users"] += 1
             if member.status is not discord.Status.offline:
                 count["onlineusers"] += 1
+
+        core = self.bot.get_cog("Core")
+        invite = await core._invite_url()
+
         data = await self.cog.config.all()
         returning = {
             "botname": self.bot.user.name,
@@ -144,7 +152,55 @@ class DashboardRPC:
             "servers": humanize_number(len(self.bot.guilds)),
             "users": humanize_number(count["users"]),
             "onlineusers": humanize_number(count["onlineusers"]),
-            "blacklisted": await self.cog.config.blacklisted(),
+            "blacklisted": data["blacklisted"],
+            "invite": invite,
+        }
+        app_info = await self.bot.application_info()
+        if app_info.team:
+            returning["owner"] = str(app_info.team.name)
+        else:
+            returning["owner"] = str(app_info.owner)
+        return returning
+
+    @rpccheck()
+    async def get_variables(self):
+        botinfo = await self.bot._config.custom_info()
+        if botinfo is None:
+            botinfo = (
+                f"Hello, welcome to the Red Discord Bot dashboard for {self.bot.user.name}! "
+                f"{self.bot.user.name} is based off the popular bot Red Discord Bot, an open source, multifunctional bot. "
+                "It has tons if features including moderation, audio, economy, fun and more! Here, you can control and interact with all these things. "
+                "So what are you waiting for? Invite them now!"
+            )
+
+        prefixes = [
+            p for p in await self.bot.get_valid_prefixes() if not re.match(r"<@!?([0-9]+)>", p)
+        ]
+
+        count = len(self.bot.users)
+
+        core = self.bot.get_cog("Core")
+        invite = await core._invite_url()
+
+        since = self.bot.uptime.strftime("%Y-%m-%d %H:%M:%S")
+        delta = datetime.utcnow() - self.bot.uptime
+        uptime_str = humanize_timedelta(timedelta=delta)
+
+        data = await self.cog.config.all()
+        returning = {
+            "botname": self.bot.user.name,
+            "botavatar": str(self.bot.user.avatar_url_as(static_format="png")),
+            "botid": self.bot.user.id,
+            "botinfo": markdown2.markdown(botinfo),
+            "prefix": prefixes,
+            "redirect": data["redirect"],
+            "support": data["support"],
+            "color": data["defaultcolor"],
+            "servers": humanize_number(len(self.bot.guilds)),
+            "users": humanize_number(count),
+            "blacklisted": data["blacklisted"],
+            "uptime": uptime_str,
+            "invite": invite,
         }
         app_info = await self.bot.application_info()
         if app_info.team:
@@ -160,15 +216,34 @@ class DashboardRPC:
     @rpccheck()
     async def get_commands(self):
         returning = []
+        downloader = self.bot.get_cog("Downloader")
         for name, cog in self.bot.cogs.copy().items():
             stripped = []
+
             for c in cog.__cog_commands__:
                 if not c.parent:
                     stripped.append(c)
+
             cmds = await self.build_cmd_list(stripped)
             if not cmds:
                 continue
-            returning.append({"name": name, "desc": cog.__doc__, "cmds": cmds})
+
+            author = "Unknown"
+            repo = "Unknown"
+            # Taken from Trusty's downloader fuckery, https://gist.github.com/TrustyJAID/784c8c32dd45b1cc8155ed42c0c56591
+            if downloader:
+                module = downloader.cog_name_from_instance(cog)
+                installed, cog_info = await downloader.is_installed(module)
+                if installed:
+                    author = humanize_list(cog_info.author) if cog_info.author else "Unknown"
+                    repo = cog_info.repo.clean_url if cog_info.repo.clean_url else "Unknown"
+                elif cog.__module__.startswith("redbot."):
+                    author = "Cog Creators"
+                    repo = "https://github.com/Cog-Creators/Red-DiscordBot"
+
+            returning.append(
+                {"name": name, "desc": cog.__doc__, "cmds": cmds, "author": author, "repo": repo}
+            )
         returning = sorted(returning, key=lambda k: k["name"])
         return returning
 

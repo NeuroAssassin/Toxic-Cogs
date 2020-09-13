@@ -34,7 +34,7 @@ class ListPermissions(commands.Cog):
         """Generates the permissions of a role.
 
         Role name can be the name of the role (or at least close to it) or the ID of it.
-        
+
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
@@ -88,7 +88,7 @@ class ListPermissions(commands.Cog):
         channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
     ):
         """Generates the permissions for a member in a channel.
-        
+
         Permissions Values:
             True: means that the person has that permission
             False: means that the person does not have that permission"""
@@ -118,7 +118,7 @@ class ListPermissions(commands.Cog):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
 
         Role name can be the name of the role (or at least close to it) or the ID of it.
-        
+
         Permissions Values:
             None: means that it depends on the role permissions
             True: means that a person can explicitly do that, despite role permissions
@@ -167,7 +167,7 @@ class ListPermissions(commands.Cog):
         """Generates the permissions of a role.
 
         Role name can be the name of the role (or at least close to it) or the ID of it.
-        
+
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
@@ -225,7 +225,7 @@ class ListPermissions(commands.Cog):
         channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
     ):
         """Generates the permissions for a member in a channel.
-        
+
         Permissions Values:
             True: means that the person has that permission
             False: means that the person does not have that permission"""
@@ -257,7 +257,7 @@ class ListPermissions(commands.Cog):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
 
         Role name can be the name of the role (or at least close to it) or the ID of it.
-        
+
         Permissions Values:
             None: means that it depends on the role permissions
             True: means that a person can explicitly do that, despite role permissions
@@ -308,7 +308,7 @@ class ListPermissions(commands.Cog):
         """Generates the permissions of a role.
 
         Role name can be the name of the role (or at least close to it) or the ID of it.
-        
+
         Permissions Values:
             True: means that the role has that permission
             False: means that the role does not have that permission"""
@@ -366,7 +366,7 @@ class ListPermissions(commands.Cog):
         channel: Union[discord.VoiceChannel, discord.TextChannel, discord.CategoryChannel] = None,
     ):
         """Generates the permissions for a member in a channel.
-        
+
         Permissions Values:
             True: means that the person has that permission
             False: means that the person does not have that permission"""
@@ -398,7 +398,7 @@ class ListPermissions(commands.Cog):
         """Generates the basic permissions for a role in a channel.  Note that these are only the basic permissions, True or False will only show when the permissions is different from the default permissions of a role.
 
         Role name can be the name of the role (or at least close to it) or the ID of it.
-        
+
         Permissions Values:
             None: means that it depends on the role permissions
             True: means that a person can explicitly do that, despite role permissions

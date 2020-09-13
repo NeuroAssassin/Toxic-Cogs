@@ -170,7 +170,9 @@ class DashboardRPC_Permissions:
             return {"status": 0, "message": "That command can not be restricted"}
 
         await cog._set_default_rule(
-            rule=cast(bool, allow_or_deny), cog_or_cmd=cog_or_command, guild_id=guild.id,
+            rule=cast(bool, allow_or_deny),
+            cog_or_cmd=cog_or_command,
+            guild_id=guild.id,
         )
 
         return {"status": 1}
@@ -193,7 +195,9 @@ class DashboardRPC_Permissions:
             return {"status": 0, "message": "Invalid target"}
 
         await cog._remove_rule(
-            cog_or_cmd=cog_or_command, model_id=who_or_what.id, guild_id=guild.id,
+            cog_or_cmd=cog_or_command,
+            model_id=who_or_what.id,
+            guild_id=guild.id,
         )
 
         return {"status": 1}
@@ -214,7 +218,9 @@ class DashboardRPC_Permissions:
             return {"status": 0, "message": "That command can not be restricted"}
 
         await cog._set_default_rule(
-            rule=None, cog_or_cmd=cog_or_command, guild_id=guild.id,
+            rule=None,
+            cog_or_cmd=cog_or_command,
+            guild_id=guild.id,
         )
 
         return {"status": 1}

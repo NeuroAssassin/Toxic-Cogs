@@ -194,9 +194,9 @@ class Color(commands.Cog):
     @color.command()
     async def msgshort(self, ctx, enable: bool):
         """Enable or disable the in-message shortcut.
-        
+
         In-message shortcuts can be used by using the hex, rgb or name after a `#` in the middle of a message, as follows:
-        
+
         `#000000` (hex)
         `#1,1,1` (rgb)
         `#black` (named)"""

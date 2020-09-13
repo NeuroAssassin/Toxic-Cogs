@@ -11,7 +11,7 @@ from redbot.core.utils.chat_formatting import humanize_list
 
 class Deleter(commands.Cog):
     """Set channels for their messages to be auto-deleted after a specified amount of time.
-    
+
     WARNING: This cog has potential API abuse AND SHOULD BE USED CAREFULLY!  If you see any issues arise due to this, please report to Neuro Assassin or bot owner ASAP!"""
 
     def __init__(self, bot):
@@ -92,9 +92,9 @@ class Deleter(commands.Cog):
         """Set the amount of time after a message sent in the specified channel is supposed to be deleted.
 
         There may be about an approximate 10 second difference between the wait and the actual time the message is deleted, due to rate limiting and cooldowns.
-        
+
         Wait times must be greater than or equal to 5 seconds, or 0 to disable auto-timed deletion.  If you would like to use time specifications other than seconds, suffix the wait argument with one below:
-        
+
         s => seconds (ex. 5s => 5 seconds)
         m => minutes (ex. 5m => 5 minutes)
         h => hours   (ex. 5h => 5 hours)
@@ -145,7 +145,7 @@ class Deleter(commands.Cog):
     @deleter.command()
     async def remove(self, ctx, channel: discord.TextChannel, *messages: str):
         """Remove messages in the specified channel from the auto-timed deletion.
-        
+
         Helpful for announcements that you want to stay in the channel.
         The messages to be removed must be the IDs of the messages you wish to remove."""
         failed = []

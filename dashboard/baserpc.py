@@ -22,13 +22,13 @@ HUMANIZED_PERMISSIONS = {
     "view": "View server on dashboard",
     "botsettings": "Customize guild-specific settings on dashboard",
     "permissions": "Customize guild-specific permissions to commands",
-#    "aliascc": "Customize guild-specific command aliases and custom commands",
+    #    "aliascc": "Customize guild-specific command aliases and custom commands",
 }
 
 
 class DashboardRPC:
     """RPC server handlers for the dashboard to get special things from the bot.
-    
+
     This class contains the basic RPC functions, that don't belong to any other cog"""
 
     def __init__(self, cog: commands.Cog):

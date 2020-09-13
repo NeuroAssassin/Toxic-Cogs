@@ -696,7 +696,7 @@ class Targeter(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def target(self, ctx, *, args: Args):
         """Targets users based on the passed arguments.
-        
+
         Run `[p]target help` to see a list of valid arguments."""
         # await ctx.send(args)
         async with ctx.typing():
@@ -730,7 +730,9 @@ class Targeter(commands.Cog):
                     m = True
             else:
                 embed = discord.Embed(
-                    title="Targeting complete", description=f"Found no matches.", color=0xFF0000,
+                    title="Targeting complete",
+                    description=f"Found no matches.",
+                    color=0xFF0000,
                 )
                 m = False
         if not m:

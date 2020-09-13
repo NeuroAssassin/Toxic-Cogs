@@ -259,7 +259,7 @@ class Scanner(commands.Cog):
     @settings.group()
     async def whitelist(self, ctx):
         """Whitelist channels from the scanner.
-        
+
         Whitelisted channels will be the ONLY channels checked for rule violating pictures"""
         pass
 
@@ -298,7 +298,7 @@ class Scanner(commands.Cog):
     @settings.group()
     async def blacklist(self, ctx):
         """Blacklist channels from the scanner.
-        
+
         Blacklisted channels will NOT be checked for rule-violating pictures."""
         pass
 
@@ -361,7 +361,8 @@ class Scanner(commands.Cog):
                 await ctx.send("No roles are set for ping right now.")
                 return
             e = discord.Embed(
-                title="The following roles are pinged when a report comes in.", description="",
+                title="The following roles are pinged when a report comes in.",
+                description="",
             )
             for r in roles:
                 ro = ctx.guild.get_role(r)

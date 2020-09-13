@@ -170,7 +170,7 @@ class DashboardSettingsMixin(MixinMeta):
     @settings.command()
     async def color(self, ctx, color):
         """Set the default color for a new user.
-        
+
         The webserver version must be at least 0.1.3a.dev in order for this to work."""
         color = color.lower()
         if color == "purple":

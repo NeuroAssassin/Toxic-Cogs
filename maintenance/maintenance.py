@@ -116,13 +116,13 @@ class Maintenance(commands.Cog):
     @maintenance.command(name="on")
     async def _on(self, ctx, *, args: Margs = None):
         """Puts the bot on maintenance, preventing everyone but you and people whitelisted from running commands.  Other people will just be told the bot is currently on maintenance.
-        
+
         You can use the following arguments to specify things:
             --start-in: Makes the maintenace start in that long.
             --end-in: Schedules the maintenance to end in that long from the current second.
             --end-after: Schedules the maintenance to end in that long after the maitenance has started.
             --whitelist: Provide user IDs after this to whitelist people from the maintenance.
-            
+
         Examples:
         `[p]maintenance on --start-in 5 seconds`; starts a maintenance in 5 seconds
         `[p]maintenance on --start-in 5 seconds --end-in 10 seconds`; starts a maintenance in 5 seconds, then scheduled to end in 10 seconds, so it will only be on maintenance for 5 seconds.

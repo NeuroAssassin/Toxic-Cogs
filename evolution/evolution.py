@@ -121,7 +121,7 @@ class Evolution(commands.Cog):
     @evolution.command(hidden=True)
     async def removeuser(self, ctx, user: discord.User):
         """Removes a user from the market place if they are stuck for some reason.
-        
+
         Only use this if you have to, otherwise things could break"""
         try:
             self.inmarket.remove(user.id)
@@ -182,7 +182,7 @@ class Evolution(commands.Cog):
         skip_confirmation: Optional[bool] = False,
     ):
         """Buy animals from the always in-stock store.
-        
+
         While the store will always have animals for sale, you cannot buy above a certain level,
         and they will be for a higher price."""
         if level is None:
@@ -292,7 +292,9 @@ class Evolution(commands.Cog):
         embed_list = []
         for x in range(1, max(list(map(int, animals.keys()))) + 1):
             embed = discord.Embed(
-                title=f"{animal.title()} Shop", description=f"Level {str(x)}", color=0xD2B48C,
+                title=f"{animal.title()} Shop",
+                description=f"Level {str(x)}",
+                color=0xD2B48C,
             )
             embed.add_field(name="You currently own", value=animals.get(str(x), 0))
             current = int(bought.get(str(x), 0))
@@ -334,7 +336,7 @@ class Evolution(commands.Cog):
         """View the daily deals.
 
         These will come at a lower price than the store, but can only be bought once per day.
-        
+
         Status guide:
             A: Available to be bought and put in backyard
             B: Already purchased

@@ -214,8 +214,9 @@ class UpdateChecker(commands.Cog):
                                     )
                                 except discord.errors.Forbidden:
                                     pass
+                    await asyncio.sleep(1)
                 await self.conf.repos.set(saving_dict)
-            await asyncio.sleep(10)
+            await asyncio.sleep(60)
 
     async def fetch_feed(self, url: str):
         # Thank's to Sinbad's rss cog after which I copied this

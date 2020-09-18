@@ -53,6 +53,9 @@ class DashboardRPC:
         # To make sure that both RPC server and client are on the same "version"
         self.version = random.randint(1, 10000)
 
+        # Caches; you can thank trusty for the cog info one
+        self.cog_info_cache = {}
+
     def unload(self):
         self.bot.unregister_rpc_handler(self.get_variables)
         self.bot.unregister_rpc_handler(self.get_secret)
@@ -231,18 +234,25 @@ class DashboardRPC:
             author = "Unknown"
             repo = "Unknown"
             # Taken from Trusty's downloader fuckery, https://gist.github.com/TrustyJAID/784c8c32dd45b1cc8155ed42c0c56591
-            if downloader:
-                module = downloader.cog_name_from_instance(cog)
-                installed, cog_info = await downloader.is_installed(module)
-                if installed:
-                    author = humanize_list(cog_info.author) if cog_info.author else "Unknown"
-                    try:
-                        repo = cog_info.repo.clean_url if cog_info.repo.clean_url else "Unknown"
-                    except AttributeError:
-                        repo = "Unknown (Removed from Downloader)"
-                elif cog.__module__.startswith("redbot."):
-                    author = "Cog Creators"
-                    repo = "https://github.com/Cog-Creators/Red-DiscordBot"
+            if name not in self.cog_info_cache:
+                if downloader:
+                    module = downloader.cog_name_from_instance(cog)
+                    installed, cog_info = await downloader.is_installed(module)
+                    if installed:
+                        author = humanize_list(cog_info.author) if cog_info.author else "Unknown"
+                        try:
+                            repo = cog_info.repo.clean_url if cog_info.repo.clean_url else "Unknown"
+                        except AttributeError:
+                            repo = "Unknown (Removed from Downloader)"
+                    elif cog.__module__.startswith("redbot."):
+                        author = "Cog Creators"
+                        repo = "https://github.com/Cog-Creators/Red-DiscordBot"
+                    self.cog_info_cache[name] = {}
+                    self.cog_info_cache[name]['author'] = author
+                    self.cog_info_cache[name]['repo'] = repo
+            else:
+                author = self.cog_info_cache[name]['author']
+                repo = self.cog_info_cache[name]['repo']
 
             returning.append(
                 {"name": name, "desc": cog.__doc__, "cmds": cmds, "author": author, "repo": repo}

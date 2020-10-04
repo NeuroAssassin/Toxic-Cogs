@@ -1,5 +1,6 @@
 from redbot.core import commands, checks
 from redbot.core.utils.chat_formatting import box, humanize_list, inline
+from redbot.core.utils.predicates import MessagePredicate
 import discord
 
 from dashboard.abc.abc import MixinMeta
@@ -75,3 +76,28 @@ class DashboardWebserverMixin(MixinMeta):
             return
         await self.config.redirect.set(redirect)
         await ctx.tick()
+
+    @webserver.command(hidden=True)
+    async def clientid(self, ctx: commands.Context, cid: int):
+        """Set the Client ID for after logging in via Discord OAuth.
+        
+        Note that this should almost never be used.  This is only here
+        for special cases where the Client ID is not the same as the bot
+        ID.
+        
+        Pass 0 if you wish to revert to Bot ID."""
+        await ctx.send(
+            "**Warning**\n\nThis command only exists for special cases.  It is most likely that your client ID is your bot ID, which is the default.  **Changing this will break Discord OAuth until reverted.** Are you sure you want to do this?"
+        )
+
+        pred = MessagePredicate.yes_or_no(ctx)
+        await self.bot.wait_for("message", check=pred)
+
+        if pred.result is True:
+            await self.config.clientid.set(cid)
+            if cid == 0:
+                await ctx.send("Client ID restored to bot ID.")
+            else:
+                await ctx.send(f"Client ID set to {cid}.")
+        else:
+            await ctx.send("Cancelled.")

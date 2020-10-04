@@ -1,6 +1,7 @@
 from redbot.core import commands, checks
 from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from redbot import __version__ as red_version
+from typing import Optional
 import discord
 import platform
 import pip
@@ -168,7 +169,7 @@ class DashboardSettingsMixin(MixinMeta):
             )
 
     @settings.command()
-    async def color(self, ctx, color):
+    async def color(self, ctx, color: str):
         """Set the default color for a new user.
 
         The webserver version must be at least 0.1.3a.dev in order for this to work."""
@@ -189,6 +190,59 @@ class DashboardSettingsMixin(MixinMeta):
         Leaving it blank will remove it.
         """
         await self.config.support.set(url)
+        await ctx.tick()
+
+    @settings.group()
+    async def meta(self, ctx: commands.Context):
+        """Control meta tags that are rendered by a service.
+
+        For example, Discord rendering a link with an embed"""
+        pass
+
+    @meta.command()
+    async def title(self, ctx, *, title: str = ""):
+        """Set the meta title tag for the rendered UI from link.
+
+        For Discord, this is the larger text hyperlinked to the url.
+        
+        The following arguments will be replaced if they are in the title:
+            {name} | The bot's username"""
+        await self.config.meta.title.set(title)
+        if not title:
+            return await ctx.send("Meta title reset to default.")
+        await ctx.tick()
+
+    @meta.command()
+    async def icon(self, ctx, link: Optional[str] = ""):
+        """Set the meta icon tag for the rendered UI from link.
+
+        For Discord, this is the large icon in the top right of the embed."""
+        await self.config.meta.icon.set(link)
+        if not link:
+            return await ctx.send("Meta icon reset to default.")
+        await ctx.tick()
+
+    @meta.command()
+    async def description(self, ctx, *, description: str = ""):
+        """Set the meta description tag for the rendered UI from link.
+
+        For Discord, this is the smaller text under the title.
+        
+        The following arguments will be replaced if they are in the title:
+            {name} | The bot's username"""
+        await self.config.meta.description.set(description)
+        if not description:
+            return await ctx.send("Meta description reset to default.")
+        await ctx.tick()
+
+    @meta.command()
+    async def color(self, ctx, *, color: discord.Colour = ""):
+        """Set the meta color tag for the rendered UI from link.
+
+        For Discord, this is the colored bar that appears in the left of the embed."""
+        await self.config.meta.color.set(str(color))
+        if not color:
+            return await ctx.send("Meta color reset to default.")
         await ctx.tick()
 
     @settings.command()

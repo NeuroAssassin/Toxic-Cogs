@@ -52,12 +52,7 @@ class Dashboard(
             disallowedperms=[],
             support="",
             defaultcolor="red",
-            meta={
-                "title": "",
-                "icon": "",
-                "description": "",
-                "color": ""
-            }
+            meta={"title": "", "icon": "", "description": "", "color": ""},
         )
         self.config.register_guild(roles=[])
         self.configcache = defaultdict(self.cache_defaults)

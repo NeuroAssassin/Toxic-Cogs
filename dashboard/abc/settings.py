@@ -200,7 +200,7 @@ class DashboardSettingsMixin(MixinMeta):
         pass
 
     @meta.command()
-    async def title(self, ctx, *, title: str=""):
+    async def title(self, ctx, *, title: str = ""):
         """Set the meta title tag for the rendered UI from link.
 
         For Discord, this is the larger text hyperlinked to the url.
@@ -223,7 +223,7 @@ class DashboardSettingsMixin(MixinMeta):
         await ctx.tick()
 
     @meta.command()
-    async def description(self, ctx, *, description: str=""):
+    async def description(self, ctx, *, description: str = ""):
         """Set the meta description tag for the rendered UI from link.
 
         For Discord, this is the smaller text under the title.

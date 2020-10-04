@@ -86,7 +86,9 @@ class DashboardWebserverMixin(MixinMeta):
         ID.
         
         Pass 0 if you wish to revert to Bot ID."""
-        await ctx.send("**Warning**\n\nThis command only exists for special cases.  It is most likely that your client ID is your bot ID, which is the default.  **Changing this will break Discord OAuth until reverted.** Are you sure you want to do this?")
+        await ctx.send(
+            "**Warning**\n\nThis command only exists for special cases.  It is most likely that your client ID is your bot ID, which is the default.  **Changing this will break Discord OAuth until reverted.** Are you sure you want to do this?"
+        )
 
         pred = MessagePredicate.yes_or_no(ctx)
         await self.bot.wait_for("message", check=pred)

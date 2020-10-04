@@ -37,7 +37,7 @@ class Dashboard(
     metaclass=CompositeMetaClass,
 ):
 
-    __version__ = "0.1.5a"
+    __version__ = "0.1.6a.dev1"
 
     def __init__(self, bot: Red, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -47,13 +47,17 @@ class Dashboard(
         self.config.register_global(
             secret="[Not set]",
             redirect="http://127.0.0.1:42356/callback",
+            clientid=0,
             blacklisted=[],
             disallowedperms=[],
-            owner_perm=15,
-            widgets=[],
-            testwidgets=[],
             support="",
             defaultcolor="red",
+            meta={
+                "title": "",
+                "icon": "",
+                "description": "",
+                "color": ""
+            }
         )
         self.config.register_guild(roles=[])
         self.configcache = defaultdict(self.cache_defaults)

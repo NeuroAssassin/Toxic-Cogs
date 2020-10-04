@@ -119,53 +119,6 @@ class DashboardRPC:
         )
 
     @rpccheck()
-    async def get_variables_second(self):
-        botinfo = await self.bot._config.custom_info()
-        if botinfo is None:
-            botinfo = (
-                f"Hello, welcome to the Red Discord Bot dashboard for {self.bot.user.name}! "
-                f"{self.bot.user.name} is based off the popular bot Red Discord Bot, an open source, multifunctional bot. "
-                "It has tons if features including moderation, audio, economy, fun and more! Here, you can control and interact with all these things. "
-                "So what are you waiting for? Invite them now!"
-            )
-
-        prefixes = [
-            p for p in await self.bot.get_valid_prefixes() if not re.match(r"<@!?([0-9]+)>", p)
-        ]
-
-        count = Counter()
-        async for member in AsyncIter(self.bot.get_all_members(), steps=1500):
-            count["users"] += 1
-            if member.status is not discord.Status.offline:
-                count["onlineusers"] += 1
-
-        core = self.bot.get_cog("Core")
-        invite = await core._invite_url()
-
-        data = await self.cog.config.all()
-        returning = {
-            "botname": self.bot.user.name,
-            "botavatar": str(self.bot.user.avatar_url_as(static_format="png")),
-            "botid": self.bot.user.id,
-            "botinfo": markdown2.markdown(botinfo),
-            "prefix": prefixes,
-            "redirect": data["redirect"],
-            "support": data["support"],
-            "color": data["defaultcolor"],
-            "servers": humanize_number(len(self.bot.guilds)),
-            "users": humanize_number(count["users"]),
-            "onlineusers": humanize_number(count["onlineusers"]),
-            "blacklisted": data["blacklisted"],
-            "invite": invite,
-        }
-        app_info = await self.bot.application_info()
-        if app_info.team:
-            returning["owner"] = str(app_info.team.name)
-        else:
-            returning["owner"] = str(app_info.owner)
-        return returning
-
-    @rpccheck()
     async def get_variables(self):
         botinfo = await self.bot._config.custom_info()
         if botinfo is None:
@@ -190,10 +143,13 @@ class DashboardRPC:
         uptime_str = humanize_timedelta(timedelta=delta)
 
         data = await self.cog.config.all()
+        client_id = data["clientid"] or self.bot.user.id
+
         returning = {
             "botname": self.bot.user.name,
             "botavatar": str(self.bot.user.avatar_url_as(static_format="png")),
             "botid": self.bot.user.id,
+            "clientid": client_id,
             "botinfo": markdown2.markdown(botinfo),
             "prefix": prefixes,
             "redirect": data["redirect"],
@@ -204,6 +160,7 @@ class DashboardRPC:
             "blacklisted": data["blacklisted"],
             "uptime": uptime_str,
             "invite": invite,
+            "meta": data["meta"]
         }
         app_info = await self.bot.application_info()
         if app_info.team:

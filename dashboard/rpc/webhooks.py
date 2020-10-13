@@ -18,6 +18,5 @@ class DashboardRPC_Webhooks:
 
     @rpccheck()
     async def webhook_receive(self, payload: dict) -> dict:
-        log.debug(f"Received a webhook {payload}")
         self.bot.dispatch("webhook_receive", payload)
         return {"status": 1}

@@ -17,6 +17,7 @@ from .rpc.alias import DashboardRPC_AliasCC
 from .rpc.botsettings import DashboardRPC_BotSettings
 from .rpc.permissions import DashboardRPC_Permissions
 from .rpc.utils import rpccheck
+from .rpc.utils import DashboardRPC_Webhooks
 
 HUMANIZED_PERMISSIONS = {
     "view": "View server on dashboard",
@@ -49,6 +50,7 @@ class DashboardRPC:
         self.extensions.append(DashboardRPC_BotSettings(self.cog))
         self.extensions.append(DashboardRPC_Permissions(self.cog))
         self.extensions.append(DashboardRPC_AliasCC(self.cog))
+        self.extensions.append(DashboardRPC_Webhooks(self.cog))
 
         # To make sure that both RPC server and client are on the same "version"
         self.version = random.randint(1, 10000)

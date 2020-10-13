@@ -6,7 +6,6 @@ from redbot.core.commands import commands
 from .utils import rpccheck
 
 
-
 class DashboardRPC_Webhooks:
     def __init__(self, cog: commands.Cog):
         self.bot: Red = cog.bot

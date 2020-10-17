@@ -17,7 +17,7 @@ from .rpc.alias import DashboardRPC_AliasCC
 from .rpc.botsettings import DashboardRPC_BotSettings
 from .rpc.permissions import DashboardRPC_Permissions
 from .rpc.utils import rpccheck
-from .rpc.utils import DashboardRPC_Webhooks
+from .rpc.webhooks import DashboardRPC_Webhooks
 
 HUMANIZED_PERMISSIONS = {
     "view": "View server on dashboard",

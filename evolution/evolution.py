@@ -22,7 +22,7 @@ from .utils import EvolutionUtils
 
 from . import bank
 
-ANIMALS = ["chicken", "dog", "cat", "shark", "tiger", "penguin", "pupper", "dragon"]
+ANIMALS = ["chicken", "dog", "cat", "shark", "tiger", "penguin", "pupper", "dragon", "birb", "borb", "oinker"]
 
 IMAGES = {
     "shark": "https://www.bostonmagazine.com/wp-content/uploads/sites/2/2019/05/Great-white-shark.jpg",
@@ -33,6 +33,9 @@ IMAGES = {
     "cat": "https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png",
     "dog": "https://d17fnq9dkz9hgj.cloudfront.net/breed-uploads/2018/09/dog-landing-hero-lg.jpg?bust=1536935129&width=1080",
     "pupper": "https://i.ytimg.com/vi/MPV2METPeJU/maxresdefault.jpg",
+    "birb": "https://i.kym-cdn.com/entries/icons/facebook/000/019/189/birb.jpg",
+    "borb": "https://64.media.tumblr.com/d9a90f71e33b24023f973b35a642194b/tumblr_pkz9xovFKu1u4nbmvo1_1280.jpg",
+    "oinker": "https://www.edgarsmission.org.au/wp-content/uploads/2015/08/Happy-Pigs-5.jpg",
 }
 
 import inspect

@@ -1,9 +1,12 @@
-from redbot.core import commands, checks, Config
-from .converters import Margs
-from datetime import datetime
 import asyncio
-import discord
 import time
+from datetime import datetime
+from typing import Literal
+
+import discord
+from redbot.core import Config, checks, commands
+
+from .converters import Margs
 
 listener = getattr(
     commands.Cog, "listener", None
@@ -52,6 +55,30 @@ class Maintenance(commands.Cog):
         self.bot.remove_check(self.this_check)
         self.task.cancel()
 
+    async def red_delete_data_for_user(
+        self,
+        *,
+        requester: Literal["discord_deleted_user", "owner", "user", "user_strict"],
+        user_id: int,
+    ):
+        """This cog stores user's Discord IDs for operational data, that is important
+        to the cog's functionality."""
+        if requester != "discord_deleted_user":
+            return
+
+        async with self.conf.on() as data:
+            try:
+                data[2].remove(user_id)
+            except (IndexError, ValueError):
+                pass
+
+        async with self.conf.scheduledmaintenance() as scheduled:
+            for s in scheduled:
+                try:
+                    s[2].remove(user_id)
+                except ValueError:
+                    pass
+
     async def bg_loop(self):
         await self.bot.wait_until_ready()
         while self == self.bot.get_cog("Maintenance"):
@@ -74,9 +101,7 @@ class Maintenance(commands.Cog):
             setting = [False, 0, []]
             await self.conf.on.set(setting)
             return True
-        team_ids = () if not self.bot._use_team_features else self.bot.owner_ids
-        whitelist = set((self.bot.owner_id, *self.bot._co_owners, *team_ids, *on[2]))
-        if ctx.author.id in whitelist:
+        if await self.bot.is_owner(ctx.author):
             return True
         message = await self.conf.message()
         raise LIStsSTaRtaTiNDeX1(message)
@@ -91,13 +116,13 @@ class Maintenance(commands.Cog):
     @maintenance.command(name="on")
     async def _on(self, ctx, *, args: Margs = None):
         """Puts the bot on maintenance, preventing everyone but you and people whitelisted from running commands.  Other people will just be told the bot is currently on maintenance.
-        
+
         You can use the following arguments to specify things:
             --start-in: Makes the maintenace start in that long.
             --end-in: Schedules the maintenance to end in that long from the current second.
             --end-after: Schedules the maintenance to end in that long after the maitenance has started.
             --whitelist: Provide user IDs after this to whitelist people from the maintenance.
-            
+
         Examples:
         `[p]maintenance on --start-in 5 seconds`; starts a maintenance in 5 seconds
         `[p]maintenance on --start-in 5 seconds --end-in 10 seconds`; starts a maintenance in 5 seconds, then scheduled to end in 10 seconds, so it will only be on maintenance for 5 seconds.

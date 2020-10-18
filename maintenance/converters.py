@@ -1,8 +1,12 @@
-from redbot.core.commands import Converter, BadArgument
+# Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/v3/scheduler/converters.py#L23
+
 import argparse
 import time
-from .utils import convert_time
+
+from redbot.core.commands import BadArgument, Converter
+
 from .classes import ScheduledMaintenance
+from .utils import convert_time
 
 
 class NoExitParser(argparse.ArgumentParser):
@@ -34,7 +38,7 @@ class Margs(Converter):
         if start_seconds:
             if end_seconds:
                 scheduled = ScheduledMaintenance(
-                    start=start_seconds, end=end_seconds, after=after, whitelist=whitelist
+                    start=start_seconds, end=end_seconds, after=after, whitelist=whitelist,
                 )
             else:
                 scheduled = ScheduledMaintenance(start=start_seconds, whitelist=whitelist)

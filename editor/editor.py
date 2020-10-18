@@ -1,6 +1,7 @@
-from redbot.core import commands, checks
 from typing import Union
+
 import discord
+from redbot.core import checks, commands
 
 
 class Editor(commands.Cog):
@@ -8,6 +9,10 @@ class Editor(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
 
     @commands.command()
     @checks.admin()
@@ -24,7 +29,7 @@ class Editor(commands.Cog):
             - ccid: The ID of the channel of the message you are copying from.  If you are giving the raw content yourself, pass 0 as the channel ID. (Optional)
 
             - content: The ID of the message that contains the contents of what you want the other message to become, or the new content of the message.  (Required, integer (for message id) or text (for new content)
-            
+
         Examples:
         `[p]editmessage <edit_channel_id> <edit_message_id> <copy_channel_id> <copy_message_id>`
         `[p]editmessage <edit_channel_id> <edit_message_id> 0 New content here`

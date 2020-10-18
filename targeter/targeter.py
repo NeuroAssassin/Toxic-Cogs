@@ -1,10 +1,11 @@
 import argparse
 import functools
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 import aiohttp
 import discord
+from dateutil.parser import parse
 from redbot.core import checks, commands
 from redbot.core.commands import BadArgument, Converter, RoleConverter
 from redbot.core.utils.chat_formatting import humanize_list, pagify
@@ -43,6 +44,8 @@ PERMS = [
     "view_audit_log",
 ]
 
+# Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/v3/scheduler/converters.py#L23
+
 
 class NoExitParser(argparse.ArgumentParser):
     def error(self, message):
@@ -55,7 +58,7 @@ class Args(Converter):
         parser = NoExitParser(description="Targeter argument parser", add_help=False)
 
         # Nicknames / Usernames
-        names = parser.add_mutually_exclusive_group()
+        names = parser.add_argument_group()
         names.add_argument("--nick", nargs="*", dest="nick", default=[])
         names.add_argument("--user", nargs="*", dest="user", default=[])
         names.add_argument("--name", nargs="*", dest="name", default=[])
@@ -83,12 +86,12 @@ class Args(Converter):
         single.add_argument("--no-role", dest="no-role", action="store_true")
 
         # Date stuff
-        jd = parser.add_mutually_exclusive_group()
+        jd = parser.add_argument_group()
         jd.add_argument("--joined-on", nargs="*", dest="joined-on", default=[])
         jd.add_argument("--joined-before", nargs="*", dest="joined-be", default=[])
-        jd.add_argument("--joined-after", nargs="*", dest="joined-af", default=[])
+        jd.add_argument("--joined-after", nargs="*", dest="joined-af", default="")
 
-        cd = parser.add_mutually_exclusive_group()
+        cd = parser.add_argument_group()
         cd.add_argument("--created-on", nargs="*", dest="created-on", default=[])
         cd.add_argument("--created-before", nargs="*", dest="created-be", default=[])
         cd.add_argument("--created-after", nargs="*", dest="created-af", default=[])
@@ -116,7 +119,7 @@ class Args(Converter):
         parser.add_argument("--not-any-perm", nargs="*", dest="not-any-perm", default=[])
 
         # Extra
-        parser.add_argument("--format", nargs="*", dest="format", default=["page"])
+        parser.add_argument("--format", nargs="*", dest="format", default=["menu"])
 
         try:
             vals = vars(parser.parse_args(argument.split(" ")))
@@ -234,88 +237,40 @@ class Args(Converter):
         # Daaaaaaaaaaaaaaaaaates
 
         if vals["joined-on"]:
-            if len(vals["joined-on"]) != 3:
-                raise BadArgument(
-                    "Invalid amount of digits for the `joined-on` date.  Must be `YYYY MM DD`"
-                )
             try:
-                vals["joined-on"] = list(map(int, vals["joined-on"]))
-            except ValueError:
-                raise BadArgument("Dates must be integers.")
-            if not vals["joined-on"][1] in range(1, 13):
-                raise BadArgument("Month must be between 1 and 12")
-            if not vals["joined-on"][2] in range(1, 32):
-                raise BadArgument("Day must be between 1 and 31")
+                vals["joined-on"] = parse(" ".join(vals["joined-on"]))
+            except:
+                raise BadArgument("Failed to parse --joined-on argument")
 
         if vals["joined-be"]:
-            if len(vals["joined-be"]) != 3:
-                raise BadArgument(
-                    "Invalid amount of digits for the `joined-before` date.  Must be `YYYY MM DD`"
-                )
             try:
-                vals["joined-be"] = list(map(int, vals["joined-be"]))
-            except ValueError:
-                raise BadArgument("Dates must be integers.")
-            if not vals["joined-be"][1] in range(1, 13):
-                raise BadArgument("Month must be between 1 and 12")
-            if not vals["joined-be"][2] in range(1, 32):
-                raise BadArgument("Day must be between 1 and 31")
+                vals["joined-be"] = parse(" ".join(vals["joined-be"]))
+            except:
+                raise BadArgument("Failed to parse --joined-be argument")
 
         if vals["joined-af"]:
-            if len(vals["joined-af"]) != 3:
-                raise BadArgument(
-                    "Invalid amount of digits for the `joined-after` date.  Must be `YYYY MM DD`"
-                )
             try:
-                vals["joined-af"] = list(map(int, vals["joined-af"]))
-            except ValueError:
-                raise BadArgument("Dates must be integers.")
-            if not vals["joined-af"][1] in range(1, 13):
-                raise BadArgument("Month must be between 1 and 12")
-            if not vals["joined-af"][2] in range(1, 32):
-                raise BadArgument("Day must be between 1 and 31")
+                vals["joined-af"] = parse(" ".join(vals["joined-af"]))
+            except:
+                raise BadArgument("Failed to parse --joined-after argument")
 
         if vals["created-on"]:
-            if len(vals["created-on"]) != 3:
-                raise BadArgument(
-                    "Invalid amount of digits for the `created-on` date.  Must be `YYYY MM DD`"
-                )
             try:
-                vals["created-on"] = list(map(int, vals["created-on"]))
-            except ValueError:
-                raise BadArgument("Dates must be integers.")
-            if not vals["created-on"][1] in range(1, 13):
-                raise BadArgument("Month must be between 1 and 12")
-            if not vals["created-on"][2] in range(1, 32):
-                raise BadArgument("Day must be between 1 and 31")
+                vals["created-on"] = parse(" ".join(vals["created-on"]))
+            except:
+                raise BadArgument("Failed to parse --created-on argument")
 
         if vals["created-be"]:
-            if len(vals["created-be"]) != 3:
-                raise BadArgument(
-                    "Invalid amount of digits for the `created-before` date.  Must be `YYYY MM DD`"
-                )
             try:
-                vals["created-be"] = list(map(int, vals["created-be"]))
-            except ValueError:
-                raise BadArgument("Dates must be integers.")
-            if not vals["created-be"][1] in range(1, 13):
-                raise BadArgument("Month must be between 1 and 12")
-            if not vals["created-be"][2] in range(1, 32):
-                raise BadArgument("Day must be between 1 and 31")
+                vals["created-be"] = parse(" ".join(vals["created-be"]))
+            except:
+                raise BadArgument("Failed to parse --created-be argument")
 
         if vals["created-af"]:
-            if len(vals["created-af"]) != 3:
-                raise BadArgument(
-                    "Invalid amount of digits for the `created-after` date.  Must be `YYYY MM DD`"
-                )
             try:
-                vals["created-af"] = list(map(int, vals["created-af"]))
-            except ValueError:
-                raise BadArgument("Dates must be integers.")
-            if not vals["created-af"][1] in range(1, 13):
-                raise BadArgument("Month must be between 1 and 12")
-            if not vals["created-af"][2] in range(1, 32):
-                raise BadArgument("Day must be between 1 and 31")
+                vals["created-af"] = parse(" ".join(vals["created-af"]))
+            except:
+                raise BadArgument("Failed to parse --created-af argument")
 
         # Actiiiiiiiiiiiiiiiiivities
         if vals["device"]:
@@ -395,6 +350,10 @@ class Targeter(commands.Cog):
         self.bot = bot
         self.conv = Args()  # For evals
         self.s = aiohttp.ClientSession()
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
 
     async def post(self, string):
         async with self.s.put("http://bin.doyle.la", data=string.encode("utf-8")) as post:
@@ -545,21 +504,25 @@ class Targeter(commands.Cog):
             a = args["joined-on"]
             matched_here = []
             for user in matched:
-                j = user.joined_at
-                if j.year == a[0] and j.month == a[1] and j.day == a[2]:
+                if a.tzinfo:
+                    j = user.joined_at.replace(tzinfo=timezone.utc)
+                else:
+                    j = user.joined_at
+                if j.date() == a.date():
                     matched_here.append(user)
+                else:
+                    pass
             passed.append(matched_here)
 
         if args["joined-be"]:
             a = args["joined-be"]
             matched_here = []
             for user in matched:
-                j = user.joined_at
-                if j.year < a[0]:
-                    matched_here.append(user)
-                elif j.month < a[1] and j.year == a[0]:
-                    matched_here.append(user)
-                elif j.day < a[2] and j.year == a[0] and j.month == a[1]:
+                if a.tzinfo:
+                    j = user.joined_at.replace(tzinfo=timezone.utc)
+                else:
+                    j = user.joined_at
+                if j < a:
                     matched_here.append(user)
                 else:
                     pass
@@ -569,12 +532,11 @@ class Targeter(commands.Cog):
             a = args["joined-af"]
             matched_here = []
             for user in matched:
-                j = user.joined_at
-                if j.year > a[0]:
-                    matched_here.append(user)
-                elif j.month > a[1] and j.year == a[0]:
-                    matched_here.append(user)
-                elif j.day > a[2] and j.year == a[0] and j.month == a[1]:
+                if a.tzinfo:
+                    j = user.joined_at.replace(tzinfo=timezone.utc)
+                else:
+                    j = user.joined_at
+                if j > a:
                     matched_here.append(user)
                 else:
                     pass
@@ -584,21 +546,25 @@ class Targeter(commands.Cog):
             a = args["created-on"]
             matched_here = []
             for user in matched:
-                j = user.created_at
-                if j.year == a[0] and j.month == a[1] and j.day == a[2]:
+                if a.tzinfo:
+                    c = user.created_at.replace(tzinfo=timezone.utc)
+                else:
+                    c = user.created_at
+                if c.date() == a.date():
                     matched_here.append(user)
+                else:
+                    pass
             passed.append(matched_here)
 
         if args["created-be"]:
             a = args["created-be"]
             matched_here = []
             for user in matched:
-                j = user.created_at
-                if j.year < a[0]:
-                    matched_here.append(user)
-                elif j.month < a[1] and j.year == a[0]:
-                    matched_here.append(user)
-                elif j.day < a[2] and j.year == a[0] and j.month == a[1]:
+                if a.tzinfo:
+                    c = user.created_at.replace(tzinfo=timezone.utc)
+                else:
+                    c = user.created_at
+                if c < a:
                     matched_here.append(user)
                 else:
                     pass
@@ -608,12 +574,11 @@ class Targeter(commands.Cog):
             a = args["created-af"]
             matched_here = []
             for user in matched:
-                j = user.created_at
-                if j.year > a[0]:
-                    matched_here.append(user)
-                elif j.month > a[1] and j.year == a[0]:
-                    matched_here.append(user)
-                elif j.day > a[2] and j.year == a[0] and j.month == a[1]:
+                if a.tzinfo:
+                    c = user.created_at.replace(tzinfo=timezone.utc)
+                else:
+                    c = user.created_at
+                if c > a:
                     matched_here.append(user)
                 else:
                     pass
@@ -731,7 +696,7 @@ class Targeter(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def target(self, ctx, *, args: Args):
         """Targets users based on the passed arguments.
-        
+
         Run `[p]target help` to see a list of valid arguments."""
         # await ctx.send(args)
         async with ctx.typing():
@@ -765,7 +730,7 @@ class Targeter(commands.Cog):
                     m = True
             else:
                 embed = discord.Embed(
-                    title="Targeting complete", description=f"Found no matches.", color=0xFF0000
+                    title="Targeting complete", description=f"Found no matches.", color=0xFF0000,
                 )
                 m = False
         if not m:

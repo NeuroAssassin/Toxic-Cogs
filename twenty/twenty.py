@@ -1,8 +1,9 @@
-from redbot.core import commands, checks
-import discord
 import asyncio
 import random
 from copy import deepcopy as dc
+
+import discord
+from redbot.core import checks, commands
 
 
 class Twenty(commands.Cog):
@@ -12,6 +13,10 @@ class Twenty(commands.Cog):
         self.bot = bot
 
     __author__ = "Neuro Assassin#4779 <@473541068378341376>"
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
 
     @checks.bot_has_permissions(add_reactions=True)
     @commands.command()

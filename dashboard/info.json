@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.  Please follow the instructions at https://red-dashboard.readthedocs.io to get started.\nWARNING: This cog/webserver is in alpha status.  Please read the announcement below regarding support.\n\nFrom here on forward, user issues with installing (for example, not understanding what something is) must be dealt with personally.  I will no longer be helping out with these as I do not have the time for them.  As said before, this cog is in very early stage development, and is not intended for public use, and I am looking for bugs, issues and feedback.  If you cannot understand the (relatively simple) instructions, then now is not a good time to install, and its better to wait until it is officially released.  I would recommend searching google for the answers to your questions.  If for some reason, you cannot understand how to install it at all, and I warn, ONLY if it is that, then you can DM Draper.\n\nHowever, if you are getting an error with the dashboard (and ONLY if you are getting an error) you may post in #help.  If you have feedback, post in #general.\n\nIf you do not like this, please uninstall now.",
+    "name" : "dashboard",
+    "short" : "Interact with your bot through a web dashboard.",
+    "description" : "Control your bot through a web dashboard, allowing people to run commands (with permissions checked) straight from an easy-to-use dashboard.",
+    "tags" : ["tools"],
+    "requirements" : ["markdown2"],
+    "hidden" : true
+}

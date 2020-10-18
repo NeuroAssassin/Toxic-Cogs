@@ -13,6 +13,10 @@ class Grammar(commands.Cog):
         self.bot = bot
         self.session = aiohttp.ClientSession()
 
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
+
     @commands.command()
     async def grammar(self, ctx, *, args: Gargs):
         """Get words related to the passed arguments.

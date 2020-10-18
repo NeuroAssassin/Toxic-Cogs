@@ -1,11 +1,13 @@
-from redbot.core import commands, Config, checks
-from PIL import Image
-from colour import Color as col
-from colour import rgb2hex
-import discord
+import functools
 import io
 import re
-import functools
+
+import discord
+from redbot.core import Config, checks, commands
+
+from colour import Color as col
+from colour import rgb2hex
+from PIL import Image
 
 
 class Color(commands.Cog):
@@ -22,6 +24,10 @@ class Color(commands.Cog):
         )  # The Regex gods are going to kill me
 
     __author__ = "Neuro Assassin#4779 <@473541068378341376>"
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
 
     def have_fun_with_pillow(self, rgb):
         im = Image.new("RGB", (200, 200), rgb)
@@ -188,9 +194,9 @@ class Color(commands.Cog):
     @color.command()
     async def msgshort(self, ctx, enable: bool):
         """Enable or disable the in-message shortcut.
-        
+
         In-message shortcuts can be used by using the hex, rgb or name after a `#` in the middle of a message, as follows:
-        
+
         `#000000` (hex)
         `#1,1,1` (rgb)
         `#black` (named)"""

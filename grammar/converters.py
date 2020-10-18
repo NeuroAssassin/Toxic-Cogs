@@ -1,3 +1,5 @@
+# Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/v3/scheduler/converters.py#L23
+
 import argparse
 
 from redbot.core.commands import BadArgument, Converter

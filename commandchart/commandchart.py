@@ -3,20 +3,20 @@ You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/c
 
 This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""
 
-import discord
 import heapq
-from io import BytesIO
 import typing
+from io import BytesIO
+
+import discord
+from redbot.core import checks, commands
 
 import matplotlib
+import matplotlib.pyplot as plt
 
 matplotlib.use("agg")
 
-import matplotlib.pyplot as plt
 
 plt.switch_backend("agg")
-
-from redbot.core import commands, checks
 
 
 class CommandChart(commands.Cog):
@@ -26,6 +26,10 @@ class CommandChart(commands.Cog):
         self.bot = bot
 
     __author__ = "Neuro Assassin#4779 <@473541068378341376>"
+
+    async def red_delete_data_for_user(self, **kwargs):
+        """This cog does not store user data"""
+        return
 
     async def command_from_message(self, m: discord.Message):
         message_context = await self.bot.get_context(m)
@@ -101,7 +105,7 @@ class CommandChart(commands.Cog):
     @commands.guild_only()
     @commands.command()
     async def commandchart(
-        self, ctx, channel: typing.Optional[discord.TextChannel] = None, number: int = 5000
+        self, ctx, channel: typing.Optional[discord.TextChannel] = None, number: int = 5000,
     ):
         """See the used commands in a certain channel within a certain amount of messages."""
         e = discord.Embed(description="Loading...", color=0x000099)

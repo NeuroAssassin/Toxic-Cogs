@@ -691,6 +691,17 @@ class Targeter(commands.Cog):
             return []
         return all_passed.intersection(*passed)
 
+    # API for other cogs
+    async def args_to_list(self, ctx: commands.Context, args: str):
+        """
+        Returns a list of members from the given args, which are
+        expected to follow the style in the Args converter above.
+        """
+        args = await Args().convert(ctx, args)
+        compact = functools.partial(self.lookup, ctx, args)
+        matched = await self.bot.loop.run_in_executor(None, compact)
+        return matched
+
     @checks.bot_has_permissions(embed_links=True)
     @commands.guild_only()
     @commands.group(invoke_without_command=True)

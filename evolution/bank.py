@@ -135,7 +135,7 @@ async def get_balance(member: discord.Member, _forced: bool = False) -> int:
         The member's balance
     """
     acc = await get_account(member, _forced=_forced)
-    return acc.balance
+    return int(acc.balance)
 
 
 async def get_next_payday(member: discord.Member) -> int:
@@ -153,7 +153,7 @@ async def get_next_payday(member: discord.Member) -> int:
         return 0
 
     acc = await get_account(member)
-    return int(acc.balance)
+    return int(acc.next_payday)
 
 
 async def set_next_payday(member: Union[discord.Member, discord.User], amount: int) -> int:

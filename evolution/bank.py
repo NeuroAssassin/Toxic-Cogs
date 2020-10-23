@@ -153,7 +153,7 @@ async def get_next_payday(member: discord.Member) -> int:
         return 0
 
     acc = await get_account(member)
-    return acc.balance
+    return int(acc.balance)
 
 
 async def set_next_payday(member: Union[discord.Member, discord.User], amount: int) -> int:
@@ -171,7 +171,7 @@ async def set_next_payday(member: Union[discord.Member, discord.User], amount: i
     """
     if (cog := _bot.get_cog("Adventure")) is None or not cog._separate_economy:
         return 0
-
+    amount = int(amount)
     group = _config.user(member)
     await group.next_payday.set(amount)
     return amount

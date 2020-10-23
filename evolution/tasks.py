@@ -70,9 +70,9 @@ class EvolutionTaskManager:
                         new_data[str(user_id)] = {"balance": userdata}
                         continue
                     if new_data[str(user_id)]["balance"] + userdata > max_credits:
-                        new_data[str(user_id)]["balance"] = max_credits
+                        new_data[str(user_id)]["balance"] = int(max_credits)
                     else:
-                        new_data[str(user_id)]["balance"] += userdata
+                        new_data[str(user_id)]["balance"] += int(userdata)
 
             await self.cog.conf.lastcredited.set(await self.process_times(ct, lastcredited))
             await asyncio.sleep(60)

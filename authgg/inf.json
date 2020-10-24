@@ -1,0 +1,14 @@
+{
+    "author": [
+        "Neuro Assassin"
+    ],
+    "install_msg": "Thank you for downloading this cog.",
+    "name": "authgg",
+    "short": "Control your users on auth.gg straight from Discord.",
+    "description": "Unlock your users' HWID locks on auth.gg straight from your bot in Discord",
+    "tags": [
+        "tools"
+    ],
+    "requirements": [],
+    "hidden": false
+}

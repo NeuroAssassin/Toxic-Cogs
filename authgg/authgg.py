@@ -91,12 +91,12 @@ class AuthGG(commands.Cog):
                     "type": "changepw",
                     "authorization": key,
                     "user": username,
-                    "password": password
+                    "password": password,
                 }
                 response = await session.get(USERS_URL, params=data)
                 if response.status != 200:
                     return await ctx.send(
-                    f"Something went wrong while contacting the API.  Status code: {response.status}"
+                        f"Something went wrong while contacting the API.  Status code: {response.status}"
                     )
                 text = await response.json(content_type="text/html")
                 if text["status"] == "success":
@@ -107,7 +107,9 @@ class AuthGG(commands.Cog):
             try:
                 await ctx.message.delete()
             except:
-                await ctx.send("I was unable to delete your command message due to lack of perms.  It is recommended to due so to prevent your user's password from getting leaked.")
+                await ctx.send(
+                    "I was unable to delete your command message due to lack of perms.  It is recommended to due so to prevent your user's password from getting leaked."
+                )
 
     @checks.is_owner()
     @authgg.group()
@@ -127,7 +129,9 @@ class AuthGG(commands.Cog):
             try:
                 await ctx.message.delete()
             except:
-                await ctx.send("I was unable to delete your command message due to lack of perms.  It is recommended to due so to prevent your API key from getting leaked.")
+                await ctx.send(
+                    "I was unable to delete your command message due to lack of perms.  It is recommended to due so to prevent your API key from getting leaked."
+                )
             await ctx.send(f"Successfully registered API key under `{friendly}`")
 
     @keys.command(name="remove")
@@ -154,7 +158,6 @@ class AuthGG(commands.Cog):
             return await ctx.send("No API keys are currently registered")
         message = f"The following keys are currently registered: {humanize_list(list(map(inline, keys.keys())))}"
         await ctx.send(message)
-
 
     @checks.is_owner()
     @authgg.group()

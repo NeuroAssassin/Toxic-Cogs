@@ -168,8 +168,8 @@ class DashboardSettingsMixin(MixinMeta):
                 "```"
             )
 
-    @settings.command()
-    async def color(self, ctx, color: str):
+    @settings.command(name="color")
+    async def color_settings(self, ctx, color: str):
         """Set the default color for a new user.
 
         The webserver version must be at least 0.1.3a.dev in order for this to work."""
@@ -235,8 +235,8 @@ class DashboardSettingsMixin(MixinMeta):
             return await ctx.send("Meta description reset to default.")
         await ctx.tick()
 
-    @meta.command()
-    async def color(self, ctx, *, color: discord.Colour = ""):
+    @meta.command(name="color")
+    async def color_meta(self, ctx, *, color: discord.Colour = ""):
         """Set the meta color tag for the rendered UI from link.
 
         For Discord, this is the colored bar that appears in the left of the embed."""

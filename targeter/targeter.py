@@ -285,10 +285,11 @@ class Args(Converter):
                 "streaming": at.streaming,
                 "listening": at.listening,
                 "watching": at.watching,
+                "competing": at.competing
             }
             if not all([a.lower() in switcher for a in vals["at"]]):
                 raise BadArgument(
-                    "Invalid Activity Type.  Must be either `unknown`, `playing`, `streaming`, `listening` or `watching`."
+                    "Invalid Activity Type.  Must be either `unknown`, `playing`, `streaming`, `listening`, `competing` or `watching`."
                 )
             new = [switcher[name.lower()] for name in vals["at"]]
             vals["at"] = new

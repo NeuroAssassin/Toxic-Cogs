@@ -44,12 +44,16 @@ class Deleter(commands.Cog):
                     ms = dc(data["messages"])
                     async for message, wait in AsyncIter(ms.items()):
                         if int(wait) <= time.time():
+                            dontdelete = False
                             try:
                                 m = await c.fetch_message(int(message))
                                 await m.delete()
                             except (discord.NotFound, discord.Forbidden):
                                 pass
-                            del data["messages"][str(message)]
+                            except discord.HTTPException:
+                                dontdelete = True
+                            if not dontdelete:
+                                del data["messages"][str(message)]
                     if old != data:
                         await self.conf.channel(c).messages.set(data["messages"])
             await asyncio.sleep(10)

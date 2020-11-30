@@ -186,12 +186,15 @@ class Evolution(commands.Cog):
         While the store will always have animals for sale, you cannot buy above a certain level,
         and they will be for a higher price."""
         if level is None:
-            if ctx.channel.permissions_for(ctx.guild.me).embed_links:
-                return await self.shop(ctx)
+            if ctx.guild:
+                if ctx.channel.permissions_for(ctx.guild.me).embed_links:
+                    return await self.shop(ctx)
+                else:
+                    return await ctx.send(
+                        'I require the "Embed Links" permission to display the shop.'
+                    )
             else:
-                return await ctx.send(
-                    'I require the "Embed Links" permission to display the shop.'
-                )
+                return await self.shop(ctx)
         if ctx.author.id in self.inmarket:
             return await ctx.send("Complete your current transaction or evolution first.")
         self.inmarket.append(ctx.author.id)

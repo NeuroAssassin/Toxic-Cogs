@@ -166,7 +166,7 @@ class ReacTicket(commands.Cog):
             try:
                 overwrites = {
                     author: discord.PermissionOverwrite(read_messages=False),
-                    guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                    ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
                 }
                 await channel.edit(category=archive, overwrites=overwrites)
             except discord.HTTPException as e:

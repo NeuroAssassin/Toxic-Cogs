@@ -164,7 +164,10 @@ class ReacTicket(commands.Cog):
             await asyncio.sleep(60)
 
             try:
-                overwrites = {author: discord.PermissionOverwrite(read_messages=False)}
+                overwrites = {
+                    author: discord.PermissionOverwrite(read_messages=False),
+                    guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                }
                 await channel.edit(category=archive, overwrites=overwrites)
             except discord.HTTPException as e:
                 await ctx.send(f"Failed to move to archive: {str(e)}")

@@ -16,6 +16,7 @@ class ReacTicket(commands.Cog):
             "usercanclose": False,
             "msg": "0-0",
             "category": 0,
+            "archive": {"category": 0, "enabled": False},
             "enabled": False,
             "created": {},
         }
@@ -76,10 +77,13 @@ class ReacTicket(commands.Cog):
         ]
 
         can_read = discord.PermissionOverwrite(read_messages=True, send_messages=True)
+        can_read_and_manage = discord.PermissionOverwrite(
+            read_messages=True, send_messages=True, manage_channels=True, manage_permissions=True
+        )  # Since Discord can't make up their mind about manage channels/manage permissions
 
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
-            guild.me: can_read,
+            guild.me: can_read_and_manage,
             user: can_read,
         }
         for role in admin_roles:
@@ -127,33 +131,63 @@ class ReacTicket(commands.Cog):
         if not is_admin and must_be_admin:
             await ctx.send("Only Administrators can close tickets.")
             return
-        elif not is_admin or (is_admin and not author):
+        elif not is_admin:
             author = ctx.author  # no u
+        elif is_admin and not author:
+            # Let's try to get the current channel and get the author
+            # If not, we'll default to ctx.author
+            inverted = {value: key for key, value in guild_settings["created"].items()}
+            try:
+                author = ctx.guild.get_member(int(inverted[ctx.channel.id]))
+            except KeyError:
+                author = ctx.author
 
         if str(author.id) not in guild_settings["created"]:
             await ctx.send("That user does not have an open ticket.")
             return
 
         channel = self.bot.get_channel(guild_settings["created"][str(author.id)])
+        archive = self.bot.get_channel(guild_settings["archive"]["category"])
 
         # Again, to prevent race conditions...
         async with self.config.guild(ctx.guild).created() as created:
             del created[str(author.id)]
 
-        await ctx.send(
-            f"Ticket for {author.display_name} has been closed.  Channel will be deleted in one minute, if exists."
-        )
+        if guild_settings["archive"]["enabled"] and channel and archive:
+            with contextlib.suppress(discord.HTTPException):
+                await channel.set_permissions(author, send_messages=False, read_messages=True)
+            await ctx.send(
+                f"Ticket for {author.display_name} has been closed.  "
+                "Channel will be moved to archive in one minute."
+            )
 
-        await asyncio.sleep(60)
+            await asyncio.sleep(60)
 
-        if channel:
             try:
-                await channel.delete()
-            except discord.HTTPException:
-                await ctx.send(
-                    'Failed to delete channel.  Please ensure I have "Manage Channels" '
-                    "permission in the category."
-                )
+                overwrites = {author: discord.PermissionOverwrite(read_messages=False)}
+                await channel.edit(category=archive, overwrites=overwrites)
+            except discord.HTTPException as e:
+                await ctx.send(f"Failed to move to archive: {str(e)}")
+        else:
+            if channel:
+                with contextlib.suppress(discord.HTTPException):
+                    await channel.set_permissions(author, send_messages=False, read_messages=True)
+            await ctx.send(
+                f"Ticket for {author.display_name} has been closed.  "
+                "Channel will be deleted in one minute, if exists."
+            )
+
+            await asyncio.sleep(60)
+
+            if channel:
+                try:
+                    await channel.delete()
+                except discord.HTTPException:
+                    with contextlib.suppress(discord.HTTPException):
+                        await ctx.send(
+                            'Failed to delete channel.  Please ensure I have "Manage Channels" '
+                            "permission in the category."
+                        )
 
     @checks.admin()
     @reacticket.group(invoke_without_command=True)
@@ -161,14 +195,25 @@ class ReacTicket(commands.Cog):
         """Manage settings for ReacTicket"""
         guild_settings = await self.config.guild(ctx.guild).all()
         channel_id, message_id = list(map(int, guild_settings["msg"].split("-")))
+
+        ticket_channel = getattr(self.bot.get_channel(channel_id), "name", "Not set")
+        ticket_category = getattr(
+            self.bot.get_channel(guild_settings["category"]), "name", "Not set"
+        )
+        archive_category = getattr(
+            self.bot.get_channel(guild_settings["archive"]["category"]), "name", "Not set"
+        )
+
         await ctx.send(
             "```ini\n"
-            f"[Channel ID]:       {getattr(self.bot.get_channel(channel_id), 'name', 'Not set')}\n"
-            f"[Message ID]:       {message_id}\n"
-            f"[Reaction]:         {guild_settings['reaction']}\n"
-            f"[User-closable]:    {guild_settings['usercanclose']}\n"
-            f"[Ticket category]:  {getattr(self.bot.get_channel(guild_settings['category']), 'name', 'Not set')}\n"
-            f"[Enabled]:          {guild_settings['enabled']}\n"
+            f"[Ticket Channel]:    {ticket_channel}\n"
+            f"[Ticket MessageID]:  {message_id}\n"
+            f"[Ticket Reaction]:   {guild_settings['reaction']}\n"
+            f"[User-closable]:     {guild_settings['usercanclose']}\n"
+            f"[Ticket Category]:   {ticket_category}\n"
+            f"[Archive Category]:  {archive_category}\n"
+            f"[Archive Enabled]:   {guild_settings['archive']['enabled']}\n"
+            f"[System Enabled]:    {guild_settings['enabled']}\n"
             "```"
         )
 
@@ -250,6 +295,42 @@ class ReacTicket(commands.Cog):
 
         await self.config.guild(ctx.guild).category.set(category.id)
         await ctx.send(f"Ticket channels will now be created in the {category.name} category")
+
+    @settings.group()
+    async def archive(self, ctx):
+        """Customize settings for archiving ticket channels"""
+        pass
+
+    @archive.command(name="category")
+    async def archive_category(self, ctx, category: discord.CategoryChannel):
+        """Set the category to move closed ticket channels to."""
+        if not category.permissions_for(ctx.guild.me).manage_channels:
+            await ctx.send(
+                'I require "Manage Channels" permissions in that category to execute that command.'
+            )
+            return
+
+        async with self.config.guild(ctx.guild).archive() as data:
+            data["category"] = category.id
+        await ctx.send(
+            f"Closed ticket channels will now be moved to the {category.name} category, "
+            "if Archive mode is enabled."
+        )
+
+    @archive.command(name="enable")
+    async def archive_enable(self, ctx, yes_or_no: bool = None):
+        """Enable Archiving mode, to move the Ticket Channels to the set category once closed."""
+        async with self.config.guild(ctx.guild).archive() as data:
+            if yes_or_no is None:
+                data["enabled"] = not data["enabled"]
+                yes_or_no = not data["enabled"]
+            else:
+                data["enabled"] = yes_or_no
+
+        if yes_or_no:
+            await ctx.send("Archiving mode is now enabled.")
+        else:
+            await ctx.send("Archiving mode is now disabled.")
 
     @settings.command()
     async def enable(self, ctx, yes_or_no: Optional[bool] = None):
@@ -346,6 +427,32 @@ class ReacTicket(commands.Cog):
                 '"Manage Channels".'
             )
             return
+
+        # 4 - Archive check (if enabled)
+        archive = await self.config.guild(ctx.guild).archive()
+        if archive["enabled"]:
+            if not archive["category"]:
+                await ctx.send(
+                    "Archive mode is enabled but no category is set.  "
+                    f"Please set one with `{ctx.prefix}reacticket settings archive category`."
+                )
+                return
+
+            archive_category = self.bot.get_channel(archive["category"])
+            if not archive_category:
+                await ctx.send(
+                    "Archive mode is enabled but set category does not exist.  "
+                    f"Please reset it with `{ctx.prefix}reacticket settings archive category`."
+                )
+                return
+
+            if not archive_category.permissions_for(ctx.guild.me).manage_channels:
+                await ctx.send(
+                    "Archive mode is enabled but I do not have permission to manage channels in "
+                    "set category.  Please reconfigure my permissions to allow me to "
+                    '"Manage Channels".'
+                )
+                return
 
         # Checks passed, let's cleanup a little bit and then enable
         await message.clear_reactions()

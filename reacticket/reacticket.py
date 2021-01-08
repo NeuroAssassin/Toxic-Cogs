@@ -568,7 +568,7 @@ class ReacTicket(commands.Cog):
         async with self.config.guild(ctx.guild).archive() as data:
             if yes_or_no is None:
                 data["enabled"] = not data["enabled"]
-                yes_or_no = not data["enabled"]
+                yes_or_no = data["enabled"]
             else:
                 data["enabled"] = yes_or_no
 

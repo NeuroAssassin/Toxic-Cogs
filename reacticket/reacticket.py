@@ -6,6 +6,7 @@ import discord
 import contextlib
 import asyncio
 import time
+import copy
 
 
 class ReacTicket(commands.Cog):
@@ -116,6 +117,13 @@ class ReacTicket(commands.Cog):
             for role_id in (await self.bot._config.guild(guild).admin_role())
             if guild.get_role(role_id)
         ]
+        support_roles = [
+            guild.get_role(role_id)
+            for role_id in (await self.config.guild(guild).supportroles())
+            if guild.get_role(role_id)
+        ]
+
+        all_roles = admin_roles + support_roles
 
         can_read = discord.PermissionOverwrite(read_messages=True, send_messages=True)
         can_read_and_manage = discord.PermissionOverwrite(
@@ -127,7 +135,7 @@ class ReacTicket(commands.Cog):
             guild.me: can_read_and_manage,
             user: can_read,
         }
-        for role in admin_roles:
+        for role in all_roles:
             overwrites[role] = can_read
 
         created_channel = await category.create_text_channel(
@@ -278,9 +286,25 @@ class ReacTicket(commands.Cog):
             await asyncio.sleep(60)
 
             try:
+                admin_roles = [
+                    ctx.guild.get_role(role_id)
+                    for role_id in (await self.bot._config.guild(ctx.guild).admin_role())
+                    if ctx.guild.get_role(role_id)
+                ]
+                support_roles = [
+                    ctx.guild.get_role(role_id)
+                    for role_id in (await self.config.guild(ctx.guild).supportroles())
+                    if ctx.guild.get_role(role_id)
+                ]
+
+                all_roles = admin_roles + support_roles
                 overwrites = {
                     ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
                 }
+                for role in all_roles:
+                    overwrites[role] = discord.PermissionOverwrite(
+                        read_messages=True, send_messages=True
+                    )
                 for user in added_users:
                     overwrites[user] = discord.PermissionOverwrite(read_messages=False)
                 await channel.edit(category=archive, overwrites=overwrites)
@@ -435,6 +459,7 @@ class ReacTicket(commands.Cog):
         archive_category = getattr(
             self.bot.get_channel(guild_settings["archive"]["category"]), "name", "Not set"
         )
+        report_channel = getattr(self.bot.get_channel(guild_settings["report"]), "name", "Not set")
 
         await ctx.send(
             "```ini\n"
@@ -444,6 +469,7 @@ class ReacTicket(commands.Cog):
             f"[User-closable]:     {guild_settings['usercanclose']}\n"
             f"[User-modifiable]:   {guild_settings['usercanmodify']}\n"
             f"[Ticket Category]:   {ticket_category}\n"
+            f"[Report Channel]:    {report_channel}\n"
             f"[Archive Category]:  {archive_category}\n"
             f"[Archive Enabled]:   {guild_settings['archive']['enabled']}\n"
             f"[System Enabled]:    {guild_settings['enabled']}\n"
@@ -528,6 +554,45 @@ class ReacTicket(commands.Cog):
             await ctx.send("Users can now add/remove other users to their own tickets.")
         else:
             await ctx.send("Only administrators can now add/remove users to tickets.")
+
+    @settings.command()
+    async def roles(self, ctx, *, role: discord.Role = None):
+        """Add or remove a role to be automatically added to Ticket channels.
+
+        These will be seen as moderation roles, and will have access to archived ticket channels."""
+        if role:
+            async with self.config.guild(ctx.guild).supportroles() as roles:
+                if role.id in roles:
+                    roles.remove(role.id)
+                    await ctx.send(
+                        f"The {role.name} role will no longer be automatically added to tickets."
+                    )
+                else:
+                    roles.append(role.id)
+                    await ctx.send(
+                        f"The {role.name} role will now automatically be added to tickets."
+                    )
+        else:
+            roles = await self.config.guild(ctx.guild).supportroles()
+            new = copy.deepcopy(roles)
+            if not roles:
+                await ctx.send("No roles are set to be added to tickets right now.")
+                return
+            e = discord.Embed(
+                title="The following roles are automatically added to tickets.",
+                description="Note that administrator roles will always be added by default.\n",
+                color=await ctx.embed_color(),
+            )
+            for r in roles:
+                ro = ctx.guild.get_role(r)
+                if ro:
+                    e.description += ro.mention + "\n"
+                else:
+                    new.remove(r)
+
+            if new != roles:
+                await self.config.guild(ctx.guild).supportroles.set(new)
+            await ctx.send(embed=e)
 
     @settings.command()
     async def category(self, ctx, category: discord.CategoryChannel):

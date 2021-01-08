@@ -220,7 +220,9 @@ class ReacTicket(commands.Cog):
     async def close(self, ctx, author: discord.Member = None):
         """Closes the ticket created by the user"""
         guild_settings = await self.config.guild(ctx.guild).all()
-        is_admin = await is_admin_or_superior(self.bot, ctx.author)
+        is_admin = await is_admin_or_superior(self.bot, ctx.author) or any(
+            [ur.id in guild_settings["supportroles"] for ur in ctx.author.roles]
+        )
         must_be_admin = not guild_settings["usercanclose"]
 
         if not is_admin and must_be_admin:
@@ -338,7 +340,9 @@ class ReacTicket(commands.Cog):
     async def ticket_add(self, ctx, user: discord.Member):
         """Add a user to the current ticket."""
         guild_settings = await self.config.guild(ctx.guild).all()
-        is_admin = await is_admin_or_superior(self.bot, ctx.author)
+        is_admin = await is_admin_or_superior(self.bot, ctx.author) or any(
+            [ur.id in guild_settings["supportroles"] for ur in ctx.author.roles]
+        )
         must_be_admin = not guild_settings["usercanmodify"]
 
         if not is_admin and must_be_admin:
@@ -393,7 +397,9 @@ class ReacTicket(commands.Cog):
     async def ticket_remove(self, ctx, user: discord.Member):
         """Remove a user from the current ticket."""
         guild_settings = await self.config.guild(ctx.guild).all()
-        is_admin = await is_admin_or_superior(self.bot, ctx.author)
+        is_admin = await is_admin_or_superior(self.bot, ctx.author) or any(
+            [ur.id in guild_settings["supportroles"] for ur in ctx.author.roles]
+        )
         must_be_admin = not guild_settings["usercanmodify"]
 
         if not is_admin and must_be_admin:

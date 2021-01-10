@@ -189,7 +189,10 @@ class ReacTicket(commands.Cog):
                             "Users are allowed to add/remove other users to/from their tickets.\n"
                         )
                     else:
-                        description += "Users are **not** allowed to add/remove other users to/from their tickets.\n"
+                        description += (
+                            "Users are **not** allowed to add/remove "
+                            "other users to/from their tickets.\n"
+                        )
                     embed.add_field(name="User Permission", value=description)
                     await reporting_channel.send(embed=embed)
                 else:
@@ -199,11 +202,20 @@ class ReacTicket(commands.Cog):
                     )
 
                     if guild_settings["usercanclose"] and guild_settings["usercanmodify"]:
-                        message += "Users are allowed to close and add/remove users to/from their tickets."
+                        message += (
+                            "Users are allowed to close "
+                            "and add/remove users to/from their tickets."
+                        )
                     elif guild_settings["usercanclose"]:
-                        message += "Users are allowed to close their tickets, but cannot add/remove users."
+                        message += (
+                            "Users are allowed to close their tickets, "
+                            "but cannot add/remove users."
+                        )
                     elif guild_settings["usercanmodify"]:
-                        message += "Users are allowed to add/remove users to/from their tickets, but cannot close."
+                        message += (
+                            "Users are allowed to add/remove users to/from their tickets, "
+                            "but cannot close."
+                        )
                     else:
                         message += "Users cannot close or add/remove users to/from their tickets."
 
@@ -265,7 +277,8 @@ class ReacTicket(commands.Cog):
                     embed = discord.Embed(
                         title="Ticket Closed",
                         description=(
-                            f"Ticket created by {author.mention} has been closed by {ctx.author.mention}."
+                            f"Ticket created by {author.mention} has been closed by "
+                            f"{ctx.author.mention}."
                         ),
                     )
                     await reporting_channel.send(embed=embed)
@@ -375,6 +388,14 @@ class ReacTicket(commands.Cog):
             await ctx.send("That user is already added.")
             return
 
+        adding_is_admin = await is_admin_or_superior(self.bot, user) or any(
+            [ur.id in guild_settings["supportroles"] for ur in user.roles]
+        )
+
+        if adding_is_admin:
+            await ctx.send("You cannot add a user in support or admin team.")
+            return
+
         channel = self.bot.get_channel(guild_settings["created"][str(author.id)]["channel"])
         if not channel:
             await ctx.send("The ticket channel has been deleted.")
@@ -429,7 +450,15 @@ class ReacTicket(commands.Cog):
             return
 
         if user.id not in guild_settings["created"][str(author.id)]["added"]:
-            await ctx.send("That user is already added.")
+            await ctx.send("That user is not added.")
+            return
+
+        removing_is_admin = await is_admin_or_superior(self.bot, user) or any(
+            [ur.id in guild_settings["supportroles"] for ur in user.roles]
+        )
+
+        if removing_is_admin:
+            await ctx.send("You cannot remove a user in support or admin team.")
             return
 
         channel = self.bot.get_channel(guild_settings["created"][str(author.id)]["channel"])
@@ -565,7 +594,7 @@ class ReacTicket(commands.Cog):
     async def roles(self, ctx, *, role: discord.Role = None):
         """Add or remove a role to be automatically added to Ticket channels.
 
-        These will be seen as moderation roles, and will have access to archived ticket channels."""
+        These will be seen as support roles, and will have access to archived ticket channels."""
         if role:
             async with self.config.guild(ctx.guild).supportroles() as roles:
                 if role.id in roles:

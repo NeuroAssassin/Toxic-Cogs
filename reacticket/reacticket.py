@@ -14,14 +14,19 @@ class ReacTicket(commands.Cog):
         self.bot: Red = bot
 
         default_guild = {
+            # Initial ticket creation settings
             "reaction": "\N{ADMISSION TICKETS}",
+            "msg": "0-0",
             "openmessage": "{default}",
+            # Permission settings
             "usercanclose": False,
             "usercanmodify": False,
-            "msg": "0-0",
+            # Post creation settings
             "category": 0,
             "archive": {"category": 0, "enabled": False},
+            # Miscellaneous
             "supportroles": [],
+            "blacklist": [],
             "report": 0,
             "enabled": False,
             "created": {},
@@ -110,6 +115,9 @@ class ReacTicket(commands.Cog):
         guild = self.bot.get_guild(payload.guild_id)
         if not category.permissions_for(guild.me).manage_channels:
             await self.config.guild_from_id(payload.guild_id).enabled.set(False)
+            return
+
+        if payload.user_id in guild_settings["blacklist"]:
             return
 
         user = guild.get_member(payload.user_id)
@@ -583,13 +591,13 @@ class ReacTicket(commands.Cog):
     @settings.command(name="creationmessage", aliases=["openmessage"])
     async def ticket_creation_message(self, ctx, *, message):
         """Set the message that is sent when you initially create the ticket.
-        
+
         If any of these are included in the message, they will automatically be
         replaced with the corresponding value.
             {mention} - Mentions the user who created the ticket
             {username} - Username of the user who created the ticket
             {id} - ID of the user who created the ticket.
-            
+
         To return to default, set the message to exactly "{default}" """
         await self.config.guild(ctx.guild).openmessage.set(message)
         if message == "{default}":
@@ -620,6 +628,37 @@ class ReacTicket(commands.Cog):
             await ctx.send("Users can now add/remove other users to their own tickets.")
         else:
             await ctx.send("Only administrators can now add/remove users to tickets.")
+
+    @settings.command()
+    async def blacklist(self, ctx, *, user: discord.Member = None):
+        """Add or remove a user to be prevented from creating tickets.
+
+        Useful for users who are creating tickets for no reason."""
+        if user:
+            async with self.config.guild(ctx.guild).blacklist() as blacklist:
+                if user.id in blacklist:
+                    blacklist.remove(user.id)
+                    await ctx.send(
+                        f"{user.display_name} has been removed from the reacticket blacklist."
+                    )
+                else:
+                    blacklist.append(user.id)
+                    await ctx.send(
+                        f"{user.display_name} has been add to the reacticket blacklist."
+                    )
+        else:
+            blacklist = await self.config.guild(ctx.guild).blacklist()
+            if not blacklist:
+                await ctx.send("No users have been blacklisted so far.")
+                return
+            e = discord.Embed(
+                title="The following users are blacklisted from creating tickets.",
+                description="",
+                color=await ctx.embed_color(),
+            )
+            for u in blacklist:
+                e.description += f"<@{u}> "
+            await ctx.send(embed=e)
 
     @settings.command()
     async def roles(self, ctx, *, role: discord.Role = None):

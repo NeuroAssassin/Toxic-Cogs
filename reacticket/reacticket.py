@@ -198,19 +198,20 @@ class ReacTicket(commands.Cog):
                     embed = discord.Embed(
                         title="Ticket Opened",
                         description=(
-                            f"Ticket created by {user.mention} has been opened.  "
+                            f"Ticket created by {user.mention} has been opened.\n"
                             f"Click [here]({sent.jump_url}) to jump to the start of the ticket."
                         ),
                     )
                     description = ""
                     if guild_settings["usercanclose"]:
-                        description += "Users are allowed to close their own tickets.\n"
+                        description += "Users are **allowed** to close their own tickets.\n"
                     else:
                         description += "Users are **not** allowed to close their own tickets.\n"
 
                     if guild_settings["usercanmodify"]:
                         description += (
-                            "Users are allowed to add/remove other users to/from their tickets.\n"
+                            "Users are **allowed** to add/remove "
+                            "other users to/from their tickets.\n"
                         )
                     else:
                         description += (
@@ -221,24 +222,24 @@ class ReacTicket(commands.Cog):
                     await reporting_channel.send(embed=embed)
                 else:
                     message = (
-                        f"Ticket created by {str(user)} has been opened.  "
-                        f"Click [here]({sent.jump_url}) to jump to it.\n"
+                        f"Ticket created by {str(user)} has been opened.\n"
+                        f"Here's a link ({sent.jump_url}) to jump to it.\n"
                     )
 
                     if guild_settings["usercanclose"] and guild_settings["usercanmodify"]:
                         message += (
-                            "Users are allowed to close "
+                            "Users are **allowed** to close "
                             "and add/remove users to/from their tickets."
                         )
                     elif guild_settings["usercanclose"]:
                         message += (
-                            "Users are allowed to close their tickets, "
+                            "Users are **allowed** to close their tickets, "
                             "but cannot add/remove users."
                         )
                     elif guild_settings["usercanmodify"]:
                         message += (
-                            "Users are allowed to add/remove users to/from their tickets, "
-                            "but cannot close."
+                            "Users are **allowed** to add/remove users to/from their tickets, "
+                            "but are **not** allowed to close."
                         )
                     else:
                         message += "Users cannot close or add/remove users to/from their tickets."
@@ -274,25 +275,30 @@ class ReacTicket(commands.Cog):
                 inverted[ticket["channel"]] = author_id
             try:
                 author = ctx.guild.get_member(int(inverted[ctx.channel.id]))
+                if author:
+                    author_id = author.id
+                else:
+                    author_id = int(inverted[ctx.channel.id])
             except KeyError:
                 author = ctx.author
 
-        if str(author.id) not in guild_settings["created"]:
-            await ctx.send("That user does not have an open ticket.")
-            return
+        if author:
+            if str(author.id) not in guild_settings["created"]:
+                await ctx.send("That user does not have an open ticket.")
+                return
 
-        channel = self.bot.get_channel(guild_settings["created"][str(author.id)]["channel"])
+        channel = self.bot.get_channel(guild_settings["created"][str(author_id)]["channel"])
         archive = self.bot.get_channel(guild_settings["archive"]["category"])
         added_users = [
             user
-            for u in guild_settings["created"][str(author.id)]["added"]
+            for u in guild_settings["created"][str(author_id)]["added"]
             if (user := ctx.guild.get_member(u))
         ]
         added_users.append(author)
 
         # Again, to prevent race conditions...
         async with self.config.guild(ctx.guild).created() as created:
-            del created[str(author.id)]
+            del created[str(author_id)]
 
         if guild_settings["report"] != 0:
             reporting_channel = self.bot.get_channel(guild_settings["report"])
@@ -301,14 +307,15 @@ class ReacTicket(commands.Cog):
                     embed = discord.Embed(
                         title="Ticket Closed",
                         description=(
-                            f"Ticket created by {author.mention} has been closed by "
-                            f"{ctx.author.mention}."
+                            f"Ticket created by {author.mention if author else author_id} "
+                            f"has been closed by {ctx.author.mention}."
                         ),
                     )
                     await reporting_channel.send(embed=embed)
                 else:
                     message = (
-                        f"Ticket created by {str(author)} has been closed by {str(ctx.author)}."
+                        f"Ticket created by {str(author) if author else author_id} "
+                        f"has been closed by {str(ctx.author)}."
                     )
 
                     await reporting_channel.send(message)
@@ -316,9 +323,12 @@ class ReacTicket(commands.Cog):
         if guild_settings["archive"]["enabled"] and channel and archive:
             for user in added_users:
                 with contextlib.suppress(discord.HTTPException):
-                    await channel.set_permissions(user, send_messages=False, read_messages=True)
+                    if user:
+                        await channel.set_permissions(
+                            user, send_messages=False, read_messages=True
+                        )
             await ctx.send(
-                f"Ticket for {author.display_name} has been closed.  "
+                f"Ticket for {author.display_name if author else author_id} has been closed.  "
                 "Channel will be moved to archive in one minute."
             )
 
@@ -351,7 +361,8 @@ class ReacTicket(commands.Cog):
                         read_messages=True, send_messages=True
                     )
                 for user in added_users:
-                    overwrites[user] = discord.PermissionOverwrite(read_messages=False)
+                    if user:
+                        overwrites[user] = discord.PermissionOverwrite(read_messages=False)
                 await channel.edit(category=archive, overwrites=overwrites)
             except discord.HTTPException as e:
                 await ctx.send(f"Failed to move to archive: {str(e)}")
@@ -359,11 +370,12 @@ class ReacTicket(commands.Cog):
             if channel:
                 for user in added_users:
                     with contextlib.suppress(discord.HTTPException):
-                        await channel.set_permissions(
-                            user, send_messages=False, read_messages=True
-                        )
+                        if user:
+                            await channel.set_permissions(
+                                user, send_messages=False, read_messages=True
+                            )
             await ctx.send(
-                f"Ticket for {author.display_name} has been closed.  "
+                f"Ticket for {author.display_name if author else author_id} has been closed.  "
                 "Channel will be deleted in one minute, if exists."
             )
 
@@ -401,10 +413,14 @@ class ReacTicket(commands.Cog):
                 inverted[ticket["channel"]] = author_id
             try:
                 author = ctx.guild.get_member(int(inverted[ctx.channel.id]))
+                if author:
+                    author_id = author.id
+                else:
+                    author_id = int(inverted[ctx.channel.id])
             except KeyError:
                 author = ctx.author
 
-        if str(author.id) not in guild_settings["created"]:
+        if str(author_id) not in guild_settings["created"]:
             if not is_admin:
                 await ctx.send("You do not have an open ticket.")
             else:
@@ -414,7 +430,7 @@ class ReacTicket(commands.Cog):
                 )
             return
 
-        if user.id in guild_settings["created"][str(author.id)]["added"]:
+        if user.id in guild_settings["created"][str(author_id)]["added"]:
             await ctx.send("That user is already added.")
             return
 
@@ -426,7 +442,7 @@ class ReacTicket(commands.Cog):
             await ctx.send("You cannot add a user in support or admin team.")
             return
 
-        channel = self.bot.get_channel(guild_settings["created"][str(author.id)]["channel"])
+        channel = self.bot.get_channel(guild_settings["created"][str(author_id)]["channel"])
         if not channel:
             await ctx.send("The ticket channel has been deleted.")
 
@@ -440,7 +456,7 @@ class ReacTicket(commands.Cog):
             return
 
         async with self.config.guild(ctx.guild).created() as created:
-            created[str(author.id)]["added"].append(user.id)
+            created[str(author_id)]["added"].append(user.id)
 
         await ctx.send(f"{user.mention} has been added to the ticket.")
 
@@ -466,10 +482,14 @@ class ReacTicket(commands.Cog):
                 inverted[ticket["channel"]] = author_id
             try:
                 author = ctx.guild.get_member(int(inverted[ctx.channel.id]))
+                if author:
+                    author_id = author.id
+                else:
+                    author_id = int(inverted[ctx.channel.id])
             except KeyError:
                 author = ctx.author
 
-        if str(author.id) not in guild_settings["created"]:
+        if str(author_id) not in guild_settings["created"]:
             if not is_admin:
                 await ctx.send("You do not have an open ticket.")
             else:
@@ -479,7 +499,7 @@ class ReacTicket(commands.Cog):
                 )
             return
 
-        if user.id not in guild_settings["created"][str(author.id)]["added"]:
+        if user.id not in guild_settings["created"][str(author_id)]["added"]:
             await ctx.send("That user is not added.")
             return
 
@@ -491,7 +511,7 @@ class ReacTicket(commands.Cog):
             await ctx.send("You cannot remove a user in support or admin team.")
             return
 
-        channel = self.bot.get_channel(guild_settings["created"][str(author.id)]["channel"])
+        channel = self.bot.get_channel(guild_settings["created"][str(author_id)]["channel"])
         if not channel:
             await ctx.send("The ticket channel has been deleted.")
 
@@ -505,7 +525,7 @@ class ReacTicket(commands.Cog):
             return
 
         async with self.config.guild(ctx.guild).created() as created:
-            created[str(author.id)]["added"].remove(user.id)
+            created[str(author_id)]["added"].remove(user.id)
 
         await ctx.send(f"{user.mention} has been removed from the ticket.")
 

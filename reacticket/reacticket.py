@@ -15,6 +15,7 @@ class ReacTicket(commands.Cog):
 
         default_guild = {
             "reaction": "\N{ADMISSION TICKETS}",
+            "openmessage": "{default}",
             "usercanclose": False,
             "usercanmodify": False,
             "msg": "0-0",
@@ -141,16 +142,29 @@ class ReacTicket(commands.Cog):
         created_channel = await category.create_text_channel(
             f"ticket-{payload.user_id}", overwrites=overwrites
         )
-        if guild_settings["usercanclose"]:
-            sent = await created_channel.send(
-                f"Ticket created for {user.display_name}\nTo close this, "
-                f"Administrators or {user.display_name} may run `[p]reacticket close`."
-            )
+        if guild_settings["openmessage"] == "{default}":
+            if guild_settings["usercanclose"]:
+                sent = await created_channel.send(
+                    f"Ticket created for {user.display_name}\nTo close this, "
+                    f"Administrators or {user.display_name} may run `[p]reacticket close`."
+                )
+            else:
+                sent = await created_channel.send(
+                    f"Ticket created for {user.display_name}\n"
+                    "Only Administrators may close this by running `[p]reacticket close`."
+                )
         else:
-            sent = await created_channel.send(
-                f"Ticket created for {user.display_name}\n"
-                "Only Administrators may close this by running `[p]reacticket close`."
-            )
+            try:
+                message = (
+                    guild_settings["openmessage"]
+                    .replace("{mention}", user.mention)
+                    .replace("{username}", user.display_name)
+                    .replace("{id}", str(user.id))
+                )
+                sent = await created_channel.send(message)
+            except Exception as e:
+                print(e)
+                return
 
         # To prevent race conditions...
         async with self.config.guild(guild).created() as created:
@@ -565,6 +579,23 @@ class ReacTicket(commands.Cog):
 
         await self.config.guild(ctx.guild).reaction.set(emoji)
         await ctx.send(f"Ticket reaction successfully set to {test_emoji}")
+
+    @settings.command(name="creationmessage", aliases=["openmessage"])
+    async def ticket_creation_message(self, ctx, *, message):
+        """Set the message that is sent when you initially create the ticket.
+        
+        If any of these are included in the message, they will automatically be
+        replaced with the corresponding value.
+            {mention} - Mentions the user who created the ticket
+            {username} - Username of the user who created the ticket
+            {id} - ID of the user who created the ticket.
+            
+        To return to default, set the message to exactly "{default}" """
+        await self.config.guild(ctx.guild).openmessage.set(message)
+        if message == "{default}":
+            await ctx.send("Ticket creation message restored to default.")
+        else:
+            await ctx.send("Ticket creation message successfully set.")
 
     @settings.command()
     async def usercanclose(self, ctx, yes_or_no: Optional[bool] = None):

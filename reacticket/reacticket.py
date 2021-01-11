@@ -1,3 +1,5 @@
+from redbot.core.utils.predicates import ReactionPredicate
+from redbot.core.utils.menus import start_adding_reactions
 from redbot.core.utils.mod import is_admin_or_superior
 from redbot.core.bot import Red
 from redbot.core import commands, checks, Config
@@ -337,6 +339,12 @@ class ReacTicket(commands.Cog):
                 all_roles = admin_roles + support_roles
                 overwrites = {
                     ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                    ctx.guild.me: discord.PermissionOverwrite(
+                        read_messages=True,
+                        send_messages=True,
+                        manage_channels=True,
+                        manage_permissions=True,
+                    ),
                 }
                 for role in all_roles:
                     overwrites[role] = discord.PermissionOverwrite(
@@ -759,6 +767,58 @@ class ReacTicket(commands.Cog):
             await ctx.send("Reporting has been disabled.")
         else:
             await ctx.send(f"Reporting channel has been set to {channel.mention}")
+
+    @settings.command(name="prune", aliases=["cleanup", "purge"])
+    async def ticket_channel_prune(self, ctx, user: Optional[Union[int, discord.User]] = None):
+        """Clean out channels under the archive category.
+
+        Pass a user to only delete the channels created by that user instead.
+
+        WARNING: This will remove ALL channels unless otherwise specified!"""
+        category = self.bot.get_channel((await self.config.guild(ctx.guild).archive())["category"])
+        if not category:
+            await ctx.send("Your archive category no longer exists!")
+            return
+
+        if isinstance(user, discord.User):
+            user = user.id
+
+        channels = []
+        if user:
+            for channel in category.text_channels:
+                if channel.name == f"ticket-{user}":
+                    channels.append(channel)
+            message = await ctx.send(
+                f"Are you sure you want to remove all archived ticket channels from user {user}?  "
+                f"This will delete {len(channels)} Text Channels."
+            )
+        else:
+            channels = category.text_channels
+            message = await ctx.send(
+                "Are you sure you want to remove all archived ticket channels?  "
+                f"This will delete {len(channels)} Text Channels."
+            )
+
+        start_adding_reactions(message, ReactionPredicate.YES_OR_NO_EMOJIS)
+        pred = ReactionPredicate.yes_or_no(message, ctx.author)
+        await self.bot.wait_for("reaction_add", check=pred)
+        if pred.result is True:
+            progress = await ctx.send("Purging text channels...")
+            for channel in channels:
+                try:
+                    await channel.delete()
+                except discord.Forbidden:
+                    await ctx.send(
+                        "I do not have permission to delete those text channels.  "
+                        'Make sure I have both "Manage Channels" and "View Channels".'
+                    )
+                    return
+                except discord.HTTPException:
+                    continue
+
+            await progress.edit(content="Channels successfully purged.")
+        else:
+            await ctx.send("Channel purge cancelled.")
 
     @settings.command()
     async def enable(self, ctx, yes_or_no: Optional[bool] = None):

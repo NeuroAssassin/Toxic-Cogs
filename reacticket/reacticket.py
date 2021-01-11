@@ -26,6 +26,7 @@ class ReacTicket(commands.Cog):
             # Post creation settings
             "category": 0,
             "archive": {"category": 0, "enabled": False},
+            "dm": False,
             # Miscellaneous
             "supportroles": [],
             "blacklist": [],
@@ -173,8 +174,18 @@ class ReacTicket(commands.Cog):
                 )
                 sent = await created_channel.send(message)
             except Exception as e:
+                # Something went wrong, let's go to default for now
                 print(e)
-                return
+                if guild_settings["usercanclose"]:
+                    sent = await created_channel.send(
+                        f"Ticket created for {user.display_name}\nTo close this, "
+                        f"Administrators or {user.display_name} may run `[p]reacticket close`."
+                    )
+                else:
+                    sent = await created_channel.send(
+                        f"Ticket created for {user.display_name}\n"
+                        "Only Administrators may close this by running `[p]reacticket close`."
+                    )
 
         # To prevent race conditions...
         async with self.config.guild(guild).created() as created:
@@ -254,8 +265,11 @@ class ReacTicket(commands.Cog):
         pass
 
     @reacticket.command()
-    async def close(self, ctx, author: discord.Member = None):
-        """Closes the ticket created by the user"""
+    async def close(self, ctx, *, reason=None):
+        """Closes the created ticket.
+
+        If run by a normal user, this will default to the user.
+        If run by an admin or support team, this will check the channel."""
         guild_settings = await self.config.guild(ctx.guild).all()
         is_admin = await is_admin_or_superior(self.bot, ctx.author) or any(
             [ur.id in guild_settings["supportroles"] for ur in ctx.author.roles]
@@ -267,7 +281,7 @@ class ReacTicket(commands.Cog):
             return
         elif not is_admin:
             author = ctx.author  # no u
-        elif is_admin and not author:
+        elif is_admin:
             # Let's try to get the current channel and get the author
             # If not, we'll default to ctx.author
             inverted = {}
@@ -282,10 +296,9 @@ class ReacTicket(commands.Cog):
             except KeyError:
                 author = ctx.author
 
-        if author:
-            if str(author.id) not in guild_settings["created"]:
-                await ctx.send("That user does not have an open ticket.")
-                return
+        if str(author_id) not in guild_settings["created"]:
+            await ctx.send("That user does not have an open ticket.")
+            return
 
         channel = self.bot.get_channel(guild_settings["created"][str(author_id)]["channel"])
         archive = self.bot.get_channel(guild_settings["archive"]["category"])
@@ -310,15 +323,31 @@ class ReacTicket(commands.Cog):
                             f"Ticket created by {author.mention if author else author_id} "
                             f"has been closed by {ctx.author.mention}."
                         ),
+                        color=await ctx.embed_color(),
                     )
+                    if reason:
+                        embed.add_field(name="Reason", value=reason)
                     await reporting_channel.send(embed=embed)
                 else:
                     message = (
                         f"Ticket created by {str(author) if author else author_id} "
                         f"has been closed by {str(ctx.author)}."
                     )
+                    if reason:
+                        message += f"\n**Reason**: {reason}"
 
                     await reporting_channel.send(message)
+
+        if guild_settings["dm"] and author:
+            embed = discord.Embed(
+                title="Ticket Closed",
+                description=(f"Your ticket has been closed by {ctx.author.mention}."),
+                color=await ctx.embed_color(),
+            )
+            if reason:
+                embed.add_field(name="Reason", value=reason)
+            with contextlib.suppress(discord.HTTPException):
+                await author.send(embed=embed)
 
         if guild_settings["archive"]["enabled"] and channel and archive:
             for user in added_users:
@@ -555,6 +584,7 @@ class ReacTicket(commands.Cog):
             f"[User-modifiable]:   {guild_settings['usercanmodify']}\n"
             f"[Ticket Category]:   {ticket_category}\n"
             f"[Report Channel]:    {report_channel}\n"
+            f"[Ticket Close DM]:   {guild_settings['dm']}\n"
             f"[Archive Category]:  {archive_category}\n"
             f"[Archive Enabled]:   {guild_settings['archive']['enabled']}\n"
             f"[System Enabled]:    {guild_settings['enabled']}\n"
@@ -787,6 +817,18 @@ class ReacTicket(commands.Cog):
             await ctx.send("Reporting has been disabled.")
         else:
             await ctx.send(f"Reporting channel has been set to {channel.mention}")
+
+    @settings.command()
+    async def dm(self, ctx, yes_or_no: bool = None):
+        """Set whether or not to send a DM to the ticket author on ticket close."""
+        if yes_or_no is None:
+            yes_or_no = not await self.config.guild(ctx.guild).dm()
+
+        await self.config.guild(ctx.guild).dm.set(yes_or_no)
+        if yes_or_no:
+            await ctx.send("Users will now be DMed a message when their ticket is closed.")
+        else:
+            await ctx.send("Users will no longer be DMed a message when their ticket is closed.")
 
     @settings.command(name="prune", aliases=["cleanup", "purge"])
     async def ticket_channel_prune(self, ctx, user: Optional[Union[int, discord.User]] = None):

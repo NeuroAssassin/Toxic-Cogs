@@ -281,6 +281,7 @@ class ReacTicket(commands.Cog):
             return
         elif not is_admin:
             author = ctx.author  # no u
+            author_id = author.id
         elif is_admin:
             # Let's try to get the current channel and get the author
             # If not, we'll default to ctx.author
@@ -295,6 +296,7 @@ class ReacTicket(commands.Cog):
                     author_id = int(inverted[ctx.channel.id])
             except KeyError:
                 author = ctx.author
+                author_id = author.id
 
         if str(author_id) not in guild_settings["created"]:
             await ctx.send("That user does not have an open ticket.")
@@ -434,6 +436,7 @@ class ReacTicket(commands.Cog):
             return
         elif not is_admin:
             author = ctx.author
+            author_id = author.id
         elif is_admin:
             # Since the author isn't specified, and it's an admin, we need to guess on who
             # the author is
@@ -448,6 +451,7 @@ class ReacTicket(commands.Cog):
                     author_id = int(inverted[ctx.channel.id])
             except KeyError:
                 author = ctx.author
+                author_id = author.id
 
         if str(author_id) not in guild_settings["created"]:
             if not is_admin:
@@ -503,6 +507,7 @@ class ReacTicket(commands.Cog):
             return
         elif not is_admin:
             author = ctx.author
+            author_id = author.id
         elif is_admin:
             # Since the author isn't specified, and it's an admin, we need to guess on who
             # the author is
@@ -517,6 +522,7 @@ class ReacTicket(commands.Cog):
                     author_id = int(inverted[ctx.channel.id])
             except KeyError:
                 author = ctx.author
+                author_id = author.id
 
         if str(author_id) not in guild_settings["created"]:
             if not is_admin:

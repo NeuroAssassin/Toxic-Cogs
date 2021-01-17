@@ -127,8 +127,8 @@ class EventVC(commands.Cog):
             embed = discord.Embed(
                 title="A new Event has been created!", color=await ctx.embed_color()
             )
-            embed.add_field(name="Author", value=f"{str(ctx.author)} - {ctx.author.id}")
-            embed.add_field(name="Channel", value=f"{str(created)} - {created.id}")
+            embed.add_field(name="Author", value=f"{str(ctx.author)}")
+            embed.add_field(name="Channel", value=f"{str(created)}")
 
             if announce_role := ctx.guild.get_role(guild_settings["announcerole"]):
                 content = announce_role.mention

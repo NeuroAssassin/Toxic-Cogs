@@ -1,6 +1,9 @@
-# Huge thanks to Sinbad for allowing me to copy parts of his RSS cog (https://github.com/mikeshardmind/SinbadCogs/tree/v3/rss), which I used to grab the latest commits from repositories.
+# Huge thanks to Sinbad for allowing me to copy parts of his RSS cog
+# (https://github.com/mikeshardmind/SinbadCogs/tree/v3/rss), which I
+# used to grab the latest commits from repositories.
 
-# Also, the code I use for updating repos I took directly from Red, and just took out the message interactions
+# Also, the code I use for updating repos I took directly from Red,
+# and just took out the message interactions
 
 import asyncio
 import traceback
@@ -51,7 +54,7 @@ class UpdateChecker(commands.Cog):
         await asyncio.sleep(10)
         while True:
             cog = self.bot.get_cog("Downloader")
-            if cog != None:
+            if cog is not None:
                 data = await self.conf.all()
                 repos = data["repos"]
                 auto = data["auto"]
@@ -79,7 +82,8 @@ class UpdateChecker(commands.Cog):
                     response = await self.fetch_feed(url)
                     try:
                         commit = response.entries[0]["id"][33:]
-                        cn = response.entries[0]["title"]
+                        cn = response.entries[0]["title"] + " - " + response.entries[0]["author"]
+                        image = response.entries[0]["media_thumbnail"][0]["url"].split("?")[0]
                     except AttributeError:
                         continue
                     saving_dict[repo_name] = commit
@@ -88,7 +92,8 @@ class UpdateChecker(commands.Cog):
                             continue
                     if repo_name in blacklist:
                         continue
-                    # CN is used here for backwards compatability, don't want people to get an update for each and every one of their cogs when updating this cog
+                    # CN is used here for backwards compatability, don't want people to get an
+                    # update for each and every one of their cogs when updating this cog
                     if (
                         commit != commit_saved
                         and cn != commit_saved
@@ -107,6 +112,7 @@ class UpdateChecker(commands.Cog):
                                     e.add_field(name="Branch", value=repo.branch)
                                     e.add_field(name="Commit", value=cn)
                                     e.add_field(name="Hash", value=commit)
+                                    e.set_thumbnail(url=image)
                                     await channel.send(embed=e)
                                 elif (
                                     use_embed
@@ -123,6 +129,7 @@ class UpdateChecker(commands.Cog):
                                     e.add_field(name="Branch", value=repo.branch)
                                     e.add_field(name="Commit", value=cn)
                                     e.add_field(name="Hash", value=commit)
+                                    e.set_thumbnail(url=image)
                                     await channel.send(embed=e)
                                 else:
                                     e = (

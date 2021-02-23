@@ -816,7 +816,7 @@ class ReacTicket(commands.Cog):
         """Set a channel to make a mini report in when a ticket is closed or opened.
 
         If left blank, this will disable reports."""
-        saving = channel.id or 0
+        saving = getattr(channel, "id", 0)
         await self.config.guild(ctx.guild).report.set(saving)
 
         if not channel:

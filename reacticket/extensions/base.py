@@ -419,6 +419,10 @@ class ReacTicketBaseMixin(MixinMeta):
             await ctx.send("The ticket channel has been deleted.")
             return
 
+        if len(name) > 99:
+            await ctx.send("Channel names must be less 100 characters")
+            return
+
         try:
             await channel.edit(name=name)
         except discord.Forbidden:

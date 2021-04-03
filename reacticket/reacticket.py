@@ -23,6 +23,7 @@ class ReacTicket(commands.Cog):
             # Permission settings
             "usercanclose": False,
             "usercanmodify": False,
+            "usercanname": False,
             # Post creation settings
             "category": 0,
             "archive": {"category": 0, "enabled": False},
@@ -37,14 +38,19 @@ class ReacTicket(commands.Cog):
 
         self.config = Config.get_conf(self, identifier=473541068378341376, force_registration=True)
         self.config.register_guild(**default_guild)
-        self.config.register_global(first_migration=False)
+        self.config.register_global(first_migration=False, second_migration=False)
         self.bot.loop.create_task(self.possibly_migrate())
 
     async def possibly_migrate(self):
         await self.bot.wait_until_red_ready()
+
         has_migrated = await self.config.first_migration()
         if not has_migrated:
             await self.migrate()
+
+        has_second_migrated = await self.config.second_migration()
+        if not has_second_migrated:
+            await self.migrate_second()
 
     async def migrate(self):
         guilds = self.config._get_base_group(self.config.GUILD)
@@ -59,6 +65,21 @@ class ReacTicket(commands.Cog):
 
                 data[guild_id]["created"] = saving
         await self.config.first_migration.set(True)
+
+    async def migrate_second(self):
+        guilds = self.config._get_base_group(self.config.GUILD)
+        async with guilds.all() as data:
+            for guild_id, guild_data in data.items():
+                saving = {}
+                try:
+                    for user_id, ticket in guild_data["created"].items():
+                        saving[user_id] = [ticket]
+                except KeyError:
+                    continue
+
+                data[guild_id]["created"] = saving
+
+        await self.config.second_migration.set(True)
 
     async def embed_requested(self, channel):
         # Copy of ctx.embed_requested, but with the context taken out
@@ -105,10 +126,6 @@ class ReacTicket(commands.Cog):
         else:
             if str(payload.emoji) != guild_settings["reaction"]:
                 return
-
-        if str(payload.user_id) in guild_settings["created"]:
-            # User already has a ticket
-            return
 
         category = self.bot.get_channel(guild_settings["category"])
         if not category:
@@ -172,7 +189,9 @@ class ReacTicket(commands.Cog):
                     .replace("{username}", user.display_name)
                     .replace("{id}", str(user.id))
                 )
-                sent = await created_channel.send(message)
+                sent = await created_channel.send(
+                    message, allowed_mentions=discord.AllowedMentions(users=True, roles=True)
+                )
             except Exception as e:
                 # Something went wrong, let's go to default for now
                 print(e)
@@ -189,11 +208,11 @@ class ReacTicket(commands.Cog):
 
         # To prevent race conditions...
         async with self.config.guild(guild).created() as created:
-            created[payload.user_id] = {
-                "channel": created_channel.id,
-                "added": [],
-                "opened": time.time(),
-            }
+            if str(payload.user_id) not in created:
+                created[str(payload.user_id)] = []
+            created[str(payload.user_id)].append(
+                {"channel": created_channel.id, "added": [], "opened": time.time()}
+            )
 
         # If removing the reaction fails... eh
         with contextlib.suppress(discord.HTTPException):
@@ -286,8 +305,9 @@ class ReacTicket(commands.Cog):
             # Let's try to get the current channel and get the author
             # If not, we'll default to ctx.author
             inverted = {}
-            for author_id, ticket in guild_settings["created"].items():
-                inverted[ticket["channel"]] = author_id
+            for author_id, tickets in guild_settings["created"].items():
+                for ticket in tickets:
+                    inverted[ticket["channel"]] = author_id
             try:
                 author = ctx.guild.get_member(int(inverted[ctx.channel.id]))
                 if author:
@@ -302,18 +322,37 @@ class ReacTicket(commands.Cog):
             await ctx.send("That user does not have an open ticket.")
             return
 
-        channel = self.bot.get_channel(guild_settings["created"][str(author_id)]["channel"])
+        index = None
+        if not guild_settings["created"][str(author_id)]:
+            await ctx.send("You don't have any open tickets.")
+            return
+        elif len(guild_settings["created"][str(author_id)]) == 1:
+            index = 0
+        else:
+            for i, ticket in enumerate(guild_settings["created"][str(author_id)]):
+                if ticket["channel"] == ctx.channel.id:
+                    index = i
+                    break
+
+            if index is None:
+                await ctx.send(
+                    "You have multiple tickets open.  "
+                    "Please run this command in the ticket channel you wish to close."
+                )
+                return
+
+        channel = self.bot.get_channel(guild_settings["created"][str(author_id)][index]["channel"])
         archive = self.bot.get_channel(guild_settings["archive"]["category"])
         added_users = [
             user
-            for u in guild_settings["created"][str(author_id)]["added"]
+            for u in guild_settings["created"][str(author_id)][index]["added"]
             if (user := ctx.guild.get_member(u))
         ]
         added_users.append(author)
 
         # Again, to prevent race conditions...
         async with self.config.guild(ctx.guild).created() as created:
-            del created[str(author_id)]
+            del created[str(author_id)][index]
 
         if guild_settings["report"] != 0:
             reporting_channel = self.bot.get_channel(guild_settings["report"])
@@ -322,7 +361,7 @@ class ReacTicket(commands.Cog):
                     embed = discord.Embed(
                         title="Ticket Closed",
                         description=(
-                            f"Ticket created by {author.mention if author else author_id} "
+                            f"Ticket {channel.mention} created by {author.mention if author else author_id} "
                             f"has been closed by {ctx.author.mention}."
                         ),
                         color=await ctx.embed_color(),
@@ -332,7 +371,7 @@ class ReacTicket(commands.Cog):
                     await reporting_channel.send(embed=embed)
                 else:
                     message = (
-                        f"Ticket created by {str(author) if author else author_id} "
+                        f"Ticket {channel.mention} created by {str(author) if author else author_id} "
                         f"has been closed by {str(ctx.author)}."
                     )
                     if reason:
@@ -343,7 +382,9 @@ class ReacTicket(commands.Cog):
         if guild_settings["dm"] and author:
             embed = discord.Embed(
                 title="Ticket Closed",
-                description=(f"Your ticket has been closed by {ctx.author.mention}."),
+                description=(
+                    f"Your ticket {channel.mention} has been closed by {ctx.author.mention}."
+                ),
                 color=await ctx.embed_color(),
             )
             if reason:
@@ -359,7 +400,7 @@ class ReacTicket(commands.Cog):
                             user, send_messages=False, read_messages=True
                         )
             await ctx.send(
-                f"Ticket for {author.display_name if author else author_id} has been closed.  "
+                f"Ticket {channel.mention} for {author.display_name if author else author_id} has been closed.  "
                 "Channel will be moved to archive in one minute."
             )
 
@@ -406,7 +447,7 @@ class ReacTicket(commands.Cog):
                                 user, send_messages=False, read_messages=True
                             )
             await ctx.send(
-                f"Ticket for {author.display_name if author else author_id} has been closed.  "
+                f"Ticket {channel.mention} for {author.display_name if author else author_id} has been closed.  "
                 "Channel will be deleted in one minute, if exists."
             )
 
@@ -441,8 +482,9 @@ class ReacTicket(commands.Cog):
             # Since the author isn't specified, and it's an admin, we need to guess on who
             # the author is
             inverted = {}
-            for author_id, ticket in guild_settings["created"].items():
-                inverted[ticket["channel"]] = author_id
+            for author_id, tickets in guild_settings["created"].items():
+                for ticket in tickets:
+                    inverted[ticket["channel"]] = author_id
             try:
                 author = ctx.guild.get_member(int(inverted[ctx.channel.id]))
                 if author:
@@ -453,17 +495,29 @@ class ReacTicket(commands.Cog):
                 author = ctx.author
                 author_id = author.id
 
-        if str(author_id) not in guild_settings["created"]:
-            if not is_admin:
-                await ctx.send("You do not have an open ticket.")
-            else:
-                await ctx.send(
-                    "Failed to determine ticket.  "
-                    "Please run command in the corresponding ticket channel."
-                )
-            return
+        index = None
 
-        if user.id in guild_settings["created"][str(author_id)]["added"]:
+        if not guild_settings["created"][str(author_id)]:
+            await ctx.send("You don't have any open tickets.")
+            return
+        elif len(guild_settings["created"][str(author_id)]) == 1:
+            index = 0
+        else:
+            for i, ticket in enumerate(guild_settings["created"][str(author_id)]):
+                if ticket["channel"] == ctx.channel.id:
+                    index = i
+                    break
+
+            if index is None:
+                await ctx.send(
+                    "You have multiple tickets open.  "
+                    "Please run this command in the ticket channel you wish to edit."
+                )
+                return
+
+        channel = self.bot.get_channel(guild_settings["created"][str(author_id)][index]["channel"])
+
+        if user.id in guild_settings["created"][str(author_id)][index]["added"]:
             await ctx.send("That user is already added.")
             return
 
@@ -475,9 +529,10 @@ class ReacTicket(commands.Cog):
             await ctx.send("You cannot add a user in support or admin team.")
             return
 
-        channel = self.bot.get_channel(guild_settings["created"][str(author_id)]["channel"])
+        channel = self.bot.get_channel(guild_settings["created"][str(author_id)][index]["channel"])
         if not channel:
             await ctx.send("The ticket channel has been deleted.")
+            return
 
         try:
             await channel.set_permissions(user, send_messages=True, read_messages=True)
@@ -489,7 +544,7 @@ class ReacTicket(commands.Cog):
             return
 
         async with self.config.guild(ctx.guild).created() as created:
-            created[str(author_id)]["added"].append(user.id)
+            created[str(author_id)][index]["added"].append(user.id)
 
         await ctx.send(f"{user.mention} has been added to the ticket.")
 
@@ -512,8 +567,9 @@ class ReacTicket(commands.Cog):
             # Since the author isn't specified, and it's an admin, we need to guess on who
             # the author is
             inverted = {}
-            for author_id, ticket in guild_settings["created"].items():
-                inverted[ticket["channel"]] = author_id
+            for author_id, tickets in guild_settings["created"].items():
+                for ticket in tickets:
+                    inverted[ticket["channel"]] = author_id
             try:
                 author = ctx.guild.get_member(int(inverted[ctx.channel.id]))
                 if author:
@@ -524,17 +580,27 @@ class ReacTicket(commands.Cog):
                 author = ctx.author
                 author_id = author.id
 
-        if str(author_id) not in guild_settings["created"]:
-            if not is_admin:
-                await ctx.send("You do not have an open ticket.")
-            else:
-                await ctx.send(
-                    "Failed to determine ticket.  "
-                    "Please run command in the corresponding ticket channel."
-                )
-            return
+        index = None
 
-        if user.id not in guild_settings["created"][str(author_id)]["added"]:
+        if not guild_settings["created"][str(author_id)]:
+            await ctx.send("You don't have any open tickets.")
+            return
+        elif len(guild_settings["created"][str(author_id)]) == 1:
+            index = 0
+        else:
+            for i, ticket in enumerate(guild_settings["created"][str(author_id)]):
+                if ticket["channel"] == ctx.channel.id:
+                    index = i
+                    break
+
+            if index is None:
+                await ctx.send(
+                    "You have multiple tickets open.  "
+                    "Please run this command in the ticket channel you wish to edit."
+                )
+                return
+
+        if user.id not in guild_settings["created"][str(author_id)][index]["added"]:
             await ctx.send("That user is not added.")
             return
 
@@ -546,7 +612,7 @@ class ReacTicket(commands.Cog):
             await ctx.send("You cannot remove a user in support or admin team.")
             return
 
-        channel = self.bot.get_channel(guild_settings["created"][str(author_id)]["channel"])
+        channel = self.bot.get_channel(guild_settings["created"][str(author_id)][index]["channel"])
         if not channel:
             await ctx.send("The ticket channel has been deleted.")
 
@@ -560,9 +626,77 @@ class ReacTicket(commands.Cog):
             return
 
         async with self.config.guild(ctx.guild).created() as created:
-            created[str(author_id)]["added"].remove(user.id)
+            created[str(author_id)][index]["added"].remove(user.id)
 
         await ctx.send(f"{user.mention} has been removed from the ticket.")
+
+    @reacticket.command(name="name")
+    async def ticket_name(self, ctx, *, name: str):
+        """Rename the ticket in scope."""
+        guild_settings = await self.config.guild(ctx.guild).all()
+        is_admin = await is_admin_or_superior(self.bot, ctx.author) or any(
+            [ur.id in guild_settings["supportroles"] for ur in ctx.author.roles]
+        )
+        must_be_admin = not guild_settings["usercanname"]
+
+        if not is_admin and must_be_admin:
+            await ctx.send("Only Administrators can rename tickets.")
+            return
+        elif not is_admin:
+            author = ctx.author
+            author_id = author.id
+        elif is_admin:
+            # Since the author isn't specified, and it's an admin, we need to guess on who
+            # the author is
+            inverted = {}
+            for author_id, tickets in guild_settings["created"].items():
+                for ticket in tickets:
+                    inverted[ticket["channel"]] = author_id
+            try:
+                author = ctx.guild.get_member(int(inverted[ctx.channel.id]))
+                if author:
+                    author_id = author.id
+                else:
+                    author_id = int(inverted[ctx.channel.id])
+            except KeyError:
+                author = ctx.author
+                author_id = author.id
+
+        index = None
+
+        if not guild_settings["created"][str(author_id)]:
+            await ctx.send("You don't have any open tickets.")
+            return
+        elif len(guild_settings["created"][str(author_id)]) == 1:
+            index = 0
+        else:
+            for i, ticket in enumerate(guild_settings["created"][str(author_id)]):
+                if ticket["channel"] == ctx.channel.id:
+                    index = i
+                    break
+
+            if index is None:
+                await ctx.send(
+                    "You have multiple tickets open.  "
+                    "Please run this command in the ticket channel you wish to edit."
+                )
+                return
+
+        channel = self.bot.get_channel(guild_settings["created"][str(author_id)][index]["channel"])
+        if not channel:
+            await ctx.send("The ticket channel has been deleted.")
+            return
+
+        try:
+            await channel.edit(name=name)
+        except discord.Forbidden:
+            await ctx.send(
+                "The Manage Channels channel for me has been removed.  "
+                "I am unable to modify this ticket."
+            )
+            return
+
+        await ctx.send("The ticket has been renamed.")
 
     @checks.admin()
     @reacticket.group(invoke_without_command=True)
@@ -588,6 +722,7 @@ class ReacTicket(commands.Cog):
             f"[Ticket Reaction]:   {guild_settings['reaction']}\n"
             f"[User-closable]:     {guild_settings['usercanclose']}\n"
             f"[User-modifiable]:   {guild_settings['usercanmodify']}\n"
+            f"[User-nameable]:     {guild_settings['usercanclose']}\n"
             f"[Ticket Category]:   {ticket_category}\n"
             f"[Report Channel]:    {report_channel}\n"
             f"[Ticket Close DM]:   {guild_settings['dm']}\n"
@@ -692,6 +827,18 @@ class ReacTicket(commands.Cog):
             await ctx.send("Users can now add/remove other users to their own tickets.")
         else:
             await ctx.send("Only administrators can now add/remove users to tickets.")
+
+    @settings.command()
+    async def usercanname(self, ctx, yes_or_no: Optional[bool] = None):
+        """Set whether users can rename their tickets and associated channels."""
+        if yes_or_no is None:
+            yes_or_no = not await self.config.guild(ctx.guild).usercanname()
+
+        await self.config.guild(ctx.guild).usercanname.set(yes_or_no)
+        if yes_or_no:
+            await ctx.send("Users can now rename their tickets and associated channels.")
+        else:
+            await ctx.send("Only administrators can now rename tickets and associated channels.")
 
     @settings.command()
     async def blacklist(self, ctx, *, user: discord.Member = None):
@@ -884,7 +1031,8 @@ class ReacTicket(commands.Cog):
                 except discord.HTTPException:
                     continue
 
-            await progress.edit(content="Channels successfully purged.")
+            with contextlib.suppress(discord.HTTPException):
+                await progress.edit(content="Channels successfully purged.")
         else:
             await ctx.send("Channel purge cancelled.")
 

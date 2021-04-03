@@ -390,6 +390,10 @@ class ReacTicketBaseMixin(MixinMeta):
                 author = ctx.author
                 author_id = author.id
 
+        if str(author_id) not in guild_settings["created"]:
+            await ctx.send("You don't have any open tickets.")
+            return
+
         index = None
 
         if not guild_settings["created"][str(author_id)]:

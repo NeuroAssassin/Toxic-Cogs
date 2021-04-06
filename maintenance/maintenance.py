@@ -30,7 +30,7 @@ class Maintenance(commands.Cog):
         self.conf = Config.get_conf(self, identifier=473541068378341376)
         default_global = {
             "on": [False, 0, []],
-            "message": "The bot is undergoing maintenance.  Please check back later.",
+            "message": "The bot is undergoing maintenance. Please check back later.",
             "delete": 3,
             "scheduledmaintenance": [],
         }

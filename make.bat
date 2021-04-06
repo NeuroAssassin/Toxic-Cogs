@@ -8,15 +8,15 @@ setlocal ENABLEDELAYEDEXPANSION
 goto %1
 
 :reformat
-black -l 99 .
+black .
 exit /B %ERRORLEVEL%
 
 :stylecheck
-black --check -l 99 .
+black --check .
 exit /B %ERRORLEVEL%
 
 :stylediff
-black --check --diff -l 99 .
+black --check --diff .
 exit /B %ERRORLEVEL%
 
 :help

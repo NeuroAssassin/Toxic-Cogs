@@ -2,8 +2,8 @@ PYTHON ?= python3.8
 
 # Python Code Style
 reformat:
-	$(PYTHON) -m black -l 99 .
+	$(PYTHON) -m black .
 stylecheck:
-	$(PYTHON) -m black --check -l 99 .
+	$(PYTHON) -m black --check .
 stylediff:
-	$(PYTHON) -m black --check --diff -l 99 .
+	$(PYTHON) -m black --check --diff .

@@ -390,7 +390,7 @@ class Scanner(commands.Cog):
                 await ctx.send("No roles are set for ping right now.")
                 return
             e = discord.Embed(
-                title="The following roles are pinged when a report comes in.", description="",
+                title="The following roles are pinged when a report comes in.", description=""
             )
             for r in roles:
                 ro = ctx.guild.get_role(r)
@@ -613,7 +613,7 @@ class Scanner(commands.Cog):
     @checks_command.command(name="add")
     async def checks_add(self, ctx, *checks: str):
         """Adds checks to the Text Moderation check.
-        
+
         Must be `sexual`, `insult`, `disciminatory`, `innapropriate`, `other_profanity`, `email`, `ipv4`, `ipv6`, `phone_number_us`, `phone_number_uk`, `phone_number_fr` or `ssn`."""
         if not checks:
             return await ctx.send_help()
@@ -699,7 +699,7 @@ class Scanner(commands.Cog):
     @mm_checks_command.command(name="add")
     async def mm_checks_add(self, ctx, *checks: str):
         """Adds checks to the Message Moderation check.
-        
+
         Must be `sexual`, `insult`, `disciminatory`, `innapropriate`, `other_profanity`, `email`, `ipv4`, `ipv6`, `phone_number_us`, `phone_number_uk`, `phone_number_fr` or `ssn`."""
         if not checks:
             return await ctx.send_help()

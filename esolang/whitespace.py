@@ -15,7 +15,8 @@ class EmptyStack(SyntaxError):
         else:
             line = 0
         super().__init__(
-            message, ("program.ws", line + 1, pointer + 1, code),
+            message,
+            ("program.ws", line + 1, pointer + 1, code),
         )
 
 
@@ -31,7 +32,8 @@ class InvalidNumber(SyntaxError):
         else:
             line = 0
         super().__init__(
-            message, ("program.ws", line + 1, pointer + 1, code),
+            message,
+            ("program.ws", line + 1, pointer + 1, code),
         )
 
 

@@ -398,7 +398,7 @@ class Minesweeper(commands.Cog):
     @commands.command()
     async def spoilerms(self, ctx, bombs: int = "Random bomb amount"):
         """Starts a non-interactive game of minesweeper with spoilers.
-        
+
         You can specify the amount of wanted bombs using the bomb paramater.  It must be between 10 bombs and 99 bombs, and defaults to random between 15 to 25."""
         if isinstance(bombs, str):
             bombs = random.randint(15, 25)

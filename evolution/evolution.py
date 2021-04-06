@@ -292,7 +292,7 @@ class Evolution(commands.Cog):
         embed_list = []
         for x in range(1, max(list(map(int, animals.keys()))) + 1):
             embed = discord.Embed(
-                title=f"{animal.title()} Shop", description=f"Level {str(x)}", color=0xD2B48C,
+                title=f"{animal.title()} Shop", description=f"Level {str(x)}", color=0xD2B48C
             )
             embed.add_field(name="You currently own", value=animals.get(str(x), 0))
             current = int(bought.get(str(x), 0))

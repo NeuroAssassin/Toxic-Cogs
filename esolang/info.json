@@ -1,0 +1,14 @@
+{
+    "author": [
+        "Neuro Assassin"
+    ],
+    "install_msg": "Due to the eval nature of this cog, this may cause issues in performance including blocking of bot.  As a result, do not use in a production environment.  Copyright holders and contributors hold no responsibility for damamges caused by usage of this code.",
+    "name": "esolang",
+    "short": "Run code in esoteric languages.",
+    "description": "Run code in some of the more popular esoteric languages for fun.",
+    "tags": [
+        "fun"
+    ],
+    "requirements": [],
+    "hidden": true
+}

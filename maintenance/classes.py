@@ -6,7 +6,9 @@ class ScheduledMaintenance:
         if not whitelist:
             whitelist = []
         self.start = start + time.time()
-        if end:
+        if end is True:
+            self.end = True
+        elif end:
             if after:
                 self.end = end + self.start
             else:

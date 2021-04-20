@@ -23,6 +23,7 @@ class Margs(Converter):
         _end = parser.add_mutually_exclusive_group()
         _end.add_argument("--end-after", nargs="*", dest="end", default=[])
         _end.add_argument("--end-in", nargs="*", dest="endin", default=[])
+        _end.add_argument("--end-after-restart", dest="end_after_restart", action="store_true")
         try:
             vals = vars(parser.parse_args(argument.split(" ")))
         except Exception as exc:
@@ -35,6 +36,8 @@ class Margs(Converter):
         if end_seconds == None:
             end_seconds = convert_time(vals.get("endin", None))
             after = False
+        if vals.get("end_after_restart", False):
+            end_seconds = True
         if start_seconds:
             if end_seconds:
                 scheduled = ScheduledMaintenance(

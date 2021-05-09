@@ -196,7 +196,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
         if channel_id == message_id == 0:
             await ctx.send(
                 "Please set the message to listen on first with"
-                f"`{ctx.prefix}reacticket settings precreationsettings`."
+                f"`{ctx.prefix}reacticket settings precreationsettings setmsg`."
             )
             return
 

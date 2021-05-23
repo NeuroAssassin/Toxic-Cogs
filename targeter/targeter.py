@@ -630,8 +630,17 @@ class Targeter(commands.Cog):
         if args["a"]:
             matched_here = []
             for user in matched:
-                if (user.activity) and (user.activity.name) and (
-                    user.activity.name.lower() in [a.lower() for a in args["a"]]
+                if not user.activity:
+                    continue
+                listed = user.activity.name
+                if listed == "Custom Status":
+                    listed = user.activity.state
+                if not listed:
+                    continue
+                listed = listed.lower()
+                if listed and (
+                    listed in [a.lower() for a in args["a"]]
+                    or any([a.lower() in listed for a in args["a"]])
                 ):
                     matched_here.append(user)
             passed.append(matched_here)

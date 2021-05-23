@@ -285,7 +285,7 @@ class Args(Converter):
                 "streaming": at.streaming,
                 "listening": at.listening,
                 "watching": at.watching,
-                "competing": at.competing
+                "competing": at.competing,
             }
             if not all([a.lower() in switcher for a in vals["at"]]):
                 raise BadArgument(
@@ -630,7 +630,7 @@ class Targeter(commands.Cog):
         if args["a"]:
             matched_here = []
             for user in matched:
-                if (user.activity) and (
+                if (user.activity) and (user.activity.name) and (
                     user.activity.name.lower() in [a.lower() for a in args["a"]]
                 ):
                     matched_here.append(user)

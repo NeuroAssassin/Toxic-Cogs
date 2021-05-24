@@ -202,7 +202,7 @@ class ReacTicket(
             .replace("{month}", str(now.month))
             .replace("{year}", str(now.year))
             .replace("{random}", str(random.randint(1, 100000)))
-        )
+        )[:100]
 
         created_channel = await category.create_text_channel(channel_name, overwrites=overwrites)
         if guild_settings["openmessage"] == "{default}":

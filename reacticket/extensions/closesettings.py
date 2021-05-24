@@ -1,6 +1,5 @@
 from redbot.core.utils.predicates import ReactionPredicate
 from redbot.core.utils.menus import start_adding_reactions
-from typing import Union, Optional
 import discord
 import contextlib
 
@@ -76,7 +75,7 @@ class ReacTicketCloseSettingsMixin(MixinMeta):
             await ctx.send("Users will no longer be DMed a message when their ticket is closed.")
 
     @closesettings.command(name="prune", aliases=["cleanup", "purge"])
-    async def ticket_channel_prune(self, ctx, user: Optional[Union[int, discord.User]] = None):
+    async def ticket_channel_prune(self, ctx):
         """Clean out channels under the archive category.
 
         Pass a user to only delete the channels created by that user instead.
@@ -87,24 +86,11 @@ class ReacTicketCloseSettingsMixin(MixinMeta):
             await ctx.send("Your archive category no longer exists!")
             return
 
-        if isinstance(user, discord.User):
-            user = user.id
-
-        channels = []
-        if user:
-            for channel in category.text_channels:
-                if channel.name == f"ticket-{user}":
-                    channels.append(channel)
-            message = await ctx.send(
-                f"Are you sure you want to remove all archived ticket channels from user {user}?  "
-                f"This will delete {len(channels)} Text Channels."
-            )
-        else:
-            channels = category.text_channels
-            message = await ctx.send(
-                "Are you sure you want to remove all archived ticket channels?  "
-                f"This will delete {len(channels)} Text Channels."
-            )
+        channels = category.text_channels
+        message = await ctx.send(
+            "Are you sure you want to remove all archived ticket channels?  "
+            f"This will delete {len(channels)} Text Channels."
+        )
 
         start_adding_reactions(message, ReactionPredicate.YES_OR_NO_EMOJIS)
         pred = ReactionPredicate.yes_or_no(message, ctx.author)

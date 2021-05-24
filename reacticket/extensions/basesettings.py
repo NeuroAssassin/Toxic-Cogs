@@ -1,5 +1,8 @@
+from redbot.core.utils.predicates import ReactionPredicate
+from redbot.core.utils.menus import start_adding_reactions
 from typing import Union, Optional
 import discord
+import asyncio
 import copy
 
 from reacticket.extensions.abc import MixinMeta
@@ -170,6 +173,113 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             if new != roles:
                 await self.config.guild(ctx.guild).supportroles.set(new)
             await ctx.send(embed=e)
+
+    @post_creation_settings.group(name="ticketname")
+    async def ticket_names(self, ctx):
+        """Control how tickets are automatically named when they are created"""
+        pass
+
+    @ticket_names.command(name="list")
+    async def ticket_names_list(self, ctx):
+        """List regisetered ticket name presets"""
+        embed = discord.Embed(
+            title="Preset default ticket names", description="", color=await ctx.embed_color()
+        )
+        data = await self.config.guild(ctx.guild).presetname()
+        presets = data["presets"]
+        for index, preset in enumerate(presets):
+            embed.description += (
+                f"**{index+1} {'(selected)' if index == data['chosen'] else ''}**: `{preset}`\n"
+            )
+
+        embed.set_footer(
+            text=f"Use {ctx.prefix}reacticket settings postcreationsettings "
+            "ticketname select to change to one of these presets."
+        )
+        await ctx.send(embed=embed)
+
+    @ticket_names.command(name="add")
+    async def ticket_names_add(self, ctx, *, name: str):
+        """Add a new default ticket name preset.  The following variables are available for you:
+
+        {user} - User name
+        {userid} - User ID
+
+        {minute} - Minute integer
+        {hour} - Hour integer
+        {day_name} - Day name (ex. Monday, Tuesday)
+        {day} - Day integer
+        {month_name} - Month name (ex. January)
+        {month} - Month integer
+        {year} - Year integer
+
+        {random} - Random integer between 1 and 10000
+
+        All dates are according to UTC time."""
+        async with self.config.guild(ctx.guild).presetname() as data:
+            data["presets"].append(name)
+
+        msg = await ctx.send("Preset successfully added.  Would you like to select it now?")
+        start_adding_reactions(msg, ReactionPredicate.YES_OR_NO_EMOJIS)
+
+        pred = ReactionPredicate.yes_or_no(msg, ctx.author)
+        try:
+            await self.bot.wait_for("reaction_add", check=pred, timeout=30.0)
+        except asyncio.TimeoutError:
+            pred.result = False
+
+        if pred.result is True:
+            async with self.config.guild(ctx.guild).presetname() as data:
+                data["chosen"] = len(data["presets"]) - 1
+            await ctx.send("Successfully selected new ticket name preset.")
+        else:
+            await ctx.send(
+                "Preset not selected.  To select this, use the command "
+                f"`{ctx.prefix}reacticket settings postcreationsettings "
+                f"ticketname select {len(data['presets'])}`."
+            )
+
+    @ticket_names.command(name="remove", aliases=["delete"])
+    async def ticket_names_remove(self, ctx, index: int):
+        """Remove a preset ticket name from the list.
+        Note that it cannot be the currently selected preset"""
+        real_index = index
+        settings = await self.config.guild(ctx.guild).presetname()
+        if settings["chosen"] == real_index:
+            await ctx.send("You cannot remove the preset currently selected.")
+            return
+
+        # I coded this in a shitty way... so we need to check if the one we are
+        # removing it before the currently selected
+        if real_index < settings["chosen"]:
+            settings["chosen"] -= 1
+
+        del settings["presets"][real_index]
+        await self.config.guild(ctx.guild).presetname.set(settings)
+        await ctx.send("Preset successfully removed.")
+
+    @ticket_names.command(name="select", alises=["choose"])
+    async def ticket_names_select(self, ctx, index: int):
+        """Select a ticket name preset to use.
+
+        To view available presets, use the command
+        `[p]reacticket settings postcreationsettings ticketnames list`"""
+        real_index = index - 1
+        settings = await self.config.guild(ctx.guild).presetname()
+        if settings["chosen"] == real_index:
+            await ctx.send("That ticket preset is already selected.")
+            return
+
+        if index > len(settings["presets"]):
+            await ctx.send(
+                "No preset exists at that index.  To view available presets, check out the "
+                f"command `{ctx.prefix}reacticket settings postcreationsettings ticketnames list`."
+            )
+            return
+
+        settings["chosen"] = real_index
+        await self.config.guild(ctx.guild).presetname.set(settings)
+        await ctx.send("Successfully changed selected ticket name preset.")
 
     @settings.command()
     async def enable(self, ctx, yes_or_no: Optional[bool] = None):

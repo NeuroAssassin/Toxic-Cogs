@@ -1,7 +1,9 @@
 from redbot.core.bot import Red
 from redbot.core import commands, Config
-import discord
+import datetime
 import contextlib
+import discord
+import random
 import time
 
 from abc import ABC
@@ -44,6 +46,7 @@ class ReacTicket(
             "category": 0,
             "archive": {"category": 0, "enabled": False},
             "dm": False,
+            "presetname": {"chosen": 0, "presets": ["ticket-{userid}"]},
             # Miscellaneous
             "supportroles": [],
             "blacklist": [],
@@ -168,9 +171,23 @@ class ReacTicket(
         for role in all_roles:
             overwrites[role] = can_read
 
-        created_channel = await category.create_text_channel(
-            f"ticket-{payload.user_id}", overwrites=overwrites
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        channel_name = (
+            guild_settings["presetname"]["presets"][guild_settings["presetname"]["chosen"]]
+            .replace("{user}", user.display_name)
+            .replace("{userid}", str(user.id))
+            .replace("{minute}", str(now.minute))
+            .replace("{hour}", str(now.hour))
+            .replace("{day_name}", now.strftime("%A"))
+            .replace("{day}", str(now.day))
+            .replace("{month_name}", now.strftime("%B"))
+            .replace("{month}", str(now.month))
+            .replace("{year}", str(now.year))
+            .replace("{random}", str(random.randint(1, 100000)))
         )
+
+        created_channel = await category.create_text_channel(channel_name, overwrites=overwrites)
         if guild_settings["openmessage"] == "{default}":
             if guild_settings["usercanclose"]:
                 sent = await created_channel.send(

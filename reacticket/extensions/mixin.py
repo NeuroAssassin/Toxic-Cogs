@@ -10,7 +10,7 @@ async def reacticket(self, ctx: commands.Context):
 
 
 @checks.admin()
-@reacticket.group(invoke_without_command=True)
+@reacticket.group(invoke_without_command=True, aliases=["set"])
 async def settings(self, ctx):
     """Manage settings for ReacTicket"""
     await ctx.send_help()

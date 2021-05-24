@@ -10,7 +10,7 @@ from reacticket.extensions.mixin import settings
 
 
 class ReacTicketBaseSettingsMixin(MixinMeta):
-    @settings.group(name="precreationsettings")
+    @settings.group(name="precreationsettings", aliases=["precs"])
     async def pre_creation_settings(self, ctx):
         """Control the actions that are checked/occur before ticket is created"""
         pass
@@ -101,7 +101,30 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
                 e.description += f"<@{u}> "
             await ctx.send(embed=e)
 
-    @settings.group(name="postcreationsettings")
+    @pre_creation_settings.command()
+    async def maxtickets(self, ctx, number: int, send_dm: Optional[bool] = None):
+        """Set the maximum number of tickets that a user can have open at one time.
+
+        This number must be greater than 0.
+        Optional: Set whether or not a DM is sent when a user attempts to make a ticket past thier max.  Leaving blank
+        keeps the state previously set.
+        
+        Examples (in situation where these commands are run one after another):
+            `[p]reacticket settings precreationsettings maxtickets 1 False` - Users can make 1 ticket, no DM.
+            `[p]reacticket settings precreationsettings maxtickets 2 True` - Users can make 2 tickets, send DM.
+            `[p]reacticket settings precreationsettings maxtickets 1` - Users can make 1 ticket, send DM (carries over from last command)."""
+        if number < 1:
+            await ctx.send("Maximum number of tickets per user must be greater than 0.")
+            return
+
+        await self.config.guild(ctx.guild).maxtickets.set(number)
+        if send_dm is None:
+            await ctx.send("Max number of tickets per user has been successfully updated.")
+        else:
+            await self.config.guild(ctx.guild).maxticketsenddm.set(send_dm)
+            await ctx.send("Max number of tickets per user and DM setting have been successfully updated.")
+
+    @settings.group(name="postcreationsettings", aliases=["postcs"])
     async def post_creation_settings(self, ctx):
         """Control the actions that occur post the ticket being created"""
         pass

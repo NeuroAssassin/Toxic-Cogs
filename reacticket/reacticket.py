@@ -38,6 +38,8 @@ class ReacTicket(
             "reaction": "\N{ADMISSION TICKETS}",
             "msg": "0-0",
             "openmessage": "{default}",
+            "maxtickets": 1,
+            "maxticketsenddm": False,
             # Permission settings
             "usercanclose": False,
             "usercanmodify": False,
@@ -145,6 +147,21 @@ class ReacTicket(
             return
 
         user = guild.get_member(payload.user_id)
+
+        if len(guild_settings["created"].get(str(payload.user_id), [])) >= guild_settings["maxtickets"]:
+            if guild_settings["maxticketsenddm"]:
+                try:
+                    await user.send(f"You have reached the maximum number of tickets in {guild.name}.")
+                except discord.HTTPException:
+                    pass
+
+            with contextlib.suppress(discord.HTTPException):
+                message = await self.bot.get_channel(payload.channel_id).fetch_message(
+                    payload.message_id
+                )
+                await message.remove_reaction(payload.emoji, member=user)
+            return
+
         admin_roles = [
             guild.get_role(role_id)
             for role_id in (await self.bot._config.guild(guild).admin_role())

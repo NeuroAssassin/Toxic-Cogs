@@ -1,5 +1,6 @@
 from redbot.core.utils.predicates import ReactionPredicate
 from redbot.core.utils.menus import start_adding_reactions
+from typing import Optional
 import discord
 import contextlib
 
@@ -73,6 +74,20 @@ class ReacTicketCloseSettingsMixin(MixinMeta):
             await ctx.send("Users will now be DMed a message when their ticket is closed.")
         else:
             await ctx.send("Users will no longer be DMed a message when their ticket is closed.")
+
+    @closesettings.command(name="closeonleave")
+    async def close_ticket_on_leave(self, ctx, toggle: Optional[bool] = None):
+        """Set whether to automatically close tickets if the ticket author leaves."""
+        if toggle is None:
+            toggle = not await self.config.guild(ctx.guild).closeonleave()
+
+        await self.config.guild(ctx.guild).closeonleave.set(toggle)
+        if toggle:
+            await ctx.send(
+                "Tickets will now be automatically closed if the author leaves the server."
+            )
+        else:
+            await ctx.send("Tickets will be kept open even if the author leaves the server")
 
     @closesettings.command(name="prune", aliases=["cleanup", "purge"])
     async def ticket_channel_prune(self, ctx):

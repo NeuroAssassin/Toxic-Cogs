@@ -4,6 +4,7 @@ import datetime
 import contextlib
 import discord
 import random
+import asyncio
 import time
 
 from abc import ABC
@@ -49,6 +50,7 @@ class ReacTicket(
             "archive": {"category": 0, "enabled": False},
             "dm": False,
             "presetname": {"chosen": 0, "presets": ["ticket-{userid}"]},
+            "closeonleave": False,
             # Miscellaneous
             "supportroles": [],
             "blacklist": [],
@@ -103,6 +105,118 @@ class ReacTicket(
         await self.config.second_migration.set(True)
 
     @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        guild_settings = await self.config.guild(member.guild).all()
+
+        if not guild_settings["closeonleave"]:
+            return
+
+        if not str(member.id) in guild_settings["created"]:
+            return
+
+        archive = self.bot.get_channel(guild_settings["archive"]["category"])
+        post_processing = {}  # Mapping of Dict[discord.TextChannel: List[discord.Member]]
+
+        for ticket in guild_settings["created"][str(member.id)]:
+            channel = self.bot.get_channel(ticket["channel"])
+            added_users = [user for u in ticket["added"] if (user := member.guild.get_member(u))]
+            if guild_settings["report"] != 0:
+                reporting_channel = self.bot.get_channel(guild_settings["report"])
+                if reporting_channel:
+                    if await self.embed_requested(reporting_channel):
+                        embed = discord.Embed(
+                            title="Ticket Closed",
+                            description=(
+                                f"Ticket {channel.mention} created by "
+                                f"{member.mention} "
+                                f"has been closed due to the user leaving the guild."
+                            ),
+                            color=await self.bot.get_embed_color(reporting_channel),
+                        )
+                        await reporting_channel.send(embed=embed)
+                    else:
+                        message = (
+                            f"Ticket {channel.mention} created by "
+                            f"{str(member)} "
+                            f"has been closed due to the user leaving the guild."
+                        )
+                        await reporting_channel.send(message)
+            if guild_settings["archive"]["enabled"] and channel and archive:
+                for user in added_users:
+                    with contextlib.suppress(discord.HTTPException):
+                        if user:
+                            await channel.set_permissions(
+                                user, send_messages=False, read_messages=True
+                            )
+                await channel.send(
+                    f"Ticket {channel.mention} for {member.display_name} has been closed "
+                    "due to author leaving.  Channel will be moved to archive in one minute."
+                )
+
+                post_processing[channel] = added_users
+            else:
+                if channel:
+                    for user in added_users:
+                        with contextlib.suppress(discord.HTTPException):
+                            if user:
+                                await channel.set_permissions(
+                                    user, send_messages=False, read_messages=True
+                                )
+                await channel.send(
+                    f"Ticket {channel.mention} for {member.display_name} has been closed "
+                    "due to author leaving.  Channel will be deleted in one minute, if exists."
+                )
+
+        await asyncio.sleep(60)
+
+        for channel, added_users in post_processing.items():
+            if guild_settings["archive"]["enabled"] and channel and archive:
+                try:
+                    admin_roles = [
+                        member.guild.get_role(role_id)
+                        for role_id in (await self.bot._config.guild(member.guild).admin_role())
+                        if member.guild.get_role(role_id)
+                    ]
+                    support_roles = [
+                        member.guild.get_role(role_id)
+                        for role_id in guild_settings["supportroles"]
+                        if member.guild.get_role(role_id)
+                    ]
+
+                    all_roles = admin_roles + support_roles
+                    overwrites = {
+                        member.guild.default_role: discord.PermissionOverwrite(
+                            read_messages=False
+                        ),
+                        member.guild.me: discord.PermissionOverwrite(
+                            read_messages=True,
+                            send_messages=True,
+                            manage_channels=True,
+                            manage_permissions=True,
+                        ),
+                    }
+                    for role in all_roles:
+                        overwrites[role] = discord.PermissionOverwrite(
+                            read_messages=True, send_messages=True
+                        )
+                    for user in added_users:
+                        if user:
+                            overwrites[user] = discord.PermissionOverwrite(read_messages=False)
+                    await channel.edit(category=archive, overwrites=overwrites)
+                except discord.HTTPException as e:
+                    await channel.send(f"Failed to move to archive: {str(e)}")
+            else:
+                if channel:
+                    try:
+                        await channel.delete()
+                    except discord.HTTPException:
+                        with contextlib.suppress(discord.HTTPException):
+                            await channel.send(
+                                'Failed to delete channel. Please ensure I have "Manage Channels" '
+                                "permission in the category."
+                            )
+
+    @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if payload.user_id == self.bot.user.id:
             return
@@ -148,10 +262,15 @@ class ReacTicket(
 
         user = guild.get_member(payload.user_id)
 
-        if len(guild_settings["created"].get(str(payload.user_id), [])) >= guild_settings["maxtickets"]:
+        if (
+            len(guild_settings["created"].get(str(payload.user_id), []))
+            >= guild_settings["maxtickets"]
+        ):
             if guild_settings["maxticketsenddm"]:
                 try:
-                    await user.send(f"You have reached the maximum number of tickets in {guild.name}.")
+                    await user.send(
+                        f"You have reached the maximum number of tickets in {guild.name}."
+                    )
                 except discord.HTTPException:
                     pass
 

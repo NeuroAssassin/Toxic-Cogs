@@ -122,7 +122,9 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             await ctx.send("Max number of tickets per user has been successfully updated.")
         else:
             await self.config.guild(ctx.guild).maxticketsenddm.set(send_dm)
-            await ctx.send("Max number of tickets per user and DM setting have been successfully updated.")
+            await ctx.send(
+                "Max number of tickets per user and DM setting have been successfully updated."
+            )
 
     @settings.group(name="postcreationsettings", aliases=["postcs"])
     async def post_creation_settings(self, ctx):

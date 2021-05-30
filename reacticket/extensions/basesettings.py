@@ -331,7 +331,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
         if channel_id == message_id == 0:
             await ctx.send(
                 "Please set the message to listen on first with"
-                f"`{ctx.prefix}reacticket settings setmsg`."
+                f"`{ctx.prefix}reacticket settings precreationsettings setmsg`."
             )
             return
 
@@ -341,7 +341,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             # Channel no longer exists
             await self.config.guild(ctx.guild).msg.set("0-0")
             await ctx.send(
-                f"Please reset the message to listen on `{ctx.prefix}reacticket settings setmsg`."
+                f"Please reset the message to listen on `{ctx.prefix}reacticket settings precreationsettings setmsg`."
                 "\nReason: Channel has been deleted"
             )
             return
@@ -349,7 +349,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             # Message no longer exists
             await self.config.guild(ctx.guild).msg.set("0-0")
             await ctx.send(
-                f"Please reset the message to listen on `{ctx.prefix}reacticket settings setmsg`."
+                f"Please reset the message to listen on `{ctx.prefix}reacticket settings precreationsettings setmsg`."
                 "\nReason: Message has been deleted"
             )
             return
@@ -388,7 +388,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
         if not category_id:
             await ctx.send(
                 "Please set the category to create ticket channels under with "
-                f"`{ctx.prefix}reacticket settings category`."
+                f"`{ctx.prefix}reacticket settings postcreationsettings category`."
             )
             return
 
@@ -396,7 +396,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
         if not category:
             await ctx.send(
                 "Please reset the category to create ticket channels under with "
-                f"`{ctx.prefix}reacticket settings category`.\n"
+                f"`{ctx.prefix}reacticket settings postcreationsettings category`.\n"
                 "Reason: Category has been deleted."
             )
             return
@@ -407,7 +407,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             if not archive["category"]:
                 await ctx.send(
                     "Archive mode is enabled but no category is set.  "
-                    f"Please set one with `{ctx.prefix}reacticket settings archive category`."
+                    f"Please set one with `{ctx.prefix}reacticket settings closesettings archive category`."
                 )
                 return
 
@@ -415,7 +415,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             if not archive_category:
                 await ctx.send(
                     "Archive mode is enabled but set category does not exist.  "
-                    f"Please reset it with `{ctx.prefix}reacticket settings archive category`."
+                    f"Please reset it with `{ctx.prefix}reacticket settings closesettings archive category`."
                 )
                 return
 
@@ -426,7 +426,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             if not report_channel:
                 await ctx.send(
                     "Reporting is enabled but the channel has been deleted.  "
-                    f"Please reset it with `{ctx.prefix}reacticket settings report`."
+                    f"Please reset it with `{ctx.prefix}reacticket settings closesettings reports`."
                 )
 
             if not report_channel.permissions_for(ctx.guild.me).send_messages:

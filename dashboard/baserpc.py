@@ -82,7 +82,7 @@ class DashboardRPC:
                 try:
                     details = {
                         "name": escape(f"{cmd.qualified_name} {cmd.signature}"),
-                        "desc": escape(cmd.short_doc),
+                        "desc": escape(cmd.short_doc or ""),
                         "subs": [],
                     }
                 except ValueError:
@@ -223,10 +223,10 @@ class DashboardRPC:
 
             returning.append(
                 {
-                    "name": escape(name),
-                    "desc": escape(cog.__doc__),
+                    "name": escape(name or ""),
+                    "desc": escape(cog.__doc__ or ""),
                     "cmds": cmds,
-                    "author": escape(author),
+                    "author": escape(author or ""),
                     "repo": repo,
                 }
             )

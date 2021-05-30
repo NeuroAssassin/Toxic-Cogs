@@ -57,6 +57,7 @@ class DashboardRPC:
 
         # Caches; you can thank trusty for the cog info one
         self.cog_info_cache = {}
+        self.invite_url = None
 
     def unload(self):
         self.bot.unregister_rpc_handler(self.get_variables)
@@ -137,8 +138,9 @@ class DashboardRPC:
 
         count = len(self.bot.users)
 
-        core = self.bot.get_cog("Core")
-        invite = await core._invite_url()
+        if self.invite_url is None:
+            core = self.bot.get_cog("Core")
+            self.invite_url = await core._invite_url()
 
         since = self.bot.uptime.strftime("%Y-%m-%d %H:%M:%S")
         delta = datetime.utcnow() - self.bot.uptime
@@ -161,7 +163,7 @@ class DashboardRPC:
             "users": humanize_number(count),
             "blacklisted": data["blacklisted"],
             "uptime": uptime_str,
-            "invite": invite,
+            "invite": self.invite_url,
             "meta": data["meta"],
         }
         app_info = await self.bot.application_info()

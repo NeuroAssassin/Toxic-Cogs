@@ -13,7 +13,6 @@ from dashboard.abc.abc import MixinMeta
 from dashboard.abc.mixin import dashboard
 
 from dashboard.baserpc import HUMANIZED_PERMISSIONS
-from dashboard.menus import ClientList, ClientMenu
 
 THEME_COLORS = ["red", "primary", "blue", "green", "greener", "yellow"]
 
@@ -90,7 +89,8 @@ class DashboardSettingsMixin(MixinMeta):
         disallowed = await self.config.disallowedperms()
         if disallowed:
             await ctx.send(
-                f"The following permissions are disabled for assigning: {humanize_list(disallowed)}"
+                "The following permissions are disabled for assigning: "
+                f"{humanize_list(disallowed)}"
             )
         else:
             await ctx.send("No permissions are disabled")
@@ -119,9 +119,12 @@ class DashboardSettingsMixin(MixinMeta):
             e = discord.Embed(
                 title="Successfully edited permissions",
                 description=(
-                    f"**Permissions enabled**: {humanize_list(list(map(inline, changed or ['None'])))}\n"
-                    f"**Permissions already enabled**: {humanize_list(list(map(inline, not_changed or ['None'])))}\n"
-                    f"**Permissions unidentified**: {humanize_list(list(map(inline, missing or ['None'])))}\n"
+                    "**Permissions enabled**: "
+                    f"{humanize_list(list(map(inline, changed or ['None'])))}\n"
+                    "**Permissions already enabled**: "
+                    f"{humanize_list(list(map(inline, not_changed or ['None'])))}\n"
+                    "**Permissions unidentified**: "
+                    f"{humanize_list(list(map(inline, missing or ['None'])))}\n"
                 ),
                 color=(await ctx.embed_color()),
             )
@@ -159,9 +162,12 @@ class DashboardSettingsMixin(MixinMeta):
             e = discord.Embed(
                 title="Successfully edited permissions",
                 description=(
-                    f"**Permissions disabled**: {humanize_list(list(map(inline, changed or ['None'])))}\n"
-                    f"**Permissions already disabled**: {humanize_list(list(map(inline, not_changed or ['None'])))}\n"
-                    f"**Permissions unidentified**: {humanize_list(list(map(inline, missing or ['None'])))}\n"
+                    "**Permissions disabled**: "
+                    f"{humanize_list(list(map(inline, changed or ['None'])))}\n"
+                    "**Permissions already disabled**: "
+                    f"{humanize_list(list(map(inline, not_changed or ['None'])))}\n"
+                    "**Permissions unidentified**: "
+                    f"{humanize_list(list(map(inline, missing or ['None'])))}\n"
                 ),
                 color=(await ctx.embed_color()),
             )
@@ -185,7 +191,8 @@ class DashboardSettingsMixin(MixinMeta):
             color = "primary"
         if color not in THEME_COLORS:
             return await ctx.send(
-                f"Unrecognized color.  Please choose one of the following:\n{humanize_list(tuple(map(lambda x: inline(x).title(), THEME_COLORS)))}"
+                "Unrecognized color.  Please choose one of the following:\n"
+                f"{humanize_list(tuple(map(lambda x: inline(x).title(), THEME_COLORS)))}"
             )
         await self.config.defaultcolor.set(color)
         await ctx.tick()
@@ -211,7 +218,7 @@ class DashboardSettingsMixin(MixinMeta):
         """Set the meta title tag for the rendered UI from link.
 
         For Discord, this is the larger text hyperlinked to the url.
-        
+
         The following arguments will be replaced if they are in the title:
             {name} | The bot's username"""
         await self.config.meta.title.set(title)
@@ -234,7 +241,7 @@ class DashboardSettingsMixin(MixinMeta):
         """Set the meta description tag for the rendered UI from link.
 
         For Discord, this is the smaller text under the title.
-        
+
         The following arguments will be replaced if they are in the title:
             {name} | The bot's username"""
         await self.config.meta.description.set(description)

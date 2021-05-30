@@ -1,14 +1,11 @@
 from collections import defaultdict
 
-import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.bot import Red
-from redbot.core.utils.chat_formatting import box, humanize_list, inline
 from abc import ABC
 
 # ABC Mixins
-from dashboard.abc.abc import MixinMeta
-from dashboard.abc.mixin import DBMixin, dashboard
+from dashboard.abc.mixin import DBMixin
 
 # Command Mixins
 from dashboard.abc.roles import DashboardRolesMixin
@@ -16,8 +13,7 @@ from dashboard.abc.webserver import DashboardWebserverMixin
 from dashboard.abc.settings import DashboardSettingsMixin
 
 # RPC Mixins
-from dashboard.baserpc import HUMANIZED_PERMISSIONS, DashboardRPC
-from dashboard.menus import ClientList, ClientMenu
+from dashboard.baserpc import DashboardRPC
 
 THEME_COLORS = ["red", "primary", "blue", "green", "greener", "yellow"]
 
@@ -27,7 +23,8 @@ class CompositeMetaClass(type(commands.Cog), type(ABC)):
     metaclass."""
 
 
-# Thanks to Flare for showing how to use group commands across multiple files.  If this breaks, its his fault
+# Thanks to Flare for showing how to use group commands across multiple files.
+# If this breaks, its his fault
 class Dashboard(
     DashboardRolesMixin,
     DashboardWebserverMixin,

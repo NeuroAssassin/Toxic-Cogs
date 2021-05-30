@@ -1,8 +1,8 @@
+from datetime import datetime
+from typing import List
+from html import escape
 import random
 import re
-from collections import Counter
-from typing import List
-from datetime import datetime
 
 import discord
 import markdown2
@@ -11,7 +11,6 @@ from redbot.core.commands import commands
 from redbot.core.commands.requires import PrivilegeLevel
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_list, humanize_number, humanize_timedelta
-from redbot.cogs.downloader.installable import Installable
 
 from .rpc.alias import DashboardRPC_AliasCC
 from .rpc.botsettings import DashboardRPC_BotSettings
@@ -81,8 +80,8 @@ class DashboardRPC:
                     continue
                 try:
                     details = {
-                        "name": f"{cmd.qualified_name} {cmd.signature}",
-                        "desc": cmd.short_doc,
+                        "name": escape(f"{cmd.qualified_name} {cmd.signature}"),
+                        "desc": escape(cmd.short_doc),
                         "subs": [],
                     }
                 except ValueError:
@@ -93,7 +92,7 @@ class DashboardRPC:
             else:
                 if cmd.requires.privilege_level == PrivilegeLevel.BOT_OWNER:
                     continue
-                final.append(cmd.qualified_name)
+                final.append(escape(cmd.qualified_name))
                 if isinstance(cmd, commands.Group):
                     final += await self.build_cmd_list(cmd.commands, details=False)
         return final
@@ -107,7 +106,7 @@ class DashboardRPC:
         perms = []
         for role in role_data:
             if role["roleid"] in roles:
-                perms += [p for p in role["perms"] if not p in perms]
+                perms += [p for p in role["perms"] if p not in perms]
         return perms
 
     @rpccheck()
@@ -127,9 +126,10 @@ class DashboardRPC:
         if botinfo is None:
             botinfo = (
                 f"Hello, welcome to the Red Discord Bot dashboard for {self.bot.user.name}! "
-                f"{self.bot.user.name} is based off the popular bot Red Discord Bot, an open source, multifunctional bot. "
-                "It has tons if features including moderation, audio, economy, fun and more! Here, you can control and interact with all these things. "
-                "So what are you waiting for? Invite them now!"
+                f"{self.bot.user.name} is based off the popular bot Red Discord Bot, an open "
+                "source, multifunctional bot. It has tons of features including moderation, "
+                "audio, economy, fun and more! Here, you can control and interact with "
+                f"{self.bot.user.name}'s settings. So what are you waiting for? Invite them now!"
             )
 
         prefixes = [
@@ -142,7 +142,6 @@ class DashboardRPC:
             core = self.bot.get_cog("Core")
             self.invite_url = await core._invite_url()
 
-        since = self.bot.uptime.strftime("%Y-%m-%d %H:%M:%S")
         delta = datetime.utcnow() - self.bot.uptime
         uptime_str = humanize_timedelta(timedelta=delta)
 
@@ -194,7 +193,8 @@ class DashboardRPC:
 
             author = "Unknown"
             repo = "Unknown"
-            # Taken from Trusty's downloader fuckery, https://gist.github.com/TrustyJAID/784c8c32dd45b1cc8155ed42c0c56591
+            # Taken from Trusty's downloader fuckery,
+            # https://gist.github.com/TrustyJAID/784c8c32dd45b1cc8155ed42c0c56591
             if name not in self.cog_info_cache:
                 if downloader:
                     module = downloader.cog_name_from_instance(cog)
@@ -218,7 +218,13 @@ class DashboardRPC:
                 repo = self.cog_info_cache[name]["repo"]
 
             returning.append(
-                {"name": name, "desc": cog.__doc__, "cmds": cmds, "author": author, "repo": repo}
+                {
+                    "name": escape(name),
+                    "desc": escape(cog.__doc__),
+                    "cmds": cmds,
+                    "author": escape(author),
+                    "repo": repo,
+                }
             )
         returning = sorted(returning, key=lambda k: k["name"])
         return returning
@@ -232,15 +238,16 @@ class DashboardRPC:
             if await self.bot.is_owner(self.bot.get_user(userid)):
                 is_owner = True
         except AttributeError:
-            # Bot doesn't even find user using bot.get_user, might as well spare all the data processing and return
+            # Bot doesn't even find user using bot.get_user,
+            # might as well spare all the data processing and return
             return []
 
         # This could take a while
         async for guild in AsyncIter(self.bot.guilds, steps=1300):
             sgd = {
-                "name": guild.name,
+                "name": escape(guild.name),
                 "id": str(guild.id),
-                "owner": str(guild.owner),
+                "owner": escape(str(guild.owner)),
                 "icon": str(guild.icon_url_as(format="png"))[:-13]
                 or "https://cdn.discordapp.com/embed/avatars/1.",
                 "animated": guild.is_icon_animated(),
@@ -363,9 +370,9 @@ class DashboardRPC:
 
         guild_data = {
             "status": 1,
-            "name": guild.name,
+            "name": escape(guild.name),
             "id": guild.id,
-            "owner": str(guild.owner),
+            "owner": escape(str(guild.owner)),
             "icon": str(guild.icon_url_as(format="png"))[:-13]
             or "https://cdn.discordapp.com/embed/avatars/1.",
             "animated": guild.is_icon_animated(),

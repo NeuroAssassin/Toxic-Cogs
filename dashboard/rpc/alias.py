@@ -1,3 +1,5 @@
+from html import escape
+
 import discord
 from redbot.core.bot import Red
 from redbot.core.commands import commands
@@ -17,15 +19,6 @@ class DashboardRPC_AliasCC:
     def unload(self):
         self.bot.unregister_rpc_handler(self.fetch_aliases)
 
-    @staticmethod
-    def safe(string):
-        return (
-            string.replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace('"', "&quot;")
-        )
-
     @rpccheck()
     @permcheck("Alias", ["aliascc"])
     async def fetch_aliases(self, guild: discord.Guild, member: discord.Member):
@@ -39,8 +32,8 @@ class DashboardRPC_AliasCC:
             else:
                 command = alias.command
             if alias.command not in ida:
-                ida[alias.command] = {"aliases": [], "shortened": command}
-            ida[alias.command]["aliases"].append(f"{self.safe(alias.name)}")
+                ida[alias.command] = {"aliases": [], "shortened": escape(command)}
+            ida[alias.command]["aliases"].append(f"{escape(alias.name)}")
 
         data = {}
         for command, aliases in ida.items():

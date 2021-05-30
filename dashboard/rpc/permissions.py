@@ -1,7 +1,7 @@
 from typing import cast
+from html import escape
 
 import discord
-from discord.ext.commands import errors
 from redbot.cogs.permissions.converters import CogOrCommand, GuildUniqueObjectFinder, RuleType
 from redbot.core.bot import Red
 from redbot.core.commands import commands
@@ -38,7 +38,8 @@ class DashboardRPC_Permissions:
     async def fetch_guild_rules(self, guild: discord.Guild, member: discord.Member):
         permcog = self.bot.get_cog("Permissions")
 
-        # Basically a copy and paste of perms._yaml_get_guild, except doesn't save to a yaml file and instead returns JSON data, and tinkers with the data
+        # Basically a copy and paste of perms._yaml_get_guild, except doesn't save to a yaml file
+        # and instead returns JSON data, and tinkers with the data
         guild_rules = {}
         for category in ("COG", "COMMAND"):
             guild_rules.setdefault(category, {})
@@ -57,13 +58,13 @@ class DashboardRPC_Permissions:
                             obj = None
                             name = ""
                             objtype = ""
-                            if (obj := guild.get_channel(target)) :
+                            if obj := guild.get_channel(target):
                                 objtype = "Channel"
                                 name = obj.name
-                            elif (obj := guild.get_role(target)) :
+                            elif obj := guild.get_role(target):
                                 objtype = "Role"
                                 name = obj.name
-                            elif (obj := guild.get_member(target)) :
+                            elif obj := guild.get_member(target):
                                 objtype = "User"
                                 name = f"{obj.display_name}#{obj.discriminator}"
                             else:
@@ -71,7 +72,7 @@ class DashboardRPC_Permissions:
 
                             saving = {
                                 "type": objtype,
-                                "name": name,
+                                "name": escape(name),
                                 "id": str(target),
                                 "permission": "allowed" if rule else "denied",
                             }
@@ -95,13 +96,15 @@ class DashboardRPC_Permissions:
         data = {"USERS": [], "ROLES": [], "CHANNELS": []}
 
         async for user in AsyncIter(guild.members, steps=1300):
-            data["USERS"].append((str(user.id), f"{user.display_name}#{user.discriminator}"))
+            data["USERS"].append(
+                (str(user.id), escape(f"{user.display_name}#{user.discriminator}"))
+            )
 
         async for role in AsyncIter(guild.roles, steps=1300):
-            data["ROLES"].append((str(role.id), role.name))
+            data["ROLES"].append((str(role.id), escape(role.name)))
 
         async for channel in AsyncIter(guild.channels, steps=1300):
-            data["CHANNELS"].append((str(channel.id), channel.name))
+            data["CHANNELS"].append((str(channel.id), escape(channel.name)))
 
         return data
 

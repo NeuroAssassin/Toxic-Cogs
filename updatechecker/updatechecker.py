@@ -82,6 +82,7 @@ class UpdateChecker(commands.Cog):
                     response = await self.fetch_feed(url)
                     try:
                         commit = response.entries[0]["id"][33:]
+                        hash = "[" + commit + "](" + response.entries[0]["link"] + ")"
                         cn = response.entries[0]["title"] + " - " + response.entries[0]["author"]
                         image = response.entries[0]["media_thumbnail"][0]["url"].split("?")[0]
                     except AttributeError:
@@ -111,7 +112,7 @@ class UpdateChecker(commands.Cog):
                                     e.add_field(name="URL", value=repo.url)
                                     e.add_field(name="Branch", value=repo.branch)
                                     e.add_field(name="Commit", value=cn)
-                                    e.add_field(name="Hash", value=commit)
+                                    e.add_field(name="Hash", value=hash)
                                     e.set_thumbnail(url=image)
                                     await channel.send(embed=e)
                                 elif (
@@ -128,7 +129,7 @@ class UpdateChecker(commands.Cog):
                                     e.add_field(name="URL", value=repo.url)
                                     e.add_field(name="Branch", value=repo.branch)
                                     e.add_field(name="Commit", value=cn)
-                                    e.add_field(name="Hash", value=commit)
+                                    e.add_field(name="Hash", value=hash)
                                     e.set_thumbnail(url=image)
                                     await channel.send(embed=e)
                                 else:

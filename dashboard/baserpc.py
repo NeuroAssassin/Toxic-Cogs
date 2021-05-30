@@ -57,6 +57,7 @@ class DashboardRPC:
         # Caches; you can thank trusty for the cog info one
         self.cog_info_cache = {}
         self.invite_url = None
+        self.owner = None
 
     def unload(self):
         self.bot.unregister_rpc_handler(self.get_variables)
@@ -165,11 +166,14 @@ class DashboardRPC:
             "invite": self.invite_url,
             "meta": data["meta"],
         }
-        app_info = await self.bot.application_info()
-        if app_info.team:
-            returning["owner"] = str(app_info.team.name)
-        else:
-            returning["owner"] = str(app_info.owner)
+        if self.owner is None:
+            app_info = await self.bot.application_info()
+            if app_info.team:
+                self.owner = str(app_info.team.name)
+            else:
+                self.owner = str(app_info.owner)
+
+        returning["owner"] = self.owner
         return returning
 
     @rpccheck()

@@ -51,7 +51,7 @@ class DashboardSettingsMixin(MixinMeta):
         ips = len(await self.config.secret()) == 32
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            in_use = s.connect_ex(('localhost', 42356)) == 0
+            in_use = s.connect_ex(("localhost", 42356)) == 0
         await message.edit(
             content=(
                 "Dashboard cog installation:\n"

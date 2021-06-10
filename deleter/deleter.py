@@ -47,7 +47,8 @@ class Deleter(commands.Cog):
                             dontdelete = False
                             try:
                                 m = await c.fetch_message(int(message))
-                                await m.delete()
+                                if not m.pinned:
+                                    await m.delete()
                             except (discord.NotFound, discord.Forbidden):
                                 pass
                             except discord.HTTPException:

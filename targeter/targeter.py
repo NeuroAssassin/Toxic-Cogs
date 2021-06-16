@@ -1,7 +1,8 @@
 import argparse
 import functools
-import re
-from datetime import datetime, timezone
+from datetime import timezone
+import io
+import csv
 
 import aiohttp
 import discord
@@ -335,9 +336,9 @@ class Args(Converter):
         vals["not-any-perm"] = new
 
         if vals["format"]:
-            if not vals["format"][0].lower() in ["page", "menu"]:
+            if not vals["format"][0].lower() in ["menu", "csv"]:
                 raise BadArgument(
-                    "Invalid format.  Must be `page` for in a bin or `menu` for in an embed."
+                    "Invalid format.  Must be `csv` for a CSV file or `menu` for in an embed."
                 )
             vals["format"] = vals["format"][0].lower()
 
@@ -355,11 +356,6 @@ class Targeter(commands.Cog):
     async def red_delete_data_for_user(self, **kwargs):
         """This cog does not store user data"""
         return
-
-    async def post(self, string):
-        async with self.s.put("http://bin.doyle.la", data=string.encode("utf-8")) as post:
-            text = await post.text()
-        return text
 
     def lookup(self, ctx, args):
         matched = ctx.guild.members
@@ -726,19 +722,7 @@ class Targeter(commands.Cog):
 
             if len(matched) != 0:
                 color = await ctx.embed_color()
-                if args["format"] == "page":
-                    string = "The following users have matched your arguments:\n"
-                    for number, member in enumerate(matched, 1):
-                        adding = f"Entry #{number}\n    • Username: {member.name}\n    • Guild Name: {member.display_name}\n    • ID: {member.id}\n"
-                        string += adding
-                    url = await self.post(string)
-                    embed = discord.Embed(
-                        title="Targeting complete",
-                        description=f"Found {len(matched)} matches.  Click [here]({url}) to see the full results.",
-                        color=color,
-                    )
-                    m = False
-                else:
+                if args["format"] == "menu":
                     string = " ".join([m.mention for m in matched])
                     embed_list = []
                     for page in pagify(string, delims=[" "], page_length=750):
@@ -749,6 +733,33 @@ class Targeter(commands.Cog):
                         embed.description = page
                         embed_list.append(embed)
                     m = True
+                if args["format"] == "csv":
+                    headers = ["Username", "Guild name", "User ID"]
+
+                    csvfile = io.StringIO()
+                    writer = csv.DictWriter(csvfile, fieldnames=headers)
+                    writer.writeheader()
+
+                    for member in matched:
+                        writer.writerow(
+                            {
+                                "Username": member.name,
+                                "Guild name": member.display_name,
+                                "User ID": member.id,
+                            }
+                        )
+
+                    csvfile.seek(0)
+                    binary = csvfile.read().encode()
+                    binary_file = io.BytesIO(binary)
+                    binary_file.seek(0)
+                    file = discord.File(
+                        binary_file,
+                        filename=ctx.message.created_at.strftime("%B %d, %Y at %H:%M UTC")
+                        + ".csv",
+                    )
+                    await ctx.send(file=file)
+                    return
             else:
                 embed = discord.Embed(
                     title="Targeting complete", description=f"Found no matches.", color=0xFF0000,

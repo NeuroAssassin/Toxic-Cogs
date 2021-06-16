@@ -351,7 +351,6 @@ class Targeter(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.conv = Args()  # For evals
-        self.s = aiohttp.ClientSession()
 
     async def red_delete_data_for_user(self, **kwargs):
         """This cog does not store user data"""

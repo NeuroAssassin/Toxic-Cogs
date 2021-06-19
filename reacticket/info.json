@@ -10,6 +10,8 @@
         "tools",
         "utility"
     ],
-    "requirements": [],
+    "requirements": [
+        "dislash.py==1.0.16"
+    ],
     "hidden": false
 }

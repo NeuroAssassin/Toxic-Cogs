@@ -106,13 +106,18 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
         """Set the maximum number of tickets that a user can have open at one time.
 
         This number must be greater than 0.
-        Optional: Set whether or not a DM is sent when a user attempts to make a ticket past thier max.  Leaving blank
-        keeps the state previously set.
-        
+        Optional: Set whether or not a DM is sent when a user attempts to make a ticket past thier
+        max.  Leaving blank keeps the state previously set.
+
         Examples (in situation where these commands are run one after another):
-            `[p]reacticket settings precreationsettings maxtickets 1 False` - Users can make 1 ticket, no DM.
-            `[p]reacticket settings precreationsettings maxtickets 2 True` - Users can make 2 tickets, send DM.
-            `[p]reacticket settings precreationsettings maxtickets 1` - Users can make 1 ticket, send DM (carries over from last command)."""
+            `[p]reacticket settings precreationsettings maxtickets 1 False`
+            Users can make 1 ticket, no DM.
+
+            `[p]reacticket settings precreationsettings maxtickets 2 True`
+            Users can make 2 tickets, send DM.
+
+            `[p]reacticket settings precreationsettings maxtickets 1`
+            Users can make 1 ticket, send DM (carries over from last command)."""
         if number < 1:
             await ctx.send("Maximum number of tickets per user must be greater than 0.")
             return
@@ -341,7 +346,8 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             # Channel no longer exists
             await self.config.guild(ctx.guild).msg.set("0-0")
             await ctx.send(
-                f"Please reset the message to listen on `{ctx.prefix}reacticket settings precreationsettings setmsg`."
+                "Please reset the message to listen on "
+                f"`{ctx.prefix}reacticket settings precreationsettings setmsg`."
                 "\nReason: Channel has been deleted"
             )
             return
@@ -349,7 +355,8 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             # Message no longer exists
             await self.config.guild(ctx.guild).msg.set("0-0")
             await ctx.send(
-                f"Please reset the message to listen on `{ctx.prefix}reacticket settings precreationsettings setmsg`."
+                "Please reset the message to listen on "
+                f"`{ctx.prefix}reacticket settings precreationsettings setmsg`."
                 "\nReason: Message has been deleted"
             )
             return
@@ -406,16 +413,16 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
         if archive["enabled"]:
             if not archive["category"]:
                 await ctx.send(
-                    "Archive mode is enabled but no category is set.  "
-                    f"Please set one with `{ctx.prefix}reacticket settings closesettings archive category`."
+                    "Archive is enabled but no category is set. Please set one with "
+                    f"`{ctx.prefix}reacticket settings closesettings archive category`."
                 )
                 return
 
             archive_category = self.bot.get_channel(archive["category"])
             if not archive_category:
                 await ctx.send(
-                    "Archive mode is enabled but set category does not exist.  "
-                    f"Please reset it with `{ctx.prefix}reacticket settings closesettings archive category`."
+                    "Archive is enabled but set category does not exist. Please reset it with "
+                    f"`{ctx.prefix}reacticket settings closesettings archive category`."
                 )
                 return
 
@@ -425,8 +432,8 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
             report_channel = self.bot.get_channel(report)
             if not report_channel:
                 await ctx.send(
-                    "Reporting is enabled but the channel has been deleted.  "
-                    f"Please reset it with `{ctx.prefix}reacticket settings closesettings reports`."
+                    "Reporting is enabled but the channel has been deleted. Please reset it with "
+                    f"`{ctx.prefix}reacticket settings closesettings reports`."
                 )
 
             if not report_channel.permissions_for(ctx.guild.me).send_messages:

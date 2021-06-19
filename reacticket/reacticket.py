@@ -1,5 +1,6 @@
 from redbot.core.bot import Red
 from redbot.core import commands, Config
+from typing import Optional
 import datetime
 import contextlib
 import discord
@@ -51,6 +52,8 @@ class ReacTicket(
             "dm": False,
             "presetname": {"chosen": 0, "presets": ["ticket-{userid}"]},
             "closeonleave": False,
+            "closeafter": 0,
+            "exemptlist": [],
             # Miscellaneous
             "supportroles": [],
             "blacklist": [],
@@ -59,23 +62,38 @@ class ReacTicket(
             "created": {},
         }
 
-        self.config = Config.get_conf(self, identifier=473541068378341376, force_registration=True)
+        self.config: Config = Config.get_conf(
+            self, identifier=473541068378341376, force_registration=True
+        )
         self.config.register_guild(**default_guild)
-        self.config.register_global(first_migration=False, second_migration=False)
+        self.config.register_global(
+            first_migration=False,
+            second_migration=False,
+            third_migration=False,
+            fourth_migration=False,
+        )
         self.bot.loop.create_task(self.possibly_migrate())
 
     async def possibly_migrate(self):
         await self.bot.wait_until_red_ready()
 
-        has_migrated = await self.config.first_migration()
+        has_migrated: bool = await self.config.first_migration()
         if not has_migrated:
-            await self.migrate()
+            await self.migrate_first()
 
-        has_second_migrated = await self.config.second_migration()
+        has_second_migrated: bool = await self.config.second_migration()
         if not has_second_migrated:
             await self.migrate_second()
 
-    async def migrate(self):
+        has_third_migrated: bool = await self.config.third_migration()
+        if not has_third_migrated:
+            await self.migrate_third()
+
+        has_fourth_migrated: bool = await self.config.fourth_migration()
+        if not has_fourth_migrated:
+            await self.migrate_fourth()
+
+    async def migrate_first(self):
         guilds = self.config._get_base_group(self.config.GUILD)
         async with guilds.all() as data:
             for guild_id, guild_data in data.items():
@@ -104,8 +122,44 @@ class ReacTicket(
 
         await self.config.second_migration.set(True)
 
+    async def migrate_third(self):
+        guilds = self.config._get_base_group(self.config.GUILD)
+        async with guilds.all() as data:
+            for guild_id, guild_data in data.items():
+                saving = {}
+                try:
+                    for user_id, tickets in guild_data["created"].items():
+                        saving[user_id] = tickets
+                        for index, ticket in enumerate(tickets):
+                            ticket["assigned"] = 0
+                            saving[user_id][index] = ticket
+                except KeyError:
+                    continue
+
+                data[guild_id]["created"] = saving
+
+        await self.config.third_migration.set(True)
+
+    async def migrate_fourth(self):
+        guilds = self.config._get_base_group(self.config.GUILD)
+        async with guilds.all() as data:
+            for guild_id, guild_data in data.items():
+                saving = {}
+                try:
+                    for user_id, tickets in guild_data["created"].items():
+                        saving[user_id] = tickets
+                        for index, ticket in enumerate(tickets):
+                            ticket["locked"] = False
+                            saving[user_id][index] = ticket
+                except KeyError:
+                    continue
+
+                data[guild_id]["created"] = saving
+
+        await self.config.fourth_migration.set(True)
+
     @commands.Cog.listener()
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member: discord.Member):
         guild_settings = await self.config.guild(member.guild).all()
 
         if not guild_settings["closeonleave"]:
@@ -118,10 +172,12 @@ class ReacTicket(
         post_processing = {}  # Mapping of Dict[discord.TextChannel: List[discord.Member]]
 
         for ticket in guild_settings["created"][str(member.id)]:
-            channel = self.bot.get_channel(ticket["channel"])
+            channel: Optional[discord.TextChannel] = self.bot.get_channel(ticket["channel"])
             added_users = [user for u in ticket["added"] if (user := member.guild.get_member(u))]
             if guild_settings["report"] != 0:
-                reporting_channel = self.bot.get_channel(guild_settings["report"])
+                reporting_channel: Optional[discord.TextChannel] = self.bot.get_channel(
+                    guild_settings["report"]
+                )
                 if reporting_channel:
                     if await self.embed_requested(reporting_channel):
                         embed = discord.Embed(
@@ -133,6 +189,15 @@ class ReacTicket(
                             ),
                             color=await self.bot.get_embed_color(reporting_channel),
                         )
+                        if ticket["assigned"]:
+                            moderator = getattr(
+                                member.guild.get_member(
+                                    ticket["assigned"], "mention", "Unknown moderator"
+                                )
+                            )
+                            embed.add_field(
+                                name="Assigned moderator", value=moderator,
+                            )
                         await reporting_channel.send(embed=embed)
                     else:
                         message = (
@@ -140,7 +205,16 @@ class ReacTicket(
                             f"{str(member)} "
                             f"has been closed due to the user leaving the guild."
                         )
-                        await reporting_channel.send(message)
+                        if ticket["assigned"]:
+                            moderator = getattr(
+                                member.guild.get_member(
+                                    ticket["assigned"], "mention", "Unknown moderator"
+                                )
+                            )
+                            message += f"\nAssigned moderator: {moderator}"
+                        await reporting_channel.send(
+                            message, allowed_mentions=discord.AllowedMentions.none()
+                        )
             if guild_settings["archive"]["enabled"] and channel and archive:
                 for user in added_users:
                     with contextlib.suppress(discord.HTTPException):
@@ -365,7 +439,13 @@ class ReacTicket(
             if str(payload.user_id) not in created:
                 created[str(payload.user_id)] = []
             created[str(payload.user_id)].append(
-                {"channel": created_channel.id, "added": [], "opened": time.time()}
+                {
+                    "channel": created_channel.id,
+                    "added": [],
+                    "opened": time.time(),
+                    "assigned": 0,
+                    "locked": False,
+                }
             )
 
         # If removing the reaction fails... eh

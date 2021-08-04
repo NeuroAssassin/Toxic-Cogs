@@ -35,9 +35,9 @@ class ReacTicketBaseMixin(MixinMeta):
                         embed.add_field(name="Reason", value=reason)
                     if ticket["assigned"]:
                         moderator = getattr(
-                            ctx.guild.get_member(
-                                ticket["assigned"], "mention", "Unknown moderator"
-                            )
+                            ctx.guild.get_member(ticket["assigned"]),
+                            "mention",
+                            "Unknown moderator",
                         )
                         embed.add_field(
                             name="Assigned moderator", value=moderator,
@@ -55,9 +55,9 @@ class ReacTicketBaseMixin(MixinMeta):
 
                     if ticket["assigned"]:
                         moderator = getattr(
-                            ctx.guild.get_member(
-                                ticket["assigned"], "mention", "Unknown moderator"
-                            )
+                            ctx.guild.get_member(ticket["assigned"]),
+                            "mention",
+                            "Unknown moderator",
                         )
                         message += f"\nAssigned moderator: {moderator}"
                     await reporting_channel.send(

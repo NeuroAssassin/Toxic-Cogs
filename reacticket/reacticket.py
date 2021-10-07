@@ -164,7 +164,10 @@ class ReacTicket(
         if not guild_settings["closeonleave"]:
             return
 
-        if not str(member.id) in guild_settings["created"] or len(guild_settings["created"][str(member.id)]) == 0:
+        if (
+            not str(member.id) in guild_settings["created"]
+            or len(guild_settings["created"][str(member.id)]) == 0
+        ):
             return
 
         archive = self.bot.get_channel(guild_settings["archive"]["category"])

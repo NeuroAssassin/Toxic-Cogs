@@ -17,7 +17,6 @@ from reacticket.extensions.basesettings import ReacTicketBaseSettingsMixin
 from reacticket.extensions.closesettings import ReacTicketCloseSettingsMixin
 from reacticket.extensions.usersettings import ReacTicketUserSettingsMixin
 
-
 class CompositeMetaClass(type(commands.Cog), type(ABC)):
     """This allows the metaclass used for proper type detection to coexist with discord.py's
     metaclass."""
@@ -165,7 +164,7 @@ class ReacTicket(
         if not guild_settings["closeonleave"]:
             return
 
-        if not str(member.id) in guild_settings["created"]:
+        if not str(member.id) in guild_settings["created"] or len(guild_settings["created"][str(member.id)]) == 0:
             return
 
         archive = self.bot.get_channel(guild_settings["archive"]["category"])
@@ -240,6 +239,9 @@ class ReacTicket(
                     f"Ticket {channel.mention} for {member.display_name} has been closed "
                     "due to author leaving.  Channel will be deleted in one minute, if exists."
                 )
+            async with self.config.guild(member.guild).created() as tickets:
+                if str(member.id) in tickets:
+                    del tickets[str(member.id)]
 
         await asyncio.sleep(60)
 

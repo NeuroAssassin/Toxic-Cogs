@@ -111,7 +111,7 @@ class ReacTicketCloseSettingsMixin(MixinMeta):
             pred = ReactionPredicate.yes_or_no(message, ctx.author)
             await self.bot.wait_for("reaction_add", check=pred)
 
-        if pred.result is True or skip_confirmation:
+        if skip_confirmation or pred.result is True:
             progress = await ctx.send("Purging text channels...")
             for channel in channels:
                 try:

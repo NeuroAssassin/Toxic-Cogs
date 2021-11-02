@@ -380,7 +380,7 @@ class ReacTicket(
         )  # Since Discord can't make up their mind about manage channels/manage permissions
 
         overwrites = {
-            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            guild.default_role: discord.PermissionOverwrite(read_messages=False, read_message_history=True),
             guild.me: can_read_and_manage,
             user: can_read,
         }

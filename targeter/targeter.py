@@ -380,8 +380,10 @@ class Targeter(commands.Cog):
         """This cog does not store user data"""
         return
 
-    def lookup(self, ctx, args):
-        matched = ctx.guild.members
+    def lookup(self, ctx, args, server):
+        if not self.bot.is_owner(ctx.author):
+            server = ctx.guild
+        matched = server.members
         passed = []
         # --- Go through each possible argument ---
 
@@ -721,26 +723,26 @@ class Targeter(commands.Cog):
         return all_passed.intersection(*passed)
 
     # API for other cogs
-    async def args_to_list(self, ctx: commands.Context, args: str):
+    async def args_to_list(self, ctx: commands.Context, args: str, server: commands.GuildConverter):
         """
         Returns a list of members from the given args, which are
         expected to follow the style in the Args converter above.
         """
         args = await Args().convert(ctx, args)
-        compact = functools.partial(self.lookup, ctx, args)
+        compact = functools.partial(self.lookup, ctx, args, server)
         matched = await self.bot.loop.run_in_executor(None, compact)
         return matched
 
     @checks.bot_has_permissions(embed_links=True)
     @commands.guild_only()
     @commands.group(invoke_without_command=True)
-    async def target(self, ctx, *, args: Args):
+    async def target(self, ctx, server: commands.GuildConverter, *, args: Args):
         """Targets users based on the passed arguments.
 
         Run `[p]target help` to see a list of valid arguments."""
         # await ctx.send(args)
         async with ctx.typing():
-            compact = functools.partial(self.lookup, ctx, args)
+            compact = functools.partial(self.lookup, ctx, args, server)
             matched = await self.bot.loop.run_in_executor(None, compact)
 
             if len(matched) != 0:

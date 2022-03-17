@@ -65,7 +65,6 @@ class OpenSea(commands.Cog):
                 if not stored["subbed"]:
                     continue
                 json = {
-                    "offset": 0,
                     "event_type": "successful",
                     "only_opensea": "false",
                     "asset_contract_address": address,
@@ -115,7 +114,6 @@ class OpenSea(commands.Cog):
                 if not stored["subbed"]:
                     continue
                 json = {
-                    "offset": 0,
                     "event_type": "successful",
                     "only_opensea": "false",
                     "account_address": address,

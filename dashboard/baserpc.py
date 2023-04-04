@@ -18,6 +18,7 @@ from .rpc.botsettings import DashboardRPC_BotSettings
 from .rpc.permissions import DashboardRPC_Permissions
 from .rpc.utils import rpccheck
 from .rpc.webhooks import DashboardRPC_Webhooks
+from .rpc.thirdparties import DashboardRPC_ThirdParties
 
 HUMANIZED_PERMISSIONS = {
     "view": "View server on dashboard",
@@ -51,6 +52,8 @@ class DashboardRPC:
         self.extensions.append(DashboardRPC_Permissions(self.cog))
         self.extensions.append(DashboardRPC_AliasCC(self.cog))
         self.extensions.append(DashboardRPC_Webhooks(self.cog))
+        self.third_parties_handler = DashboardRPC_ThirdParties(self.cog)
+        self.extensions.append(self.third_parties_handler)
 
         # To make sure that both RPC server and client are on the same "version"
         self.version = random.randint(1, 10000)
@@ -199,15 +202,12 @@ class DashboardRPC:
                     "uptime": uptime_str,
                 },
             },
+            "third_parties": await self.third_parties_handler.get_third_parties(),
         }
 
         if self.owner is None:
             app_info = await self.bot.application_info()
-            if app_info.team:
-                self.owner = str(app_info.team.name)
-            else:
-                self.owner = str(app_info.owner)
-
+            self.owner = str(app_info.team.name) if app_info.team else str(app_info.owner)
         returning["bot"]["owner"] = self.owner
         return returning
 
@@ -220,12 +220,7 @@ class DashboardRPC:
         returning = []
         downloader = self.bot.get_cog("Downloader")
         for name, cog in self.bot.cogs.copy().items():
-            stripped = []
-
-            for c in cog.__cog_commands__:
-                if not c.parent:
-                    stripped.append(c)
-
+            stripped = [c for c in cog.__cog_commands__ if not c.parent]
             cmds = await self.build_cmd_list(stripped, do_escape=False)
             if not cmds:
                 continue
@@ -234,28 +229,23 @@ class DashboardRPC:
             repo = "Unknown"
             # Taken from Trusty's downloader fuckery,
             # https://gist.github.com/TrustyJAID/784c8c32dd45b1cc8155ed42c0c56591
-            if name not in self.cog_info_cache:
-                if downloader:
-                    module = downloader.cog_name_from_instance(cog)
-                    installed, cog_info = await downloader.is_installed(module)
-                    if installed:
-                        author = humanize_list(cog_info.author) if cog_info.author else "Unknown"
-                        try:
-                            repo = (
-                                cog_info.repo.clean_url if cog_info.repo.clean_url else "Unknown"
-                            )
-                        except AttributeError:
-                            repo = "Unknown (Removed from Downloader)"
-                    elif cog.__module__.startswith("redbot."):
-                        author = "Cog Creators"
-                        repo = "https://github.com/Cog-Creators/Red-DiscordBot"
-                    self.cog_info_cache[name] = {}
-                    self.cog_info_cache[name]["author"] = author
-                    self.cog_info_cache[name]["repo"] = repo
-            else:
+            if name in self.cog_info_cache:
                 author = self.cog_info_cache[name]["author"]
                 repo = self.cog_info_cache[name]["repo"]
 
+            elif downloader:
+                module = downloader.cog_name_from_instance(cog)
+                installed, cog_info = await downloader.is_installed(module)
+                if installed:
+                    author = humanize_list(cog_info.author) if cog_info.author else "Unknown"
+                    try:
+                        repo = cog_info.repo.clean_url or "Unknown"
+                    except AttributeError:
+                        repo = "Unknown (Removed from Downloader)"
+                elif cog.__module__.startswith("redbot."):
+                    author = "Cog Creators"
+                    repo = "https://github.com/Cog-Creators/Red-DiscordBot"
+                self.cog_info_cache[name] = {"author": author, "repo": repo}
             returning.append(
                 {
                     "name": escape(name or ""),
@@ -265,8 +255,7 @@ class DashboardRPC:
                     "repo": repo,
                 }
             )
-        returning = sorted(returning, key=lambda k: k["name"])
-        return returning
+        return sorted(returning, key=lambda k: k["name"])
 
     @rpccheck()
     async def get_users_servers(self, userid: int, page: int):
@@ -347,13 +336,9 @@ class DashboardRPC:
 
         user = guild.get_member(userid)
         baseuser = self.bot.get_user(userid)
-        is_owner = False
-        if await self.bot.is_owner(baseuser):
-            is_owner = True
-
-        if not user:
-            if not baseuser and not is_owner:
-                return {"status": 0}
+        is_owner = bool(await self.bot.is_owner(baseuser))
+        if not user and not baseuser and not is_owner:
+            return {"status": 0}
 
         if is_owner:
             humanized = ["Everything (Bot Owner)"]
@@ -409,15 +394,13 @@ class DashboardRPC:
         adminroles = []
         ar = await self.bot._config.guild(guild).admin_role()
         for rid in ar:
-            r = guild.get_role(rid)
-            if r:
+            if r := guild.get_role(rid):
                 adminroles.append((rid, r.name))
 
         modroles = []
         mr = await self.bot._config.guild(guild).mod_role()
         for rid in mr:
-            r = guild.get_role(rid)
-            if r:
+            if r := guild.get_role(rid):
                 modroles.append((rid, r.name))
 
         all_roles = [(r.id, r.name) for r in guild.roles]

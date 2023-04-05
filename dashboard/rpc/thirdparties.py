@@ -11,6 +11,7 @@ from .utils import rpccheck
 def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] = ["GET"], required_kwargs: typing.List[str] = None, permissions_required: typing.List[str] = ["view"], hidden: bool = False):
     if required_kwargs is None:
         required_kwargs = []
+
     def decorator(func: typing.Callable):
         if name is not None and not isinstance(name, str):
             raise TypeError("Name of a page must be a string.")
@@ -22,10 +23,10 @@ def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] 
         for key, value in inspect.signature(func).parameters.items():
             if value.name == "self" or value.kind in [inspect._ParameterKind.POSITIONAL_ONLY, inspect._ParameterKind.VAR_KEYWORD]:
                 continue
+            if value.default is not inspect._empty:
+                continue
             if key in ["user_id", "guild_id", "member_id", "role_id", "channel_id"] and key not in params["context_ids"]:
                 params["context_ids"].append(key)
-            if value.default is inspect._empty:
-                continue
             elif f"{key}_id" in ["user_id", "guild_id", "member_id", "role_id", "channel_id"] and f"{key}_id" not in params["context_ids"]:
                 params["context_ids"].append(f"{key}_id")
             elif key not in ["method", "lang_code"]:

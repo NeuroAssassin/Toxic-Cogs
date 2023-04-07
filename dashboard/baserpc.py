@@ -174,7 +174,7 @@ class DashboardRPC:
         try:
             botavatar = str(self.bot.user.avatar_url_as(static_format="png"))
         except AttributeError:
-            botavatar = str(self.bot.user.avatar)
+            botavatar = str(self.bot.user.display_avatar)
 
         returning = {
             "bot": {
@@ -297,6 +297,7 @@ class DashboardRPC:
                 )(),
                 "go": False,
             }
+
             if is_owner:
                 guilds.append(sgd)
                 continue

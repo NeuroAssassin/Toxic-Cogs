@@ -222,8 +222,8 @@ class DashboardRPC:
         for name, cog in self.bot.cogs.copy().items():
             stripped = [c for c in cog.__cog_commands__ if not c.parent]
             cmds = await self.build_cmd_list(stripped, do_escape=False)
-            if not cmds:
-                continue
+            # if not cmds:
+            #     continue
 
             author = "Unknown"
             repo = "Unknown"

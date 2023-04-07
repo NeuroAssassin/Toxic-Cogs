@@ -8,7 +8,7 @@ import typing
 from .utils import rpccheck
 
 
-def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] = ["GET"], required_kwargs: typing.List[str] = None, permissions_required: typing.List[str] = ["view"], hidden: bool = False):
+def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] = ["GET"], required_kwargs: typing.List[str] = None, permissions_required: typing.List[str] = ["view"], hidden: typing.Optional[bool] = None):
     if required_kwargs is None:
         required_kwargs = []
 
@@ -19,7 +19,7 @@ def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] 
             discord.app_commands.commands.validate_name(name)
         if not inspect.iscoroutinefunction(func):
             raise TypeError("Func must be a coroutine.")
-        params = {"name": name, "methods": methods, "context_ids": [], "required_kwargs": required_kwargs, "permissions_required": permissions_required, "hidden": hidden}
+        params = {"name": name, "methods": methods, "context_ids": [], "required_kwargs": required_kwargs, "permissions_required": permissions_required, "hidden": None}
         for key, value in inspect.signature(func).parameters.items():
             if value.name == "self" or value.kind in [inspect._ParameterKind.POSITIONAL_ONLY, inspect._ParameterKind.VAR_KEYWORD]:
                 continue
@@ -36,13 +36,16 @@ def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] 
             if key in params["context_ids"] and "guild_id" not in params["context_ids"]:
                 params["context_ids"].append("guild_id")
         # No guild available without user connection.
-        if "guild_id" in params["context_ids"]:
-            if "user_id" not in params["context_ids"]:
-                params["context_ids"].append("user_id")
-        else:
-            params["required_kwargs"] = []
+        if (
+            "guild_id" in params["context_ids"]
+            and "user_id" not in params["context_ids"]
+        ):
+            params["context_ids"].append("user_id")
+        if params["hidden"] is None:
+            params["hidden"] = bool(params["required_kwargs"])
         func.__dashboard_params__ = params.copy()
         return func
+
     return decorator
 
 
@@ -75,7 +78,7 @@ class DashboardRPC_ThirdParties:
         self.third_parties[cog_name] = _pages
         self.third_parties_cogs[cog_name] = cog
 
-    def remove_third_party(self, cog: str):
+    def remove_third_party(self, cog: commands.Cog):
         cog_name = cog.qualified_name.lower()
         try:
             del self.third_parties_cogs[cog_name]

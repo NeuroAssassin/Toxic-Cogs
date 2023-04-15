@@ -19,7 +19,7 @@ def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] 
             discord.app_commands.commands.validate_name(name)
         if not inspect.iscoroutinefunction(func):
             raise TypeError("Func must be a coroutine.")
-        params = {"name": name, "methods": methods, "context_ids": [], "required_kwargs": required_kwargs, "permissions_required": permissions_required, "hidden": None}
+        params = {"name": name, "methods": methods, "context_ids": [], "required_kwargs": required_kwargs, "permissions_required": permissions_required, "hidden": None, "real_cog_name": None}
         for key, value in inspect.signature(func).parameters.items():
             if value.name == "self" or value.kind in [inspect._ParameterKind.POSITIONAL_ONLY, inspect._ParameterKind.VAR_KEYWORD]:
                 continue
@@ -88,6 +88,7 @@ class DashboardRPC_ThirdParties:
                 page = func.__dashboard_params__["name"]
                 if page in _pages:
                     raise RuntimeError(f"The page {page} is already an existing page for this third party ")
+                func.__dashboard_params__["real_cog_name"] = cog.qualified_name
                 _pages[page] = (func, func.__dashboard_params__)
         if not _pages:
             raise RuntimeError("No page found.")

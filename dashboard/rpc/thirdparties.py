@@ -42,7 +42,7 @@ def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] 
         ):
             params["context_ids"].append("user_id")
         if params["hidden"] is None:
-            params["hidden"] = bool(params["required_kwargs"])
+            params["hidden"] = params["required_kwargs"] or [x for x in params["context_ids"] if x not in ["user_id", "guild_id"]]
         func.__dashboard_params__ = params.copy()
         return func
 
@@ -58,9 +58,25 @@ class DashboardRPC_ThirdParties:
         self.third_parties_cogs: typing.Dict[str, commands.Cog] = {}
 
         self.bot.register_rpc_handler(self.data_receive)
+        self.bot.add_listener(self.on_cog_add)
+        self.bot.dispatch("dashboard_cog_add", self.cog)
 
     def unload(self):
         self.bot.unregister_rpc_handler(self.data_receive)
+        self.bot.remove_listener(self.on_cog_add)
+
+    @commands.Cog.listener()
+    async def on_cog_add(self, cog: commands.Cog):
+        ev = "on_dashboard_cog_add"
+        funcs = [listener[1] for listener in cog.get_listeners() if listener[0] == ev]
+        for func in funcs:
+            self.bot._schedule_event(func, ev, self.cog)  # like in bot.dispatch
+
+    @commands.Cog.listener()
+    async def on_cog_remove(self, cog: commands.Cog):
+        if cog not in self.third_parties_cogs.values():
+            return
+        self.remove_third_party(cog)
 
     def add_third_party(self, cog: commands.Cog, overwrite: bool = False):
         cog_name = cog.qualified_name.lower()

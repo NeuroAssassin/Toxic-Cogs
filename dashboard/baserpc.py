@@ -387,11 +387,7 @@ class DashboardRPC:
         else:
             vl = "Unknown"
 
-        if not self.cog.configcache.get(serverid, {"roles": []})["roles"]:
-            warn = True
-        else:
-            warn = False
-
+        warn = not self.cog.configcache.get(serverid, {"roles": []})["roles"]
         adminroles = []
         ar = await self.bot._config.guild(guild).admin_role()
         for rid in ar:

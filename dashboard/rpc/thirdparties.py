@@ -61,11 +61,13 @@ class DashboardRPC_ThirdParties:
 
         self.bot.register_rpc_handler(self.data_receive)
         self.bot.add_listener(self.on_cog_add)
+        self.bot.add_listener(self.on_cog_remove)
         self.bot.dispatch("dashboard_cog_add", self.cog)
 
     def unload(self):
         self.bot.unregister_rpc_handler(self.data_receive)
         self.bot.remove_listener(self.on_cog_add)
+        self.bot.remove_listener(self.on_cog_remove)
 
     @commands.Cog.listener()
     async def on_cog_add(self, cog: commands.Cog):

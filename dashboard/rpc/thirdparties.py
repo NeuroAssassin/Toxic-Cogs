@@ -8,7 +8,9 @@ import typing
 from .utils import rpccheck
 
 
-def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] = ["GET"], required_kwargs: typing.List[str] = None, permissions_required: typing.List[str] = ["view"], hidden: typing.Optional[bool] = None):
+def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] = ["GET"], context_ids: typing.List[str] = None, required_kwargs: typing.List[str] = None, permissions_required: typing.List[str] = ["view"], hidden: typing.Optional[bool] = None):
+    if context_ids is None:
+        context_ids = []
     if required_kwargs is None:
         required_kwargs = []
 
@@ -19,7 +21,7 @@ def dashboard_page(name: typing.Optional[str] = None, methods: typing.List[str] 
             discord.app_commands.commands.validate_name(name)
         if not inspect.iscoroutinefunction(func):
             raise TypeError("Func must be a coroutine.")
-        params = {"name": name, "methods": methods, "context_ids": [], "required_kwargs": required_kwargs, "permissions_required": permissions_required, "hidden": hidden, "real_cog_name": None}
+        params = {"name": name, "methods": methods, "context_ids": context_ids, "required_kwargs": required_kwargs, "permissions_required": permissions_required, "hidden": hidden, "real_cog_name": None}
         for key, value in inspect.signature(func).parameters.items():
             if value.name == "self" or value.kind in [inspect._ParameterKind.POSITIONAL_ONLY, inspect._ParameterKind.VAR_KEYWORD]:
                 continue

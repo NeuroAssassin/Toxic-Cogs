@@ -27,7 +27,7 @@ from typing import Union
 
 import aiohttp
 import discord
-from redbot.core import checks, commands
+from redbot.core import commands
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
 
 from .image import (
@@ -62,7 +62,7 @@ class SW(commands.Cog):
         """This cog does not store user data"""
         return
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.group(name="swapi", aliases=["starwars"])
     async def starwars(self, ctx):
         """Group command for interacting with the Star Wars API"""

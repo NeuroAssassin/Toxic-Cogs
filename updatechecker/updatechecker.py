@@ -37,7 +37,7 @@ from typing import Optional
 import aiohttp
 import discord
 from redbot.cogs.downloader.repo_manager import Repo
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import humanize_list, inline
 
 import feedparser
@@ -264,13 +264,13 @@ class UpdateChecker(commands.Cog):
             return None
         return ret
 
-    @checks.is_owner()
+    @commands.is_owner()
     @commands.group(name="cogupdater", aliases=["cu"])
     async def update(self, ctx):
         """Group command for controlling the update checker cog."""
         pass
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.command()
     async def auto(self, ctx):
         """Changes automatic cog updates to the opposite setting."""
@@ -284,7 +284,7 @@ class UpdateChecker(commands.Cog):
                 "This command is disabled for the time being.  Cog updates will not run automatically, however notifications will still send."
             )
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.command()
     async def channel(self, ctx, channel: discord.TextChannel = None):
         """Sets a channel for update messages to go to.
@@ -297,7 +297,7 @@ class UpdateChecker(commands.Cog):
             await self.conf.gochannel.set(0)
             await ctx.send("Update messages will now be DMed to you.")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.command()
     async def settings(self, ctx):
         """See settings for the Update Checker cog.
@@ -336,7 +336,7 @@ class UpdateChecker(commands.Cog):
             )
             await ctx.send(message)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.command()
     async def embed(self, ctx):
         """Toggles whether to use embeds or colorful codeblock messages when sending an update."""
@@ -345,7 +345,7 @@ class UpdateChecker(commands.Cog):
         word = "disabled" if c else "enabled"
         await ctx.send(f"Embeds are now {word}")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.group(name="list")
     async def whiteblacklist(self, ctx):
         """Whitelist/blacklist certain repositories from which to receive updates."""
@@ -423,7 +423,7 @@ class UpdateChecker(commands.Cog):
         await self.conf.blacklist.set([])
         await ctx.send("Blacklist update successful")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.group(name="task")
     async def _group_update_task(self, ctx):
         """View the status of the task (the one checking for updates)."""

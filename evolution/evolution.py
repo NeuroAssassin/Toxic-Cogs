@@ -32,7 +32,7 @@ from datetime import timedelta
 from typing import Literal, Optional
 
 import discord
-from redbot.core import Config, checks, commands, errors
+from redbot.core import Config, commands, errors
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import box, humanize_number, humanize_timedelta, inline
@@ -124,7 +124,7 @@ class Evolution(commands.Cog):
         await self.red_delete_data_for_user(requester="user", user_id=ctx.author.id)
         await ctx.send("Data deleted.  Your game data has been reset.")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @evolution.group()
     async def tasks(self, ctx):
         """View the status of the cog tasks.
@@ -141,7 +141,7 @@ class Evolution(commands.Cog):
         message = self.utils.format_task(statuses["income"])
         await ctx.send(message)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @evolution.command(hidden=True)
     async def removeuser(self, ctx, user: discord.User):
         """Removes a user from the market place if they are stuck for some reason.
@@ -349,7 +349,7 @@ class Evolution(commands.Cog):
         if highest_level < 0:
             highest_level = 0
 
-        controls = copy.deepcopy(DEFAULT_CONTROLS)
+        controls = dict(DEFAULT_CONTROLS)
         controls["\N{MONEY BAG}"] = self.utils.shop_control_callback
         await menu(ctx, embed_list, controls, page=highest_level)
 
@@ -591,7 +591,7 @@ class Evolution(commands.Cog):
         """Claim a perk from your stash"""
         return await ctx.send("This command is not available.  Check back soon!")
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @evolution.command(aliases=["by"])
     async def backyard(self, ctx, use_menu: bool = False):
         """Where ya animals live!  Pass 1 or true to put it in a menu."""

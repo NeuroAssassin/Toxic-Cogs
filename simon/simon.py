@@ -26,7 +26,7 @@ import asyncio
 import random
 
 import discord
-from redbot.core import checks, commands
+from redbot.core import commands
 
 
 class Simon(commands.Cog):
@@ -44,7 +44,7 @@ class Simon(commands.Cog):
         """This cog does not store user data"""
         return
 
-    @checks.bot_has_permissions(add_reactions=True)
+    @commands.bot_has_permissions(add_reactions=True)
     @commands.command()
     async def simon(self, ctx):
         """Start a game of Simon."""

@@ -34,7 +34,7 @@ import typing
 from io import BytesIO
 
 import discord
-from redbot.core import checks, commands
+from redbot.core import commands
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -127,7 +127,7 @@ class CommandChart(commands.Cog):
         image_object.seek(0)
         return image_object
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.guild_only()
     @commands.command()
     async def commandchart(

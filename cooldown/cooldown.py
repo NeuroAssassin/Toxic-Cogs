@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from redbot.core import commands, checks, Config
+from redbot.core import commands, Config
 from discord.ext import commands as dc
 import asyncio
 import time
@@ -63,7 +63,7 @@ class Cooldown(commands.Cog):
                 }
                 commands.cooldown(entry[1], entry[2], switch[entry[3]])(cmd)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @commands.group()
     async def cooldown(self, ctx):
         """Group command for working with cooldowns for commands."""

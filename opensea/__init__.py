@@ -1,5 +1,5 @@
 from .opensea import OpenSea
 
 
-def setup(bot):
-    bot.add_cog(OpenSea(bot))
+async def setup(bot):
+    await bot.add_cog(OpenSea(bot))

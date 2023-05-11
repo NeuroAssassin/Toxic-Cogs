@@ -30,7 +30,7 @@ import traceback
 
 import aiohttp
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import humanize_list, inline
 
 URL = "https://api.sightengine.com/1.0/check.json"
@@ -350,7 +350,7 @@ class Scanner(commands.Cog):
                 "".join(traceback.format_exception(type(error), error, error.__traceback__))
             )
 
-    @checks.admin_or_permissions(manage_messages=True)
+    @commands.admin_or_permissions(manage_messages=True)
     @commands.group()
     async def scanner(self, ctx):
         """Group command for changing scanner's settings."""
@@ -426,7 +426,7 @@ class Scanner(commands.Cog):
                 await self.conf.guild(ctx.guild).roles.set(new)
             await ctx.send(embed=e)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @scanner.command()
     async def creds(self, ctx, user, secret):
         """Set the API user and API secret to use with requests from sightengine.com."""
@@ -771,7 +771,7 @@ class Scanner(commands.Cog):
             data["checks"] = []
         await ctx.send("Message moderation check update successful")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @mm.command(name="enable")
     async def messagemoderation_enable(self, ctx, yes_or_no: bool):
         """Set whether or not to check for Message Mderation."""

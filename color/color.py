@@ -26,7 +26,7 @@ import io
 import re
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 
 from colour import Color as col
 from colour import rgb2hex
@@ -147,7 +147,7 @@ class Color(commands.Cog):
         """Group command for color commands"""
         pass
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @color.command()
     async def name(self, ctx, name):
         """Provides the hexadecimal value, RGB value and HSL value of a passed color.  For example, pass `red` or `blue` as the name argument."""
@@ -159,7 +159,7 @@ class Color(commands.Cog):
         except (ValueError, AttributeError):
             await ctx.send("That color is not recognized.")
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @color.command()
     async def hex(self, ctx, hexa: str):
         """Provides the RGB value and HSL value of a passed hexadecimal value.  Hexadecimal value must in the format of something like `#ffffff` or `0xffffff` to be used."""
@@ -175,7 +175,7 @@ class Color(commands.Cog):
                 "Invalid formatting for the hexadecimal.  Must be the hexadecimal value, with an optional `0x` or `#` in the beginning."
             )
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @color.command()
     async def rgb(self, ctx, highest: int, r: float, g: float, b: float):
         """Provides the hexadecimal value and HSL value of the rgb value given.  Each value must have a space between them.  Highest argument must be 1 or 255, indicating the highest value of a single value (r, g, or b)."""
@@ -192,7 +192,7 @@ class Color(commands.Cog):
         except (ValueError, AttributeError):
             await ctx.send("That rgb number is not recognized.")
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @color.command()
     async def hsl(self, ctx, h: float, s: float, l: float):
         """Provides the hexadecimal value and the RGB value of the hsl value given.  Each value must have a space between them."""
@@ -203,7 +203,7 @@ class Color(commands.Cog):
         except (ValueError, AttributeError):
             await ctx.send("That hsl number is not recognized.")
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @color.command()
     async def decimal(self, ctx, decimal: int):
         """Provides the RGB value of the decimal value given."""
@@ -213,7 +213,7 @@ class Color(commands.Cog):
         except (ValueError, AttributeError):
             await ctx.send("That decimal value is not recognized.")
 
-    @checks.admin()
+    @commands.admin()
     @color.command()
     async def msgshort(self, ctx, enable: bool):
         """Enable or disable the in-message shortcut.

@@ -28,7 +28,7 @@ from collections import defaultdict
 from copy import deepcopy as dc
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_list
 
@@ -92,29 +92,28 @@ class Deleter(commands.Cog):
             c["messages"][str(message.id)] = time.time() + int(c["wait"])
             await self.conf.channel(message.channel).messages.set(c["messages"])
 
-    @commands.group()
+    @commands.group(invoke_without_command=True)
     @commands.guild_only()
-    @checks.mod_or_permissions(manage_messages=True)
+    @commands.mod_or_permissions(manage_messages=True)
     async def deleter(self, ctx):
         """Group command for commands dealing with auto-timed deletion.
 
         To see what channels are currently being tracked, use this command with no subcommands passed."""
-        if ctx.invoked_subcommand is None:
-            async with self.lock:
-                channels = await self.conf.all_channels()
-            sending = ""
-            for c, data in channels.items():
-                c = self.bot.get_channel(int(c))
-                if c is None:
-                    continue
-                if c.guild.id == ctx.guild.id and int(data["wait"]) != 0:
-                    sending += f"{c.mention}: {data['wait']} seconds\n"
-            if sending:
-                await ctx.send(sending)
-            else:
-                await ctx.send(
-                    f"No channels are currently being tracked.  Add one by using `{ctx.prefix}deleter channel`."
-                )
+        async with self.lock:
+            channels = await self.conf.all_channels()
+        sending = ""
+        for c, data in channels.items():
+            c = self.bot.get_channel(int(c))
+            if c is None:
+                continue
+            if c.guild.id == ctx.guild.id and int(data["wait"]) != 0:
+                sending += f"{c.mention}: {data['wait']} seconds\n"
+        if sending:
+            await ctx.send(sending)
+        else:
+            await ctx.send(
+                f"No channels are currently being tracked.  Add one by using `{ctx.prefix}deleter channel`."
+            )
 
     @deleter.command()
     async def channel(self, ctx, channel: discord.TextChannel, wait):

@@ -28,7 +28,7 @@ from datetime import datetime
 from typing import Literal
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 
 from .converters import Margs
 
@@ -131,7 +131,7 @@ class Maintenance(commands.Cog):
         raise LIStsSTaRtaTiNDeX1(message)
         return False
 
-    @checks.is_owner()
+    @commands.is_owner()
     @commands.group()
     async def maintenance(self, ctx):
         """Control the bot's maintenance."""

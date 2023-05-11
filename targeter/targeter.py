@@ -31,7 +31,7 @@ import csv
 import aiohttp
 import discord
 from dateutil.parser import parse
-from redbot.core import checks, commands
+from redbot.core import commands
 from redbot.core.commands import BadArgument, Converter, RoleConverter
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
@@ -731,7 +731,7 @@ class Targeter(commands.Cog):
         matched = await self.bot.loop.run_in_executor(None, compact)
         return matched
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.guild_only()
     @commands.group(invoke_without_command=True)
     async def target(self, ctx, *, args: Args):
@@ -802,11 +802,11 @@ class Targeter(commands.Cog):
         desc = (
             "`--nick <nickone> <nicktwo>` - Users must have one of the passed nicks in their nickname.  If they don't have a nickname, they will instantly be excluded.\n"
             "`--user <userone> <usertwo>` - Users must have one of the passed usernames in their real username.  This will not look at nicknames.\n"
-            "`--name <nameone> <nametwo>` - Users must have one of the passed names in their username, and if they don't have one, their username.\n"
+            "`--name <nameone> <nametwo>` - Users must have one of the passed names in their nickname, and if they don't have one, their username.\n"
             "\n"
             "`--not-nick <nickone> <nicktwo>` - Users must not have one of the passed nicks in their nickname.  If they don't have a nickname, they will instantly be excluded.\n"
             "`--not-user <userone> <usertwo>` - Users must not have one of the passed usernames in their real username.  This will not look at nicknames.\n"
-            "`--not-name <nameone> <nametwo>` - Users must not have one of the passed names in their username, and if they don't have one, their username.\n"
+            "`--not-name <nameone> <nametwo>` - Users must not have one of the passed names in their nickname, and if they don't have one, their username.\n"
             "\n"
             "`--a-nick` - Users must have a nickname in the server.\n"
             "`--no-nick` - Users cannot have a nickname in the server."
@@ -877,7 +877,7 @@ class Targeter(commands.Cog):
         desc = (
             "`--format` - How to display results.  At the moment, must be `page` for posting on a website, or `menu` for showing the results in Discord.\n"
             "\n"
-            "If at any time you need to include quotes at the beginning or ending of something (such as a nickname or a role), include a slash (\) right before it."
+            "If at any time you need to include quotes at the beginning or ending of something (such as a nickname or a role), include a slash (\\) right before it."
         )
         special.description = desc
         special.set_footer(text="Target Arguments - Special Notes; Page 6/6")

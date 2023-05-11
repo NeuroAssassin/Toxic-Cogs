@@ -1,5 +1,5 @@
 from redbot.core.utils.chat_formatting import pagify
-from redbot.core import Config, commands, checks
+from redbot.core import Config, commands
 from redbot.core.bot import Red
 from datetime import datetime
 from typing import Optional
@@ -207,7 +207,7 @@ class OpenSea(commands.Cog):
 
         return remove_channels
 
-    @checks.mod_or_permissions(manage_messages=True)
+    @commands.mod_or_permissions(manage_messages=True)
     @commands.group(aliases=["os"])
     async def opensea(self, ctx):
         """Receive events from OpenSea regarding assets."""
@@ -355,7 +355,7 @@ class OpenSea(commands.Cog):
         for page in pagify(message, delims=["\n", ","]):
             await ctx.send(page)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @opensea.command(hidden=True)
     async def forceupdate(self, ctx):
         """Force an update of all subscribed channels."""

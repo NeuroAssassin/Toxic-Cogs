@@ -5,7 +5,7 @@ import discord
 import contextlib
 
 from reacticket.extensions.abc import MixinMeta
-from reacticket.extensions.mixin import settings
+from reacticket.extensions.mixin import RTMixin
 
 
 class ReacTicketCloseSettingsMixin(MixinMeta):

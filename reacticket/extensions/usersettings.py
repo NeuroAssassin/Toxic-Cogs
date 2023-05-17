@@ -1,11 +1,11 @@
 from typing import Optional
 
 from reacticket.extensions.abc import MixinMeta
-from reacticket.extensions.mixin import settings
+from reacticket.extensions.mixin import RTMixin
 
 
 class ReacTicketUserSettingsMixin(MixinMeta):
-    @settings.group()
+    @RTMixin.settings.group()
     async def userpermissions(self, ctx):
         """Control the permissions that users have with their own tickets"""
         pass

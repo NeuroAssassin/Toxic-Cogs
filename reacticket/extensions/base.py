@@ -7,7 +7,7 @@ import asyncio
 
 
 from reacticket.extensions.abc import MixinMeta
-from reacticket.extensions.mixin import reacticket
+from reacticket.extensions.mixin import RTMixin
 
 if discord.__version__ == "2.0.0a" or TYPE_CHECKING:
     from reacticket.extensions.views.queue import Queue
@@ -159,7 +159,7 @@ class ReacTicketBaseMixin(MixinMeta):
                             "permission in the category."
                         )
 
-    @reacticket.command()
+    @RTMixin.reacticket.command()
     async def close(self, ctx, *, reason=None):
         """Closes the created ticket.
 
@@ -244,7 +244,7 @@ class ReacTicketBaseMixin(MixinMeta):
             added_users=added_users,
         )
 
-    @reacticket.command(name="add")
+    @RTMixin.reacticket.command(name="add")
     async def ticket_add(self, ctx, user: discord.Member):
         """Add a user to the current ticket."""
         guild_settings = await self.config.guild(ctx.guild).all()
@@ -329,7 +329,7 @@ class ReacTicketBaseMixin(MixinMeta):
 
         await ctx.send(f"{user.mention} has been added to the ticket.")
 
-    @reacticket.command(name="remove")
+    @RTMixin.reacticket.command(name="remove")
     async def ticket_remove(self, ctx, user: discord.Member):
         """Remove a user from the current ticket."""
         guild_settings = await self.config.guild(ctx.guild).all()
@@ -411,7 +411,7 @@ class ReacTicketBaseMixin(MixinMeta):
 
         await ctx.send(f"{user.mention} has been removed from the ticket.")
 
-    @reacticket.command(name="name")
+    @RTMixin.reacticket.command(name="name")
     async def ticket_name(self, ctx, *, name: str):
         """Rename the ticket in scope."""
         guild_settings = await self.config.guild(ctx.guild).all()
@@ -544,7 +544,7 @@ class ReacTicketBaseMixin(MixinMeta):
         return commands.check(predicate)
 
     @is_support_or_superior()
-    @reacticket.command(aliases=["unlock"])
+    @RTMixin.reacticket.command(aliases=["unlock"])
     async def lock(self, ctx, channel: Optional[discord.TextChannel] = None):
         """Lock the specified ticket channel.  If no channel is provided, defaults to current.
 
@@ -591,7 +591,7 @@ class ReacTicketBaseMixin(MixinMeta):
                     break
 
     @is_support_or_superior()
-    @reacticket.command(aliases=["moderator", "mod"])
+    @RTMixin.reacticket.command(aliases=["moderator", "mod"])
     async def assign(
         self, ctx, moderator: discord.Member, ticket: Optional[discord.TextChannel] = None
     ):
@@ -673,7 +673,7 @@ class ReacTicketBaseMixin(MixinMeta):
     @on_discord_alpha()
     @is_support_or_superior()
     @commands.bot_has_permissions(embed_links=True)
-    @reacticket.command(aliases=["tickets"])
+    @RTMixin.reacticket.command(aliases=["tickets"])
     async def queue(self, ctx):
         """List, modify and close tickets sorted based upon when they were opened"""
         unsorted_tickets = await self.config.guild(ctx.guild).created()

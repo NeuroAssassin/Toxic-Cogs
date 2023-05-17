@@ -5,11 +5,11 @@ import discord
 import contextlib
 
 from reacticket.extensions.abc import MixinMeta
-from reacticket.extensions.mixin import settings
+from reacticket.extensions.mixin import RTMixin
 
 
 class ReacTicketCloseSettingsMixin(MixinMeta):
-    @settings.group()
+    @RTMixin.settings.group()
     async def closesettings(self, ctx):
         """Control what actions occur when a ticket is closed"""
         pass

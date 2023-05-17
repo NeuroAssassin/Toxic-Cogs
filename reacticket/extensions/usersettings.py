@@ -5,7 +5,7 @@ from reacticket.extensions.mixin import RTMixin
 
 
 class ReacTicketUserSettingsMixin(MixinMeta):
-    @RTMixin.group()
+    @RTMixin.settings.group()
     async def userpermissions(self, ctx):
         """Control the permissions that users have with their own tickets"""
         pass

@@ -404,7 +404,7 @@ class ReacTicket(
         )  # Since Discord can't make up their mind about manage channels/manage permissions
 
         overwrites = {
-            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            guild.default_role: discord.PermissionOverwrite(read_messages=False, read_message_history=True),
             guild.me: can_read_and_manage,
             user: can_read,
         }
@@ -417,13 +417,19 @@ class ReacTicket(
             guild_settings["presetname"]["presets"][guild_settings["presetname"]["chosen"]]
             .replace("{user}", user.display_name)
             .replace("{userid}", str(user.id))
-            .replace("{minute}", str(now.minute))
-            .replace("{hour}", str(now.hour))
-            .replace("{day_name}", now.strftime("%A"))
-            .replace("{day}", str(now.day))
+            .replace("{julian}", now.strftime("%j"))
+            .replace("{year}", now.strftime("%Y"))
+            .replace("{year_short}", now.strftime("%y"))
+            .replace("{month}", now.strftime("%m"))
             .replace("{month_name}", now.strftime("%B"))
-            .replace("{month}", str(now.month))
-            .replace("{year}", str(now.year))
+            .replace("{month_abr}", now.strftime("%b"))
+            .replace("{day}", now.strftime("%d"))
+            .replace("{day_name}", now.strftime("%A"))
+            .replace("{day_abr}", now.strftime("%a"))
+            .replace("{hour}", now.strftime("%H"))
+            .replace("{minute}", now.strftime("%M"))
+            .replace("{second}", now.strftime("%S"))
+            .replace("{tzone}", now.strftime("%Z"))
             .replace("{random}", str(random.randint(1, 100000)))
         )[:100]
 

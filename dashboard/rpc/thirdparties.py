@@ -74,7 +74,7 @@ class DashboardRPC_ThirdParties:
         ev = "on_dashboard_cog_add"
         funcs = [listener[1] for listener in cog.get_listeners() if listener[0] == ev]
         for func in funcs:
-            self.bot._schedule_event(func, ev, self.cog)  # like in bot.dispatch
+            self.bot._schedule_event(func, ev, self.cog)  # like in `bot.dispatch`
 
     @commands.Cog.listener()
     async def on_cog_remove(self, cog: commands.Cog):

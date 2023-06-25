@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 from html import escape
 import random
+import time
 import re
 
 import discord
@@ -17,6 +18,7 @@ from .rpc.botsettings import DashboardRPC_BotSettings
 from .rpc.permissions import DashboardRPC_Permissions
 from .rpc.utils import rpccheck
 from .rpc.webhooks import DashboardRPC_Webhooks
+from .rpc.thirdparties import DashboardRPC_ThirdParties
 
 HUMANIZED_PERMISSIONS = {
     "view": "View server on dashboard",
@@ -50,12 +52,15 @@ class DashboardRPC:
         self.extensions.append(DashboardRPC_Permissions(self.cog))
         self.extensions.append(DashboardRPC_AliasCC(self.cog))
         self.extensions.append(DashboardRPC_Webhooks(self.cog))
+        self.third_parties_handler = DashboardRPC_ThirdParties(self.cog)
+        self.extensions.append(self.third_parties_handler)
 
         # To make sure that both RPC server and client are on the same "version"
         self.version = random.randint(1, 10000)
 
         # Caches; you can thank trusty for the cog info one
         self.cog_info_cache = {}
+        self.guild_cache = {}
         self.invite_url = None
         self.owner = None
 
@@ -146,7 +151,15 @@ class DashboardRPC:
             p for p in await self.bot.get_valid_prefixes() if not re.match(r"<@!?([0-9]+)>", p)
         ]
 
-        count = len(self.bot.users)
+        user_count = len(self.bot.users)
+
+        text_channel_count = 0
+        voice_channel_count = 0
+        category_count = 0
+        for guild in self.bot.guilds:
+            text_channel_count += len(guild.text_channels)
+            voice_channel_count += len(guild.voice_channels)
+            category_count += len(guild.categories)
 
         if self.invite_url is None:
             core = self.bot.get_cog("Core")
@@ -158,31 +171,44 @@ class DashboardRPC:
         data = await self.cog.config.all()
         client_id = data["clientid"] or self.bot.user.id
 
+        try:
+            botavatar = str(self.bot.user.avatar_url_as(static_format="png"))
+        except AttributeError:
+            botavatar = str(self.bot.user.display_avatar)
+
         returning = {
-            "botname": self.bot.user.name,
-            "botavatar": str(self.bot.user.avatar.url),
-            "botid": self.bot.user.id,
-            "clientid": client_id,
-            "botinfo": markdown2.markdown(botinfo),
-            "prefix": prefixes,
-            "redirect": data["redirect"],
-            "support": data["support"],
-            "color": data["defaultcolor"],
-            "servers": humanize_number(len(self.bot.guilds)),
-            "users": humanize_number(count),
-            "blacklisted": data["blacklisted"],
-            "uptime": uptime_str,
-            "invite": self.invite_url,
-            "meta": data["meta"],
+            "bot": {
+                "name": self.bot.user.name,
+                "avatar": botavatar,
+                "id": self.bot.user.id,
+                "clientid": client_id,
+                "info": markdown2.markdown(botinfo),
+                "prefix": prefixes,
+                "owners": [str(x) for x in self.bot.owner_ids],
+            },
+            "oauth": {
+                "redirect": data["redirect"],
+                "secret": await self.cog.config.secret(),
+                "blacklisted": data["blacklisted"],
+            },
+            "ui": {
+                "invite": self.invite_url,
+                "stats": {
+                    "servers": humanize_number(len(self.bot.guilds)),
+                    "text": humanize_number(text_channel_count),
+                    "voice": humanize_number(voice_channel_count),
+                    "categories": humanize_number(category_count),
+                    "users": humanize_number(user_count),
+                    "uptime": uptime_str,
+                },
+            },
+            "third_parties": await self.third_parties_handler.get_third_parties(),
         }
+
         if self.owner is None:
             app_info = await self.bot.application_info()
-            if app_info.team:
-                self.owner = str(app_info.team.name)
-            else:
-                self.owner = str(app_info.owner)
-
-        returning["owner"] = self.owner
+            self.owner = str(app_info.team.name) if app_info.team else str(app_info.owner)
+        returning["bot"]["owner"] = self.owner
         return returning
 
     @rpccheck()
@@ -194,42 +220,32 @@ class DashboardRPC:
         returning = []
         downloader = self.bot.get_cog("Downloader")
         for name, cog in self.bot.cogs.copy().items():
-            stripped = []
-
-            for c in cog.__cog_commands__:
-                if not c.parent:
-                    stripped.append(c)
-
+            stripped = [c for c in cog.__cog_commands__ if not c.parent]
             cmds = await self.build_cmd_list(stripped, do_escape=False)
-            if not cmds:
-                continue
+            # if not cmds:
+            #     continue
 
             author = "Unknown"
             repo = "Unknown"
             # Taken from Trusty's downloader fuckery,
             # https://gist.github.com/TrustyJAID/784c8c32dd45b1cc8155ed42c0c56591
-            if name not in self.cog_info_cache:
-                if downloader:
-                    module = downloader.cog_name_from_instance(cog)
-                    installed, cog_info = await downloader.is_installed(module)
-                    if installed:
-                        author = humanize_list(cog_info.author) if cog_info.author else "Unknown"
-                        try:
-                            repo = (
-                                cog_info.repo.clean_url if cog_info.repo.clean_url else "Unknown"
-                            )
-                        except AttributeError:
-                            repo = "Unknown (Removed from Downloader)"
-                    elif cog.__module__.startswith("redbot."):
-                        author = "Cog Creators"
-                        repo = "https://github.com/Cog-Creators/Red-DiscordBot"
-                    self.cog_info_cache[name] = {}
-                    self.cog_info_cache[name]["author"] = author
-                    self.cog_info_cache[name]["repo"] = repo
-            else:
+            if name in self.cog_info_cache:
                 author = self.cog_info_cache[name]["author"]
                 repo = self.cog_info_cache[name]["repo"]
 
+            elif downloader:
+                module = downloader.cog_name_from_instance(cog)
+                installed, cog_info = await downloader.is_installed(module)
+                if installed:
+                    author = humanize_list(cog_info.author) if cog_info.author else "Unknown"
+                    try:
+                        repo = cog_info.repo.clean_url or "Unknown"
+                    except AttributeError:
+                        repo = "Unknown (Removed from Downloader)"
+                elif cog.__module__.startswith("redbot."):
+                    author = "Cog Creators"
+                    repo = "https://github.com/Cog-Creators/Red-DiscordBot"
+                self.cog_info_cache[name] = {"author": author, "repo": repo}
             returning.append(
                 {
                     "name": escape(name or ""),
@@ -239,12 +255,21 @@ class DashboardRPC:
                     "repo": repo,
                 }
             )
-        returning = sorted(returning, key=lambda k: k["name"])
-        return returning
+        return sorted(returning, key=lambda k: k["name"])
 
     @rpccheck()
-    async def get_users_servers(self, userid: int):
+    async def get_users_servers(self, userid: int, page: int):
         userid = int(userid)
+        page = int(page)
+
+        if userid in self.guild_cache:
+            cached = self.guild_cache[userid]
+            if (cached["time"] + 60) > time.time():
+                # return cached["guilds"][page]
+                return cached["guilds"]
+            else:
+                del self.guild_cache[userid]
+
         guilds = []
         is_owner = False
         try:
@@ -257,15 +282,22 @@ class DashboardRPC:
 
         # This could take a while
         async for guild in AsyncIter(self.bot.guilds, steps=1300):
+            try:
+                icon = str(guild.icon_url_as(format="png"))[:-13]
+            except AttributeError:
+                icon = str(guild.icon)[:-13]
+
             sgd = {
                 "name": escape(guild.name),
                 "id": str(guild.id),
                 "owner": escape(str(guild.owner)),
-                "icon": str(guild.icon.url)[:-13] if guild.icon else
-                "https://cdn.discordapp.com/embed/avatars/1.",
-                "animated": guild.icon.is_animated() if guild.icon else False,
+                "icon": icon or "https://cdn.discordapp.com/embed/avatars/1.",
+                "animated": getattr(
+                    guild.icon, "is_animated", getattr(guild, "is_icon_animated", lambda: False)
+                )(),
                 "go": False,
             }
+
             if is_owner:
                 guilds.append(sgd)
                 continue
@@ -287,6 +319,14 @@ class DashboardRPC:
                 continue
 
             # User doesn't have view permission
+        # This needs expansion on it before it's ready to be put in.  As such, it's low priority
+        """
+        guilds = [
+            guilds[i : i + 12]  # noqa: E203
+            for i in range(0, len(sorted(guilds, key=lambda x: x["name"])), 12)
+        ]
+        """
+        self.guild_cache[userid] = {"guilds": guilds, "time": time.time()}
         return guilds
 
     @rpccheck()
@@ -297,13 +337,9 @@ class DashboardRPC:
 
         user = guild.get_member(userid)
         baseuser = self.bot.get_user(userid)
-        is_owner = False
-        if await self.bot.is_owner(baseuser):
-            is_owner = True
-
-        if not user:
-            if not baseuser and not is_owner:
-                return {"status": 0}
+        is_owner = bool(await self.bot.is_owner(baseuser))
+        if not user and not baseuser and not is_owner:
+            return {"status": 0}
 
         if is_owner:
             humanized = ["Everything (Bot Owner)"]
@@ -346,40 +382,40 @@ class DashboardRPC:
             vl = "2 - Medium"
         elif guild.verification_level is discord.VerificationLevel.high:
             vl = "3 - High"
-        elif guild.verification_level is discord.VerificationLevel.extreme:
+        elif guild.verification_level is discord.VerificationLevel.highest:
             vl = "4 - Extreme"
         else:
             vl = "Unknown"
 
-        if not self.cog.configcache.get(serverid, {"roles": []})["roles"]:
-            warn = True
-        else:
-            warn = False
-
+        warn = not self.cog.configcache.get(serverid, {"roles": []})["roles"]
         adminroles = []
         ar = await self.bot._config.guild(guild).admin_role()
         for rid in ar:
-            r = guild.get_role(rid)
-            if r:
+            if r := guild.get_role(rid):
                 adminroles.append((rid, r.name))
 
         modroles = []
         mr = await self.bot._config.guild(guild).mod_role()
         for rid in mr:
-            r = guild.get_role(rid)
-            if r:
+            if r := guild.get_role(rid):
                 modroles.append((rid, r.name))
 
         all_roles = [(r.id, r.name) for r in guild.roles]
+
+        try:
+            icon = str(guild.icon_url_as(format="png"))[:-13]
+        except AttributeError:
+            icon = str(guild.icon)[:-13]
 
         guild_data = {
             "status": 1,
             "name": escape(guild.name),
             "id": guild.id,
             "owner": escape(str(guild.owner)),
-            "icon": str(guild.icon.url)[:-13] if guild.icon else
-            "https://cdn.discordapp.com/embed/avatars/1.",
-            "animated": guild.icon.is_animated() if guild.icon else False,
+            "icon": icon or "https://cdn.discordapp.com/embed/avatars/1.",
+            "animated": getattr(
+                guild.icon, "is_animated", getattr(guild, "is_icon_animated", lambda: False)
+            )(),
             "members": humanize_number(len(guild.members)),
             "online": humanize_number(stats["o"]),
             "idle": humanize_number(stats["i"]),
@@ -393,7 +429,6 @@ class DashboardRPC:
             "joined": joined,
             "roleswarn": warn,
             "vl": vl,
-            "region": "",
             "prefixes": await self.bot.get_valid_prefixes(guild),
             "adminroles": adminroles,
             "modroles": modroles,

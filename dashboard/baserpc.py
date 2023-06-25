@@ -160,7 +160,7 @@ class DashboardRPC:
 
         returning = {
             "botname": self.bot.user.name,
-            "botavatar": str(self.bot.user.avatar_url_as(static_format="png")),
+            "botavatar": str(self.bot.user.avatar.url),
             "botid": self.bot.user.id,
             "clientid": client_id,
             "botinfo": markdown2.markdown(botinfo),
@@ -261,9 +261,9 @@ class DashboardRPC:
                 "name": escape(guild.name),
                 "id": str(guild.id),
                 "owner": escape(str(guild.owner)),
-                "icon": str(guild.icon_url_as(format="png"))[:-13]
-                or "https://cdn.discordapp.com/embed/avatars/1.",
-                "animated": guild.is_icon_animated(),
+                "icon": str(guild.icon.url)[:-13] if guild.icon else
+                "https://cdn.discordapp.com/embed/avatars/1.",
+                "animated": guild.icon.is_animated() if guild.icon else False,
                 "go": False,
             }
             if is_owner:
@@ -351,15 +351,6 @@ class DashboardRPC:
         else:
             vl = "Unknown"
 
-        region = getattr(guild.region, "name", guild.region)
-        parts = region.split("_")
-        for i, p in enumerate(parts):
-            if p in ["eu", "us", "vip"]:
-                parts[i] = p.upper()
-            else:
-                parts[i] = p.title()
-        region = " ".join(parts)
-
         if not self.cog.configcache.get(serverid, {"roles": []})["roles"]:
             warn = True
         else:
@@ -386,9 +377,9 @@ class DashboardRPC:
             "name": escape(guild.name),
             "id": guild.id,
             "owner": escape(str(guild.owner)),
-            "icon": str(guild.icon_url_as(format="png"))[:-13]
-            or "https://cdn.discordapp.com/embed/avatars/1.",
-            "animated": guild.is_icon_animated(),
+            "icon": str(guild.icon.url)[:-13] if guild.icon else
+            "https://cdn.discordapp.com/embed/avatars/1.",
+            "animated": guild.icon.is_animated() if guild.icon else False,
             "members": humanize_number(len(guild.members)),
             "online": humanize_number(stats["o"]),
             "idle": humanize_number(stats["i"]),
@@ -402,7 +393,7 @@ class DashboardRPC:
             "joined": joined,
             "roleswarn": warn,
             "vl": vl,
-            "region": region,
+            "region": "",
             "prefixes": await self.bot.get_valid_prefixes(guild),
             "adminroles": adminroles,
             "modroles": modroles,

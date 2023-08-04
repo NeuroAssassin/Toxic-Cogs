@@ -10,7 +10,7 @@ repos:
     rev: '1.0.1'
     hooks:
       - id: black-disable-checker
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/pycqa/flake8
     rev: '3.9.0'
     hooks:
       - id: flake8

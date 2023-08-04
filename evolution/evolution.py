@@ -1,3 +1,27 @@
+"""
+MIT License
+
+Copyright (c) 2018-Present NeuroAssassin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import asyncio
 import copy
 import math
@@ -8,7 +32,7 @@ from datetime import timedelta
 from typing import Literal, Optional
 
 import discord
-from redbot.core import Config, checks, commands, errors
+from redbot.core import Config, commands, errors
 from redbot.core.bot import Red
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import box, humanize_number, humanize_timedelta, inline
@@ -100,7 +124,7 @@ class Evolution(commands.Cog):
         await self.red_delete_data_for_user(requester="user", user_id=ctx.author.id)
         await ctx.send("Data deleted.  Your game data has been reset.")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @evolution.group()
     async def tasks(self, ctx):
         """View the status of the cog tasks.
@@ -117,7 +141,7 @@ class Evolution(commands.Cog):
         message = self.utils.format_task(statuses["income"])
         await ctx.send(message)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @evolution.command(hidden=True)
     async def removeuser(self, ctx, user: discord.User):
         """Removes a user from the market place if they are stuck for some reason.
@@ -325,7 +349,7 @@ class Evolution(commands.Cog):
         if highest_level < 0:
             highest_level = 0
 
-        controls = copy.deepcopy(DEFAULT_CONTROLS)
+        controls = dict(DEFAULT_CONTROLS)
         controls["\N{MONEY BAG}"] = self.utils.shop_control_callback
         await menu(ctx, embed_list, controls, page=highest_level)
 
@@ -338,7 +362,8 @@ class Evolution(commands.Cog):
         Status guide:
             A: Available to be bought and put in backyard
             B: Already purchased
-            S: Available to be bought, but will be put in stash because you either do not have the space for the, or above your level threshold"""
+            S: Available to be bought, but will be put in stash because you either do not have the space for the, or above your level threshold
+        """
         async with self.lock:
             data = await self.conf.user(ctx.author).all()
         animals = data["animals"]
@@ -567,7 +592,7 @@ class Evolution(commands.Cog):
         """Claim a perk from your stash"""
         return await ctx.send("This command is not available.  Check back soon!")
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @evolution.command(aliases=["by"])
     async def backyard(self, ctx, use_menu: bool = False):
         """Where ya animals live!  Pass 1 or true to put it in a menu."""

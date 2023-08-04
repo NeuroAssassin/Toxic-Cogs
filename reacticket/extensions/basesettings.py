@@ -6,11 +6,11 @@ import asyncio
 import copy
 
 from reacticket.extensions.abc import MixinMeta
-from reacticket.extensions.mixin import settings
+from reacticket.extensions.mixin import RTMixin
 
 
 class ReacTicketBaseSettingsMixin(MixinMeta):
-    @settings.group(name="precreationsettings", aliases=["precs"])
+    @RTMixin.settings.group(name="precreationsettings", aliases=["precs"])
     async def pre_creation_settings(self, ctx):
         """Control the actions that are checked/occur before ticket is created"""
         pass
@@ -131,7 +131,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
                 "Max number of tickets per user and DM setting have been successfully updated."
             )
 
-    @settings.group(name="postcreationsettings", aliases=["postcs"])
+    @RTMixin.settings.group(name="postcreationsettings", aliases=["postcs"])
     async def post_creation_settings(self, ctx):
         """Control the actions that occur post the ticket being created"""
         pass
@@ -311,7 +311,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
         await self.config.guild(ctx.guild).presetname.set(settings)
         await ctx.send("Successfully changed selected ticket name preset.")
 
-    @settings.command()
+    @RTMixin.settings.command()
     async def enable(self, ctx, yes_or_no: Optional[bool] = None):
         """Starts listening for the set Reaction on the set Message to process tickets"""
         # We'll run through a test of all the settings to ensure everything is set properly
@@ -450,7 +450,7 @@ class ReacTicketBaseSettingsMixin(MixinMeta):
 
         await ctx.send("All checks passed.  Ticket system is now active.")
 
-    @settings.command()
+    @RTMixin.settings.command()
     async def disable(self, ctx):
         """Disable ticketing system"""
         await self.config.guild(ctx.guild).enabled.set(False)

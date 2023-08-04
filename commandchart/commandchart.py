@@ -3,12 +3,38 @@ You can find the cog here: https://github.com/aikaterna/aikaterna-cogs/tree/v3/c
 
 This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""
 
+"""
+MIT License
+
+Copyright (c) 2018-Present NeuroAssassin
+Copyright (c) 2016-present aikaterna
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+
 import heapq
 import typing
 from io import BytesIO
 
 import discord
-from redbot.core import checks, commands
+from redbot.core import commands
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -101,7 +127,7 @@ class CommandChart(commands.Cog):
         image_object.seek(0)
         return image_object
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.guild_only()
     @commands.command()
     async def commandchart(

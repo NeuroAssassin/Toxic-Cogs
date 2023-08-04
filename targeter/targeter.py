@@ -1,3 +1,27 @@
+"""
+MIT License
+
+Copyright (c) 2018-Present NeuroAssassin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import argparse
 import functools
 from datetime import timezone
@@ -7,7 +31,7 @@ import csv
 import aiohttp
 import discord
 from dateutil.parser import parse
-from redbot.core import checks, commands
+from redbot.core import commands
 from redbot.core.commands import BadArgument, Converter, RoleConverter
 from redbot.core.utils.chat_formatting import humanize_list, pagify
 from redbot.core.utils.menus import DEFAULT_CONTROLS, menu
@@ -45,7 +69,7 @@ PERMS = [
     "view_audit_log",
 ]
 
-# Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/v3/scheduler/converters.py#L23
+# Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/d59fd7bc69833dc24f9e74ec59e635ffe593d43f/scheduler/converters.py#L23
 
 
 class NoExitParser(argparse.ArgumentParser):
@@ -707,7 +731,7 @@ class Targeter(commands.Cog):
         matched = await self.bot.loop.run_in_executor(None, compact)
         return matched
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.guild_only()
     @commands.group(invoke_without_command=True)
     async def target(self, ctx, *, args: Args):
@@ -778,11 +802,11 @@ class Targeter(commands.Cog):
         desc = (
             "`--nick <nickone> <nicktwo>` - Users must have one of the passed nicks in their nickname.  If they don't have a nickname, they will instantly be excluded.\n"
             "`--user <userone> <usertwo>` - Users must have one of the passed usernames in their real username.  This will not look at nicknames.\n"
-            "`--name <nameone> <nametwo>` - Users must have one of the passed names in their username, and if they don't have one, their username.\n"
+            "`--name <nameone> <nametwo>` - Users must have one of the passed names in their nickname, and if they don't have one, their username.\n"
             "\n"
             "`--not-nick <nickone> <nicktwo>` - Users must not have one of the passed nicks in their nickname.  If they don't have a nickname, they will instantly be excluded.\n"
             "`--not-user <userone> <usertwo>` - Users must not have one of the passed usernames in their real username.  This will not look at nicknames.\n"
-            "`--not-name <nameone> <nametwo>` - Users must not have one of the passed names in their username, and if they don't have one, their username.\n"
+            "`--not-name <nameone> <nametwo>` - Users must not have one of the passed names in their nickname, and if they don't have one, their username.\n"
             "\n"
             "`--a-nick` - Users must have a nickname in the server.\n"
             "`--no-nick` - Users cannot have a nickname in the server."
@@ -853,7 +877,7 @@ class Targeter(commands.Cog):
         desc = (
             "`--format` - How to display results.  At the moment, must be `page` for posting on a website, or `menu` for showing the results in Discord.\n"
             "\n"
-            "If at any time you need to include quotes at the beginning or ending of something (such as a nickname or a role), include a slash (\) right before it."
+            "If at any time you need to include quotes at the beginning or ending of something (such as a nickname or a role), include a slash (\\) right before it."
         )
         special.description = desc
         special.set_footer(text="Target Arguments - Special Notes; Page 6/6")

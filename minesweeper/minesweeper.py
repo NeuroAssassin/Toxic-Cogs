@@ -1,3 +1,27 @@
+"""
+MIT License
+
+Copyright (c) 2018-Present NeuroAssassin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import asyncio
 import copy
 import random
@@ -317,7 +341,8 @@ class Minesweeper(commands.Cog):
     async def minesweeper(self, ctx, bombs: int = "Random bomb amount"):
         """Starts a game of minesweeper.
 
-        You can specify the amount of wanted bombs using the bomb paramater.  It must be between 10 bombs and 99 bombs, and defaults to random between 15 to 25."""
+        You can specify the amount of wanted bombs using the bomb paramater.  It must be between 10 bombs and 99 bombs, and defaults to random between 15 to 25.
+        """
         if isinstance(bombs, str):
             bombs = random.randint(15, 25)
         if bombs < 10 or bombs > 99:
@@ -399,7 +424,8 @@ class Minesweeper(commands.Cog):
     async def spoilerms(self, ctx, bombs: int = "Random bomb amount"):
         """Starts a non-interactive game of minesweeper with spoilers.
 
-        You can specify the amount of wanted bombs using the bomb paramater.  It must be between 10 bombs and 99 bombs, and defaults to random between 15 to 25."""
+        You can specify the amount of wanted bombs using the bomb paramater.  It must be between 10 bombs and 99 bombs, and defaults to random between 15 to 25.
+        """
         if isinstance(bombs, str):
             bombs = random.randint(15, 25)
         if bombs < 10 or bombs > 99:

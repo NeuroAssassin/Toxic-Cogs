@@ -1,10 +1,34 @@
+"""
+MIT License
+
+Copyright (c) 2018-Present NeuroAssassin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import asyncio
 import time
 from collections import defaultdict
 from copy import deepcopy as dc
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.utils import AsyncIter
 from redbot.core.utils.chat_formatting import humanize_list
 
@@ -12,7 +36,8 @@ from redbot.core.utils.chat_formatting import humanize_list
 class Deleter(commands.Cog):
     """Set channels for their messages to be auto-deleted after a specified amount of time.
 
-    WARNING: This cog has potential API abuse AND SHOULD BE USED CAREFULLY!  If you see any issues arise due to this, please report to Neuro Assassin or bot owner ASAP!"""
+    WARNING: This cog has potential API abuse AND SHOULD BE USED CAREFULLY!  If you see any issues arise due to this, please report to Neuro Assassin or bot owner ASAP!
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -68,29 +93,29 @@ class Deleter(commands.Cog):
             c["messages"][str(message.id)] = time.time() + int(c["wait"])
             await self.conf.channel(message.channel).messages.set(c["messages"])
 
-    @commands.group()
+    @commands.group(invoke_without_command=True)
     @commands.guild_only()
-    @checks.mod_or_permissions(manage_messages=True)
+    @commands.mod_or_permissions(manage_messages=True)
     async def deleter(self, ctx):
         """Group command for commands dealing with auto-timed deletion.
 
-        To see what channels are currently being tracked, use this command with no subcommands passed."""
-        if ctx.invoked_subcommand is None:
-            async with self.lock:
-                channels = await self.conf.all_channels()
-            sending = ""
-            for c, data in channels.items():
-                c = self.bot.get_channel(int(c))
-                if c is None:
-                    continue
-                if c.guild.id == ctx.guild.id and int(data["wait"]) != 0:
-                    sending += f"{c.mention}: {data['wait']} seconds\n"
-            if sending:
-                await ctx.send(sending)
-            else:
-                await ctx.send(
-                    f"No channels are currently being tracked.  Add one by using `{ctx.prefix}deleter channel`."
-                )
+        To see what channels are currently being tracked, use this command with no subcommands passed.
+        """
+        async with self.lock:
+            channels = await self.conf.all_channels()
+        sending = ""
+        for c, data in channels.items():
+            c = self.bot.get_channel(int(c))
+            if c is None:
+                continue
+            if c.guild.id == ctx.guild.id and int(data["wait"]) != 0:
+                sending += f"{c.mention}: {data['wait']} seconds\n"
+        if sending:
+            await ctx.send(sending)
+        else:
+            await ctx.send(
+                f"No channels are currently being tracked.  Add one by using `{ctx.prefix}deleter channel`."
+            )
 
     @deleter.command()
     async def channel(self, ctx, channel: discord.TextChannel, wait):

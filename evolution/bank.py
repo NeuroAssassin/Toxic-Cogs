@@ -50,7 +50,7 @@ __all__ = [
     "BankPruneError",
 ]
 
-_MAX_BALANCE = 2 ** 63 - 1
+_MAX_BALANCE = 2**63 - 1
 
 _DEFAULT_MEMBER = {"balance": 0, "next_payday": 0}
 

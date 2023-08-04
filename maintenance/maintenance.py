@@ -1,10 +1,34 @@
+"""
+MIT License
+
+Copyright (c) 2018-Present NeuroAssassin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import asyncio
 import time
 from datetime import datetime
 from typing import Literal
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 
 from .converters import Margs
 
@@ -107,7 +131,7 @@ class Maintenance(commands.Cog):
         raise LIStsSTaRtaTiNDeX1(message)
         return False
 
-    @checks.is_owner()
+    @commands.is_owner()
     @commands.group()
     async def maintenance(self, ctx):
         """Control the bot's maintenance."""
@@ -126,7 +150,8 @@ class Maintenance(commands.Cog):
         Examples:
         `[p]maintenance on --start-in 5 seconds`; starts a maintenance in 5 seconds
         `[p]maintenance on --start-in 5 seconds --end-in 10 seconds`; starts a maintenance in 5 seconds, then scheduled to end in 10 seconds, so it will only be on maintenance for 5 seconds.
-        `[p]maintenance on --start-in 10 seconds --end-after 10 seconds --whitelist 473541068378341376 473541068378341377`; starts a maintenance in 10 seconds, that lasts for 10 seconds after, and has the two user IDs who are exempted from the maintenance."""
+        `[p]maintenance on --start-in 10 seconds --end-after 10 seconds --whitelist 473541068378341376 473541068378341377`; starts a maintenance in 10 seconds, that lasts for 10 seconds after, and has the two user IDs who are exempted from the maintenance.
+        """
         on = await self.conf.on()
         if on[0]:
             return await ctx.send(

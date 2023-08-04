@@ -1,3 +1,27 @@
+"""
+MIT License
+
+Copyright (c) 2018-Present NeuroAssassin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 # Huge thanks to Sinbad for allowing me to copy parts of his RSS cog
 # (https://github.com/mikeshardmind/SinbadCogs/tree/v3/rss), which I
 # used to grab the latest commits from repositories.
@@ -13,7 +37,7 @@ from typing import Optional
 import aiohttp
 import discord
 from redbot.cogs.downloader.repo_manager import Repo
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 from redbot.core.utils.chat_formatting import humanize_list, inline
 
 import feedparser
@@ -62,10 +86,22 @@ class UpdateChecker(commands.Cog):
                 use_embed = data["embed"]
                 whitelist = data["whitelist"]
                 blacklist = data["blacklist"]
-                if channel == 0:
-                    channel = (await self.bot.application_info()).owner
-                else:
+                if channel:
                     channel = self.bot.get_channel(channel)
+                    if channel is None:
+                        await self.bot.send_to_owners(
+                            "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel. "
+                            "From now on, it will DM you."
+                        )
+                        await self.conf.gochannel.set(0)
+                        send = self.bot.send_to_owners
+                    else:
+                        use_embed = (
+                            use_embed and channel.permissions_for(channel.guild.me).embed_links
+                        )
+                        send = channel.send
+                else:
+                    send = self.bot.send_to_owners
 
                 all_repos = cog._repo_manager.get_all_repo_names()
                 for repo in all_repos:
@@ -101,71 +137,46 @@ class UpdateChecker(commands.Cog):
                         and commit_saved != "--default--"
                     ):
                         if True:  # KACHOW
+                            if use_embed:
+                                e = discord.Embed(
+                                    title="Update Checker",
+                                    description=f"Update available for repo: {repo.name}",
+                                    timestamp=datetime.utcnow(),
+                                    color=0x00FF00,
+                                )
+                                e.add_field(name="URL", value=repo.url)
+                                e.add_field(name="Branch", value=repo.branch)
+                                e.add_field(name="Commit", value=cn)
+                                e.add_field(name="Hash", value=hash)
+                                e.set_thumbnail(url=image)
+                            else:
+                                e = (
+                                    "```css\n"
+                                    "[Update Checker]"
+                                    "``````css\n"
+                                    f"    Repo: {repo.name}\n"
+                                    f"     URL: {repo.url}\n"
+                                    f"  Commit: {cn}\n"
+                                    f"    Hash: {commit}\n"
+                                    f"    Time: {datetime.utcnow()}"
+                                    "```"
+                                )
                             try:
-                                if use_embed and isinstance(channel, discord.User):
-                                    e = discord.Embed(
-                                        title="Update Checker",
-                                        description=f"Update available for repo: {repo.name}",
-                                        timestamp=datetime.utcnow(),
-                                        color=0x00FF00,
-                                    )
-                                    e.add_field(name="URL", value=repo.url)
-                                    e.add_field(name="Branch", value=repo.branch)
-                                    e.add_field(name="Commit", value=cn)
-                                    e.add_field(name="Hash", value=hash)
-                                    e.set_thumbnail(url=image)
-                                    await channel.send(embed=e)
-                                elif (
-                                    use_embed
-                                    and isinstance(channel, discord.TextChannel)
-                                    and channel.permissions_for(channel.guild.me).embed_links
-                                ):
-                                    e = discord.Embed(
-                                        title="Update Checker",
-                                        description=f"Update available for repo: {repo.name}",
-                                        timestamp=datetime.utcnow(),
-                                        color=0x00FF00,
-                                    )
-                                    e.add_field(name="URL", value=repo.url)
-                                    e.add_field(name="Branch", value=repo.branch)
-                                    e.add_field(name="Commit", value=cn)
-                                    e.add_field(name="Hash", value=hash)
-                                    e.set_thumbnail(url=image)
-                                    await channel.send(embed=e)
+                                if use_embed:
+                                    await send(embed=e)
                                 else:
-                                    e = (
-                                        "```css\n"
-                                        "[Update Checker]"
-                                        "``````css\n"
-                                        f"    Repo: {repo.name}\n"
-                                        f"     URL: {repo.url}\n"
-                                        f"  Commit: {cn}\n"
-                                        f"    Hash: {commit}\n"
-                                        f"    Time: {datetime.utcnow()}"
-                                        "```"
-                                    )
-                                    await channel.send(e)
-                            except AttributeError:
-                                owner = (await self.bot.application_info()).owner
-                                await owner.send(
-                                    "[Update Checker] It appears that the channel for this cog has been deleted.  From now on, it will DM you."
+                                    await send(e)
+                            except discord.Forbidden:
+                                # send_to_owners suppresses Forbidden, logging it to console.
+                                # As a result, this will only happen if a channel was set.
+                                await self.bot.send_to_owners(
+                                    "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel. "
+                                    "From now on, it will DM you."
                                 )
-                                if isinstance(e, discord.Embed):
-                                    await owner.send(embed=e)
+                                if use_embed:
+                                    await self.bot.send_to_owners(embed=e)
                                 else:
-                                    await owner.send(e)
-                                channel = owner
-                                await self.conf.gochannel.set(0)
-                            except discord.errors.Forbidden:
-                                owner = (await self.bot.application_info()).owner
-                                await owner.send(
-                                    "[Update Checker] It appears that I am no longer allowed to send messages to the designated update channel.  From now on, it will DM you."
-                                )
-                                if isinstance(e, discord.Embed):
-                                    await owner.send(embed=e)
-                                else:
-                                    await owner.send(e)
-                                channel = owner
+                                    await self.bot.send_to_owners(e)
                                 await self.conf.gochannel.set(0)
                         else:
                             try:
@@ -240,13 +251,13 @@ class UpdateChecker(commands.Cog):
             return None
         return ret
 
-    @checks.is_owner()
+    @commands.is_owner()
     @commands.group(name="cogupdater", aliases=["cu"])
     async def update(self, ctx):
         """Group command for controlling the update checker cog."""
         pass
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.command()
     async def auto(self, ctx):
         """Changes automatic cog updates to the opposite setting."""
@@ -260,12 +271,15 @@ class UpdateChecker(commands.Cog):
                 "This command is disabled for the time being.  Cog updates will not run automatically, however notifications will still send."
             )
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.command()
     async def channel(self, ctx, channel: discord.TextChannel = None):
-        """Sets a channel for update messages to go to.
+        """
+        Sets a channel for update messages to go to.
 
-        If argument is not supplied, it will be sent to the bot owner's DMs.  By default, goes to owner DMs."""
+        If argument is not supplied, it will be sent to the default notifications channel(s) specified in `[p]set ownernotifications`.
+        By default, this goes to owner DMs.
+        """
         if channel:
             await self.conf.gochannel.set(channel.id)
             await ctx.send(f"Update messages will now be sent to {channel.mention}")
@@ -273,12 +287,13 @@ class UpdateChecker(commands.Cog):
             await self.conf.gochannel.set(0)
             await ctx.send("Update messages will now be DMed to you.")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.command()
     async def settings(self, ctx):
         """See settings for the Update Checker cog.
 
-        Right now, this shows whether the bot updates cogs automatically and what channel logs are sent to."""
+        Right now, this shows whether the bot updates cogs automatically and what channel logs are sent to.
+        """
         auto = await self.conf.auto()
         channel = await self.conf.gochannel()
         embed = await self.conf.embed()
@@ -312,7 +327,7 @@ class UpdateChecker(commands.Cog):
             )
             await ctx.send(message)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.command()
     async def embed(self, ctx):
         """Toggles whether to use embeds or colorful codeblock messages when sending an update."""
@@ -321,7 +336,7 @@ class UpdateChecker(commands.Cog):
         word = "disabled" if c else "enabled"
         await ctx.send(f"Embeds are now {word}")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.group(name="list")
     async def whiteblacklist(self, ctx):
         """Whitelist/blacklist certain repositories from which to receive updates."""
@@ -399,7 +414,7 @@ class UpdateChecker(commands.Cog):
         await self.conf.blacklist.set([])
         await ctx.send("Blacklist update successful")
 
-    @checks.is_owner()
+    @commands.is_owner()
     @update.group(name="task")
     async def _group_update_task(self, ctx):
         """View the status of the task (the one checking for updates)."""

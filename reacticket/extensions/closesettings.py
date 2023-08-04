@@ -5,11 +5,11 @@ import discord
 import contextlib
 
 from reacticket.extensions.abc import MixinMeta
-from reacticket.extensions.mixin import settings
+from reacticket.extensions.mixin import RTMixin
 
 
 class ReacTicketCloseSettingsMixin(MixinMeta):
-    @settings.group()
+    @RTMixin.settings.group()
     async def closesettings(self, ctx):
         """Control what actions occur when a ticket is closed"""
         pass
@@ -90,27 +90,28 @@ class ReacTicketCloseSettingsMixin(MixinMeta):
             await ctx.send("Tickets will be kept open even if the author leaves the server")
 
     @closesettings.command(name="prune", aliases=["cleanup", "purge"])
-    async def ticket_channel_prune(self, ctx):
+    async def ticket_channel_prune(self, ctx, skip_confirmation: bool = False):
         """Clean out channels under the archive category.
 
-        Pass a user to only delete the channels created by that user instead.
-
-        WARNING: This will remove ALL channels unless otherwise specified!"""
+        Pass a boolean value of True to skip confirmation message."""
         category = self.bot.get_channel((await self.config.guild(ctx.guild).archive())["category"])
         if not category:
             await ctx.send("Your archive category no longer exists!")
             return
 
         channels = category.text_channels
-        message = await ctx.send(
-            "Are you sure you want to remove all archived ticket channels?  "
-            f"This will delete {len(channels)} Text Channels."
-        )
 
-        start_adding_reactions(message, ReactionPredicate.YES_OR_NO_EMOJIS)
-        pred = ReactionPredicate.yes_or_no(message, ctx.author)
-        await self.bot.wait_for("reaction_add", check=pred)
-        if pred.result is True:
+        if not skip_confirmation:
+            message = await ctx.send(
+                "Are you sure you want to remove all archived ticket channels?  "
+                f"This will delete {len(channels)} Text Channels."
+            )
+
+            start_adding_reactions(message, ReactionPredicate.YES_OR_NO_EMOJIS)
+            pred = ReactionPredicate.yes_or_no(message, ctx.author)
+            await self.bot.wait_for("reaction_add", check=pred)
+
+        if skip_confirmation or pred.result is True:
             progress = await ctx.send("Purging text channels...")
             for channel in channels:
                 try:
@@ -125,6 +126,6 @@ class ReacTicketCloseSettingsMixin(MixinMeta):
                     continue
 
             with contextlib.suppress(discord.HTTPException):
-                await progress.edit(content="Channels successfully purged.")
+                await progress.edit(content=f"Successfully pruned {len(channels)} channels.")
         else:
             await ctx.send("Channel purge cancelled.")

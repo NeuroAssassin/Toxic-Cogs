@@ -1,0 +1,14 @@
+{
+    "author": [
+        "Neuro Assassin"
+    ],
+    "install_msg": "Thank you for downloading this cog.",
+    "name": "opensea",
+    "short": "Keep track of OpenSea asset events.",
+    "description": "Keep track of specific wallets by wallet address or NFT contact address.",
+    "tags": [
+        "tools"
+    ],
+    "requirements": [],
+    "hidden": false
+}

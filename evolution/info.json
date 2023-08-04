@@ -9,6 +9,8 @@
     "tags": [
         "fun"
     ],
-    "requirements": [],
+    "requirements": [
+        "tabulate"
+    ],
     "hidden": false
 }

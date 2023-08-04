@@ -71,7 +71,7 @@ class DashboardRPC:
         for extension in self.extensions:
             extension.unload()
 
-    async def build_cmd_list(self, cmd_list: List[commands.Command], details=True):
+    async def build_cmd_list(self, cmd_list: List[commands.Command], details=True, do_escape=True):
         final = []
         async for cmd in AsyncIter(cmd_list):
             if details:
@@ -80,22 +80,31 @@ class DashboardRPC:
                 if cmd.requires.privilege_level == PrivilegeLevel.BOT_OWNER:
                     continue
                 try:
-                    details = {
-                        "name": escape(f"{cmd.qualified_name} {cmd.signature}"),
-                        "desc": escape(cmd.short_doc or ""),
-                        "subs": [],
-                    }
+                    if do_escape:
+                        details = {
+                            "name": escape(f"{cmd.qualified_name} {cmd.signature}"),
+                            "desc": escape(cmd.short_doc or ""),
+                            "subs": [],
+                        }
+                    else:
+                        details = {
+                            "name": f"{cmd.qualified_name} {cmd.signature}",
+                            "desc": cmd.short_doc or "",
+                            "subs": [],
+                        }
                 except ValueError:
                     continue
                 if isinstance(cmd, commands.Group):
-                    details["subs"] = await self.build_cmd_list(cmd.commands)
+                    details["subs"] = await self.build_cmd_list(cmd.commands, do_escape=do_escape)
                 final.append(details)
             else:
                 if cmd.requires.privilege_level == PrivilegeLevel.BOT_OWNER:
                     continue
-                final.append(escape(cmd.qualified_name))
+                final.append(escape(cmd.qualified_name) if do_escape else cmd.qualified_name)
                 if isinstance(cmd, commands.Group):
-                    final += await self.build_cmd_list(cmd.commands, details=False)
+                    final += await self.build_cmd_list(
+                        cmd.commands, details=False, do_escape=do_escape
+                    )
         return final
 
     def get_perms(self, guildid: int, m: discord.Member):
@@ -191,7 +200,7 @@ class DashboardRPC:
                 if not c.parent:
                     stripped.append(c)
 
-            cmds = await self.build_cmd_list(stripped)
+            cmds = await self.build_cmd_list(stripped, do_escape=False)
             if not cmds:
                 continue
 

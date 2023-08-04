@@ -1,0 +1,10 @@
+{
+    "author" : ["Neuro Assassin"],
+    "install_msg" : "Thank you for downloading this cog.",
+    "name" : "grammer",
+    "short" : "Get words related to the specified arguments",
+    "description" : "Get words related to the specified arguments",
+    "tags" : [],
+    "requirements" : [],
+    "hidden" : false
+}

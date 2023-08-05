@@ -9,12 +9,12 @@ jobs:
 
     steps:
       # Checkout repository
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Setup Python and install pre-commit
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
-          python_version: "3.8"
+          python-version: "3.8"
       - name: Install pre-commit
         run: |
           pip install -U pre-commit
@@ -22,7 +22,7 @@ jobs:
       # Load cached pre-commit environment
       - name: set PY
         run: echo "PY=$(python -VV | sha256sum | cut -d' ' -f1)" >> $GITHUB_ENV
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.cache/pre-commit
           key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}

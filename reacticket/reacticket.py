@@ -222,9 +222,7 @@ class ReacTicket(
                                     ticket["assigned"], "mention", "Unknown moderator"
                                 )
                             )
-                            embed.add_field(
-                                name="Assigned moderator", value=moderator,
-                            )
+                            embed.add_field(name="Assigned moderator", value=moderator)
                         await reporting_channel.send(embed=embed)
                     else:
                         message = (

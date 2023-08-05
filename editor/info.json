@@ -1,10 +1,14 @@
 {
-    "author" : ["Neuro Assassin"],
-    "install_msg" : "Thank you for downloading this cog.",
-    "name" : "editor",
-    "short" : "Edit one of the bot's messages easily.",
-    "description" : "Allows an administrator to change the text of one of the bot's messages, by either specifying the new content or by taking the content (and embed, if applicable) of another message.",
-    "tags" : ["tools"],
-    "requirements" : [],
-    "hidden" : false
+    "author": [
+        "Neuro Assassin"
+    ],
+    "install_msg": "Thank you for downloading this cog.",
+    "name": "editor",
+    "short": "Edit one of the bot's messages easily.",
+    "description": "Allows an administrator to change the text of one of the bot's messages, by either specifying the new content or by taking the content (and embed, if applicable) of another message.",
+    "tags": [
+        "tools"
+    ],
+    "requirements": [],
+    "hidden": false
 }

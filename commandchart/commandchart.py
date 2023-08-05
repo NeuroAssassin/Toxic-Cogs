@@ -6,7 +6,7 @@ This cog was also a cog requested by Yukirin on the cogboard (cogboard.red)."""
 """
 MIT License
 
-Copyright (c) 2018-Present NeuroAssassin 
+Copyright (c) 2018-Present NeuroAssassin
 Copyright (c) 2016-present aikaterna
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,7 +34,7 @@ import typing
 from io import BytesIO
 
 import discord
-from redbot.core import checks, commands
+from redbot.core import commands
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -127,11 +127,11 @@ class CommandChart(commands.Cog):
         image_object.seek(0)
         return image_object
 
-    @checks.bot_has_permissions(embed_links=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.guild_only()
     @commands.command()
     async def commandchart(
-        self, ctx, channel: typing.Optional[discord.TextChannel] = None, number: int = 5000,
+        self, ctx, channel: typing.Optional[discord.TextChannel] = None, number: int = 5000
     ):
         """See the used commands in a certain channel within a certain amount of messages."""
         e = discord.Embed(description="Loading...", color=0x000099)

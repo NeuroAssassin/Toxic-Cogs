@@ -24,7 +24,7 @@ SOFTWARE.
 
 from redbot.core.utils.predicates import MessagePredicate
 from redbot.core.utils.chat_formatting import humanize_list, inline
-from redbot.core import commands, Config, checks
+from redbot.core import commands, Config
 from typing import Optional
 import discord
 import asyncio
@@ -50,7 +50,7 @@ class AuthGG(commands.Cog):
     @authgg.command()
     async def resethwid(self, ctx, apikey: str, *, name: Optional[str] = None):
         """Reset a user's HWID lock on auth.gg for the specified API key name.
-        
+
         The API key name must be the friendly name provided by `[p]authgg keys add`."""
         if not await self.bot.is_owner(ctx.author):
             roles = await self.conf.roles()
@@ -135,7 +135,7 @@ class AuthGG(commands.Cog):
                     "I was unable to delete your command message due to lack of perms.  It is recommended to due so to prevent your user's password from getting leaked."
                 )
 
-    @checks.is_owner()
+    @commands.is_owner()
     @authgg.group()
     async def keys(self, ctx):
         """Manage API keys for auth.gg"""
@@ -183,7 +183,7 @@ class AuthGG(commands.Cog):
         message = f"The following keys are currently registered: {humanize_list(list(map(inline, keys.keys())))}"
         await ctx.send(message)
 
-    @checks.is_owner()
+    @commands.is_owner()
     @authgg.group()
     async def roles(self, ctx):
         """Control what roles have access to reseting a user's HWID"""

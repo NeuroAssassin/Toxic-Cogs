@@ -127,8 +127,7 @@ class Esolang(commands.Cog):
 
         Since Discord auto-converts tabs to spaces, use EM QUAD instead.
 
-        If you need to copy it, here: ` 
-`
+        If you need to copy it, here: `\u2001`
         """
         try:
             wrapped = functools.partial(Whitespace.evaluate, code=code)
@@ -148,4 +147,9 @@ class Esolang(commands.Cog):
         else:
             output.seek(0)
             output = output.read()
-            await ctx.send(box(f"[Output]: {output}", lang="ini",))
+            await ctx.send(
+                box(
+                    f"[Output]: {output}",
+                    lang="ini",
+                )
+            )

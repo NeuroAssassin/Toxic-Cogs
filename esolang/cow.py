@@ -2,7 +2,6 @@ import io
 
 
 class COW:
-
     instruction_mapping = {
         0: "moo",
         1: "mOo",

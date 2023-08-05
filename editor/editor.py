@@ -25,7 +25,7 @@ SOFTWARE.
 from typing import Union
 
 import discord
-from redbot.core import checks, commands
+from redbot.core import commands
 
 
 class Editor(commands.Cog):
@@ -39,7 +39,7 @@ class Editor(commands.Cog):
         return
 
     @commands.command()
-    @checks.admin()
+    @commands.admin()
     async def editmessage(
         self, ctx, ecid: int, editid: int, ccid: int, *, content: Union[int, str]
     ):

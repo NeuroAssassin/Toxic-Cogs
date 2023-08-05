@@ -22,7 +22,7 @@ class EvolutionUtils:
         total = 0
         for x in range(amount):
             normal = level * 800
-            level_tax = ((2 ** level) * 10) - 200
+            level_tax = ((2**level) * 10) - 200
             if bt:
                 tax = bought * 300
                 extra = x * 300

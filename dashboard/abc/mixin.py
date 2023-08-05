@@ -8,6 +8,6 @@ async def dashboard(self, ctx: commands.Context):
 
 
 class DBMixin:
-    """ This is mostly here to easily mess with things... """
+    """This is mostly here to easily mess with things..."""
 
     c = dashboard

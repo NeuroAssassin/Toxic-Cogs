@@ -28,7 +28,7 @@ from datetime import datetime
 from typing import Literal
 
 import discord
-from redbot.core import Config, checks, commands
+from redbot.core import Config, commands
 
 from .converters import Margs
 
@@ -131,7 +131,7 @@ class Maintenance(commands.Cog):
         raise LIStsSTaRtaTiNDeX1(message)
         return False
 
-    @checks.is_owner()
+    @commands.is_owner()
     @commands.group()
     async def maintenance(self, ctx):
         """Control the bot's maintenance."""
@@ -150,7 +150,8 @@ class Maintenance(commands.Cog):
         Examples:
         `[p]maintenance on --start-in 5 seconds`; starts a maintenance in 5 seconds
         `[p]maintenance on --start-in 5 seconds --end-in 10 seconds`; starts a maintenance in 5 seconds, then scheduled to end in 10 seconds, so it will only be on maintenance for 5 seconds.
-        `[p]maintenance on --start-in 10 seconds --end-after 10 seconds --whitelist 473541068378341376 473541068378341377`; starts a maintenance in 10 seconds, that lasts for 10 seconds after, and has the two user IDs who are exempted from the maintenance."""
+        `[p]maintenance on --start-in 10 seconds --end-after 10 seconds --whitelist 473541068378341376 473541068378341377`; starts a maintenance in 10 seconds, that lasts for 10 seconds after, and has the two user IDs who are exempted from the maintenance.
+        """
         on = await self.conf.on()
         if on[0]:
             return await ctx.send(

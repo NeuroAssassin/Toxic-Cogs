@@ -27,7 +27,7 @@ import random
 from copy import deepcopy as dc
 
 import discord
-from redbot.core import checks, commands
+from redbot.core import commands
 
 
 class Twenty(commands.Cog):
@@ -42,7 +42,7 @@ class Twenty(commands.Cog):
         """This cog does not store user data"""
         return
 
-    @checks.bot_has_permissions(add_reactions=True)
+    @commands.bot_has_permissions(add_reactions=True)
     @commands.command()
     async def twenty(self, ctx):
         """Starts a 2048 game inside of Discord."""

@@ -1,9 +1,14 @@
 {
-    "author" : ["Neuro Assassin"],
-    "install_msg" : "Thank you for downloading this cog.",
-    "name" : "sw",
-    "short" : "Get information about a bunch of different things in Star Wars.",
-    "description" : "Get information about a bunch of different things in Star Wars.",
-    "tags" : ["info", "fun"],
-    "hidden" : false
+    "author": [
+        "Neuro Assassin"
+    ],
+    "install_msg": "Thank you for downloading this cog.",
+    "name": "sw",
+    "short": "Get information about a bunch of different things in Star Wars.",
+    "description": "Get information about a bunch of different things in Star Wars.",
+    "tags": [
+        "info",
+        "fun"
+    ],
+    "hidden": false
 }

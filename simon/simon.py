@@ -26,14 +26,15 @@ import asyncio
 import random
 
 import discord
-from redbot.core import checks, commands
+from redbot.core import commands
 
 
 class Simon(commands.Cog):
     """Play Simon, and guess the write number sequence!
-    
+
     WARNING:
-    This cog sends a lot of messages, edits emojis and edits messages.  It may use up rate limits heavily."""
+    This cog sends a lot of messages, edits emojis and edits messages.  It may use up rate limits heavily.
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -44,7 +45,7 @@ class Simon(commands.Cog):
         """This cog does not store user data"""
         return
 
-    @checks.bot_has_permissions(add_reactions=True)
+    @commands.bot_has_permissions(add_reactions=True)
     @commands.command()
     async def simon(self, ctx):
         """Start a game of Simon."""

@@ -50,7 +50,8 @@ class NoTermination(SyntaxError):
         else:
             ptr = len(code)
         super().__init__(
-            message, ("program.befunge", 1, ptr, code),
+            message,
+            ("program.befunge", 1, ptr, code),
         )
 
 

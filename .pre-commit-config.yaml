@@ -3,7 +3,7 @@ default_language_version:
 exclude: ^.stubs/
 repos:
   - repo: https://github.com/psf/black
-    rev: 'refs/tags/22.3.0:refs/tags/22.3.0'
+    rev: 'refs/tags/23.7.0:refs/tags/23.7.0'
     hooks:
       - id: black
   - repo: https://github.com/Pierre-Sassoulas/black-disable-checker

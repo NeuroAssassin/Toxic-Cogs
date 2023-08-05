@@ -169,7 +169,7 @@ class OpenSea(commands.Cog):
         embed.set_thumbnail(url=event["asset"]["collection"]["image_url"])
         embed.add_field(name="Name", value=event["asset"]["name"], inline=True)
         embed.add_field(
-            name="Amount", value=str(int(event["total_price"]) / (10 ** 18)) + "Ξ", inline=True
+            name="Amount", value=str(int(event["total_price"]) / (10**18)) + "Ξ", inline=True
         )
 
         if event["winner_account"]["user"] and event["winner_account"]["user"]["username"]:

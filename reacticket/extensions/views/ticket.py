@@ -79,7 +79,7 @@ class Ticket(discord.ui.View):
         self.embed.add_field(name="Ticket Creation Date", value=timestamp, inline=True)
 
     @discord.ui.button(
-        label="Assign Moderator", style=discord.ButtonStyle.primary, emoji="\N{SHIELD}",
+        label="Assign Moderator", style=discord.ButtonStyle.primary, emoji="\N{SHIELD}"
     )
     async def assign_moderator(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -358,9 +358,7 @@ class Ticket(discord.ui.View):
         self.repeat = True
         self.stop()
 
-    @discord.ui.button(
-        label="Lock Ticket", style=discord.ButtonStyle.danger, emoji="\N{LOCK}",
-    )
+    @discord.ui.button(label="Lock Ticket", style=discord.ButtonStyle.danger, emoji="\N{LOCK}")
     async def toggle_ticket_lock(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
@@ -396,9 +394,7 @@ class Ticket(discord.ui.View):
         self.ticket["locked"] = not self.ticket["locked"]
         self.stop()
 
-    @discord.ui.button(
-        label="Archive/Close Ticket", style=discord.ButtonStyle.danger,
-    )
+    @discord.ui.button(label="Archive/Close Ticket", style=discord.ButtonStyle.danger)
     async def close_ticket(self, button: discord.ui.Button, interaction: discord.Interaction):
         guild_settings = await self.ctx.cog.config.guild(self.ctx.guild).all()
 

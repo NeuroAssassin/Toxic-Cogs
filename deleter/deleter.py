@@ -36,7 +36,8 @@ from redbot.core.utils.chat_formatting import humanize_list
 class Deleter(commands.Cog):
     """Set channels for their messages to be auto-deleted after a specified amount of time.
 
-    WARNING: This cog has potential API abuse AND SHOULD BE USED CAREFULLY!  If you see any issues arise due to this, please report to Neuro Assassin or bot owner ASAP!"""
+    WARNING: This cog has potential API abuse AND SHOULD BE USED CAREFULLY!  If you see any issues arise due to this, please report to Neuro Assassin or bot owner ASAP!
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -98,7 +99,8 @@ class Deleter(commands.Cog):
     async def deleter(self, ctx):
         """Group command for commands dealing with auto-timed deletion.
 
-        To see what channels are currently being tracked, use this command with no subcommands passed."""
+        To see what channels are currently being tracked, use this command with no subcommands passed.
+        """
         async with self.lock:
             channels = await self.conf.all_channels()
         sending = ""

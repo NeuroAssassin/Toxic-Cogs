@@ -31,9 +31,10 @@ from redbot.core import commands
 
 class Simon(commands.Cog):
     """Play Simon, and guess the write number sequence!
-    
+
     WARNING:
-    This cog sends a lot of messages, edits emojis and edits messages.  It may use up rate limits heavily."""
+    This cog sends a lot of messages, edits emojis and edits messages.  It may use up rate limits heavily.
+    """
 
     def __init__(self, bot):
         self.bot = bot

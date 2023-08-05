@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 99
+select = E9,F7,F82
+extend-exclude=.venv/,.stubs/

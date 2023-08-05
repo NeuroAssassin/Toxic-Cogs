@@ -104,7 +104,7 @@ class SW(commands.Cog):
                 homeworld = await self.session.get(person["homeworld"])
                 homeworld = json.loads(await homeworld.text())
                 embed.add_field(
-                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
+                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}"
                 )
                 films = []
                 for film in person["films"]:
@@ -119,7 +119,7 @@ class SW(commands.Cog):
                     species = await self.session.get(person["species"][0])
                     species = json.loads(await species.text())
                     embed.add_field(
-                        name="Species", value=f"Name: {species['name']}; ID: {str(species_num)}",
+                        name="Species", value=f"Name: {species['name']}; ID: {str(species_num)}"
                     )
                 else:
                     embed.add_field(name="Species", value="Name: Unknown")
@@ -150,7 +150,7 @@ class SW(commands.Cog):
                 person = json.loads(await response.text())
                 name = person["results"][0]["name"]
                 embed = discord.Embed(
-                    title=f"Person: {name}", description=HUMANDESCRIPTION[name], color=0x32CD32,
+                    title=f"Person: {name}", description=HUMANDESCRIPTION[name], color=0x32CD32
                 )
                 for key, value in person["results"][0].items():
                     if key in [
@@ -171,7 +171,7 @@ class SW(commands.Cog):
                 homeworld = await self.session.get(person["results"][0]["homeworld"])
                 homeworld = json.loads(await homeworld.text())
                 embed.add_field(
-                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
+                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}"
                 )
                 films = []
                 for film in person["results"][0]["films"]:
@@ -186,7 +186,7 @@ class SW(commands.Cog):
                     species = await self.session.get(person["species"][0])
                     species = json.loads(await species.text())
                     embed.add_field(
-                        name="Species", value=f"Name: {species['name']}; ID: {str(species_num)}",
+                        name="Species", value=f"Name: {species['name']}; ID: {str(species_num)}"
                     )
                 else:
                     embed.add_field(name="Species", value="Name: Unknown")
@@ -265,7 +265,7 @@ class SW(commands.Cog):
                 planet = json.loads(await response.text())
                 name = planet["results"][0]["name"]
                 embed = discord.Embed(
-                    title=f"Planet: {name}", description=PLANETDESCRIPTION[name], color=0x800080,
+                    title=f"Planet: {name}", description=PLANETDESCRIPTION[name], color=0x800080
                 )
                 for key, value in planet["results"][0].items():
                     if key in [
@@ -569,7 +569,7 @@ class SW(commands.Cog):
                 vehicle = json.loads(await response.text())
                 name = vehicle["results"][0]["name"]
                 embed = discord.Embed(
-                    title=f"Vehicle: {name}", description=VEHICLEDESCRIPTION[name], color=0x228B22,
+                    title=f"Vehicle: {name}", description=VEHICLEDESCRIPTION[name], color=0x228B22
                 )
                 for key, value in vehicle["results"][0].items():
                     if key in ["name", "films", "edited", "created", "url", "pilots"]:
@@ -628,7 +628,7 @@ class SW(commands.Cog):
                 homeworld = await self.session.get(species["homeworld"])
                 homeworld = json.loads(await homeworld.text())
                 embed.add_field(
-                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
+                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}"
                 )
                 objects = []
                 for entry in species["films"]:
@@ -657,7 +657,7 @@ class SW(commands.Cog):
                 species = json.loads(await response.text())
                 name = species["results"][0]["name"]
                 embed = discord.Embed(
-                    title=f"Species: {name}", description=SPECIESDESCRIPTION[name], color=0xD2B48C,
+                    title=f"Species: {name}", description=SPECIESDESCRIPTION[name], color=0xD2B48C
                 )
                 embed.add_field(name="ID:", value=str(species_id))
                 for key, value in species["results"][0].items():
@@ -677,7 +677,7 @@ class SW(commands.Cog):
                 homeworld = await self.session.get(species["results"][0]["homeworld"])
                 homeworld = json.loads(await homeworld.text())
                 embed.add_field(
-                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}",
+                    name="Homeworld", value=f"Name: {homeworld['name']}; ID: {str(homeworld_num)}"
                 )
                 objects = []
                 for entry in species["results"][0]["films"]:

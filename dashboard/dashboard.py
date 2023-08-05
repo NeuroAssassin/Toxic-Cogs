@@ -33,7 +33,6 @@ class Dashboard(
     commands.Cog,
     metaclass=CompositeMetaClass,
 ):
-
     __version__ = "0.1.8a"
 
     def __init__(self, bot: Red, *args, **kwargs):

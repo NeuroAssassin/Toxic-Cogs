@@ -96,7 +96,9 @@ class UpdateChecker(commands.Cog):
                         await self.conf.gochannel.set(0)
                         send = self.bot.send_to_owners
                     else:
-                        use_embed = use_embed and channel.permissions_for(channel.guild.me).embed_links
+                        use_embed = (
+                            use_embed and channel.permissions_for(channel.guild.me).embed_links
+                        )
                         send = channel.send
                 else:
                     send = self.bot.send_to_owners
@@ -290,7 +292,8 @@ class UpdateChecker(commands.Cog):
     async def settings(self, ctx):
         """See settings for the Update Checker cog.
 
-        Right now, this shows whether the bot updates cogs automatically and what channel logs are sent to."""
+        Right now, this shows whether the bot updates cogs automatically and what channel logs are sent to.
+        """
         auto = await self.conf.auto()
         channel = await self.conf.gochannel()
         embed = await self.conf.embed()

@@ -1,0 +1,55 @@
+default_language_version:
+  python: python3.8
+exclude: ^.stubs/
+repos:
+  - repo: https://github.com/psf/black
+    rev: 'refs/tags/23.7.0:refs/tags/23.7.0'
+    hooks:
+      - id: black
+  - repo: https://github.com/Pierre-Sassoulas/black-disable-checker
+    rev: 'v1.1.3'
+    hooks:
+      - id: black-disable-checker
+  - repo: https://github.com/pycqa/flake8
+    rev: '6.1.0'
+    hooks:
+      - id: flake8
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # `.gitattributes` should technically already handle this
+      # but autocrlf can result in local files keeping the CRLF
+      # which is problematic for codespell
+      - id: end-of-file-fixer
+      # normally you would want this but Neuro is not very consistent :P
+      # - id: mixed-line-ending
+      #   args:
+      #     - "--fix=lf"
+
+      # Trailing whitespace is evil
+      - id: trailing-whitespace
+
+      # Require literal syntax when initializing builtin types
+      - id: check-builtin-literals
+
+      # Ensure that links to code on GitHub use the permalinks
+      - id: check-vcs-permalinks
+
+      # Syntax validation
+      - id: check-ast
+      - id: check-json
+      - id: check-toml
+      # can be switched to yamllint when this issue gets resolved:
+      # https://github.com/adrienverge/yamllint/issues/238
+      - id: check-yaml
+
+      # JSON auto-formatter
+      - id: pretty-format-json
+        args:
+          - "--autofix"
+          - "--indent=4"
+          - "--no-sort-keys"
+
+      # Checks for git-related issues
+      - id: check-case-conflict
+      - id: check-merge-conflict

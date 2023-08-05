@@ -50,7 +50,7 @@ class AuthGG(commands.Cog):
     @authgg.command()
     async def resethwid(self, ctx, apikey: str, *, name: Optional[str] = None):
         """Reset a user's HWID lock on auth.gg for the specified API key name.
-        
+
         The API key name must be the friendly name provided by `[p]authgg keys add`."""
         if not await self.bot.is_owner(ctx.author):
             roles = await self.conf.roles()

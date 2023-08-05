@@ -1,4 +1,4 @@
-# Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/v3/scheduler/converters.py#L23
+# Large pieces of the argument parser is taken from Sinbad's cogs.  I based mine off of https://github.com/mikeshardmind/SinbadCogs/blob/d59fd7bc69833dc24f9e74ec59e635ffe593d43f/scheduler/converters.py#L23
 
 import argparse
 import time

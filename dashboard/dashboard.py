@@ -29,7 +29,6 @@ class Dashboard(
     DashboardRolesMixin,
     DashboardWebserverMixin,
     DashboardSettingsMixin,
-    DBMixin,
     commands.Cog,
     metaclass=CompositeMetaClass,
 ):

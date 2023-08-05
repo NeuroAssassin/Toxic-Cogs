@@ -10,9 +10,10 @@ import sys
 import os
 
 from dashboard.abc.abc import MixinMeta
-from dashboard.abc.mixin import dashboard
 
 from dashboard.baserpc import HUMANIZED_PERMISSIONS
+
+dashboard = MixinMeta.dashboard
 
 THEME_COLORS = ["red", "primary", "blue", "green", "greener", "yellow"]
 

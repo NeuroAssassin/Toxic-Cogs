@@ -4,10 +4,12 @@ from redbot.core.utils.predicates import MessagePredicate
 import discord
 
 from dashboard.abc.abc import MixinMeta
-from dashboard.abc.mixin import dashboard
 
 from dashboard.baserpc import HUMANIZED_PERMISSIONS
 from dashboard.menus import ClientList, ClientMenu
+
+
+dashboard = MixinMeta.dashboard
 
 
 class DashboardWebserverMixin(MixinMeta):

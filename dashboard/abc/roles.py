@@ -3,10 +3,11 @@ from redbot.core.utils.chat_formatting import box, humanize_list, inline
 import discord
 
 from dashboard.abc.abc import MixinMeta
-from dashboard.abc.mixin import dashboard
+from dashboard.abc.mixin import DBMixin
 
 from dashboard.baserpc import HUMANIZED_PERMISSIONS
 
+dashboard = DBMixin.dashboard
 
 class DashboardRolesMixin(MixinMeta):
     @checks.guildowner()

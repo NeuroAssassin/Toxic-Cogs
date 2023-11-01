@@ -58,10 +58,21 @@ class Maintenance(commands.Cog):
             "delete": 3,
             "scheduledmaintenance": [],
         }
-        # When on maintenance, on will be set to [True, second of when it is off maintenance, list of people who can bypass the maintenance]
+        # When on maintenance, on will be set to [True, second of when it is off maintenance or True if it's planned to end after bot restart, list of people who can bypass the maintenance]
         self.conf.register_global(**default_global)
         self.bot.add_check(self.this_check)
-        self.task = self.bot.loop.create_task(self.bg_loop())
+        self.task = None
+
+    async def cog_load(self):
+        # disable maintenance scheduled to end after restart,
+        # if the cog was loaded during bot startup
+        if not self.bot.is_ready():
+            on = await self.conf.on()
+            if on[0] and on[1] is True:
+                await self.conf.on.set([False, 0, []])
+
+    async def initialize(self):
+        self.task = asyncio.create_task(self.bg_loop())
 
     @listener()
     async def on_command_error(self, ctx, error):
@@ -73,11 +84,9 @@ class Maintenance(commands.Cog):
                 await ctx.send(error)
 
     def cog_unload(self):
-        self.__unload()
-
-    def __unload(self):
         self.bot.remove_check(self.this_check)
-        self.task.cancel()
+        if self.task is not None:
+            self.task.cancel()
 
     async def red_delete_data_for_user(
         self,
@@ -121,7 +130,10 @@ class Maintenance(commands.Cog):
         on = await self.conf.on()
         if not on[0]:
             return True
-        if on[1] <= time.time() and on[1] != 0:
+        if on[1] is True:
+            # maintenance will be disabled after restart
+            pass
+        elif on[1] != 0 and on[1] <= time.time():
             setting = [False, 0, []]
             await self.conf.on.set(setting)
             return True
@@ -145,6 +157,7 @@ class Maintenance(commands.Cog):
             --start-in: Makes the maintenace start in that long.
             --end-in: Schedules the maintenance to end in that long from the current second.
             --end-after: Schedules the maintenance to end in that long after the maitenance has started.
+            --end-after-restart: Schedules the maintenance to end after bot restart.
             --whitelist: Provide user IDs after this to whitelist people from the maintenance.
 
         Examples:
@@ -165,8 +178,8 @@ class Maintenance(commands.Cog):
         else:
             num = 0
             whitelist = []
-            start = time.time()
-        if start == time.time():
+            start = None
+        if start is None:
             setting = [True, num, whitelist]
             await self.conf.on.set(setting)
         else:
@@ -195,7 +208,9 @@ class Maintenance(commands.Cog):
                     sending += "    • " + starting
                 sending += "```"
             return await ctx.send(sending)
-        if on[1] != 0:
+        if on[1] is True:
+            done = "after bot restart"
+        elif on[1] != 0:
             done = str(datetime.fromtimestamp(on[1]).strftime("%A, %B %d, %Y %I:%M:%S"))
             done = "on " + done
         else:
